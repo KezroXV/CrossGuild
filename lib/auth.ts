@@ -20,14 +20,18 @@ export const {
   },
   callbacks: {
     async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+      if (session.user) {
+        const user = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { isAdmin: true },
+        });
+        session.user.isAdmin = user?.isAdmin ?? false;
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.sub = user.id;
+        token.isAdmin = user.isAdmin;
       }
       return token;
     },

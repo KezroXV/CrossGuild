@@ -1,3 +1,5 @@
+import { HeroSection } from "@/components/HeroSection";
+import { Navbar } from "@/components/navbar";
 import { auth } from "@/lib/auth";
 import Image from "next/image";
 
@@ -6,6 +8,8 @@ export default async function Home() {
 
   return (
     <div className="p-4">
+      <Navbar />
+      <HeroSection></HeroSection>
       {session ? (
         <div className="space-y-2">
           <p className="text-lg">Logged in as {session.user?.email}</p>
