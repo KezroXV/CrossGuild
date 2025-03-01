@@ -130,7 +130,7 @@ const CategoriesPage = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Categories</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog>
           <DialogTrigger asChild>
             <Button>Add Category</Button>
           </DialogTrigger>
@@ -146,7 +146,7 @@ const CategoriesPage = () => {
         </Dialog>
       </div>
 
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>

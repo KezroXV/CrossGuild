@@ -88,101 +88,103 @@ export function AdminSidebar() {
   };
 
   return (
-    <Sidebar
-      variant="inset"
-      className={cn(
-        "border-r transition-all duration-300",
-        !open ? "w-[60px]" : "w-[240px]"
-      )}
-      open={open}
-      onOpenChange={handleSidebarChange}
-    >
-      <SidebarHeader className="border-b px-3 py-4">
-        <div className="flex items-center justify-between">
-          <h2
-            className={cn(
-              "text-lg font-semibold tracking-tight transition-all",
-              !open && "opacity-0 w-0"
-            )}
-          >
-            Admin Panel
-          </h2>
-          <SidebarTrigger className="h-8 w-8" />
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="px-2">
-        <SidebarMenu>
-          {adminNavItems?.map((item) => (
-            <SidebarMenuItem key={item.href}>
+    <>
+      <SidebarTrigger className="h-8 w-8 fixed top-4 right-4 z-50" />
+      <Sidebar
+        variant="inset"
+        className={cn(
+          "border-r transition-all duration-300",
+          !open ? "w-[60px]" : "w-[240px]"
+        )}
+        open={open}
+        onOpenChange={handleSidebarChange}
+      >
+        <SidebarHeader className="border-b px-3 py-4">
+          <div className="flex items-center justify-between">
+            <h2
+              className={cn(
+                "text-lg font-semibold tracking-tight transition-all",
+                !open && "opacity-0 w-0"
+              )}
+            >
+              Admin Panel
+            </h2>
+          </div>
+        </SidebarHeader>
+        <SidebarContent className="px-2">
+          <SidebarMenu>
+            {adminNavItems?.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  tooltip={!open ? item.title : undefined}
+                  className={cn(
+                    "w-full gap-2",
+                    !open ? "justify-center px-2" : "justify-start px-3"
+                  )}
+                >
+                  <Link href={item.href}>
+                    {item.icon}
+                    <span
+                      className={cn(
+                        "font-medium transition-all",
+                        !open && "w-0 opacity-0 hidden"
+                      )}
+                    >
+                      {item.title}
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+            <SidebarMenuItem>
               <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={!open ? item.title : undefined}
+                variant="outline"
+                tooltip={!open ? "Logout" : undefined}
                 className={cn(
-                  "w-full gap-2",
+                  "mt-4 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive",
                   !open ? "justify-center px-2" : "justify-start px-3"
                 )}
+                onClick={handleLogout}
               >
-                <Link href={item.href}>
-                  {item.icon}
-                  <span
-                    className={cn(
-                      "font-medium transition-all",
-                      !open && "w-0 opacity-0 hidden"
-                    )}
-                  >
-                    {item.title}
-                  </span>
-                </Link>
+                <LogOut className="h-4 w-4" />
+                <span
+                  className={cn(
+                    "font-medium transition-all",
+                    !open && "w-0 opacity-0 hidden"
+                  )}
+                >
+                  Logout
+                </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              variant="outline"
-              tooltip={!open ? "Logout" : undefined}
-              className={cn(
-                "mt-4 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive",
-                !open ? "justify-center px-2" : "justify-start px-3"
-              )}
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4" />
-              <span
-                className={cn(
-                  "font-medium transition-all",
-                  !open && "w-0 opacity-0 hidden"
-                )}
-              >
-                Logout
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="border-t p-3">
-        <div
-          className={cn(
-            "flex items-center gap-3 transition-all",
-            !open && "justify-center"
-          )}
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={session?.user?.image || ""} />
-            <AvatarFallback>
-              {session?.user?.name?.slice(0, 2).toUpperCase() || "AD"}
-            </AvatarFallback>
-          </Avatar>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter className="border-t p-3">
           <div
-            className={cn("flex flex-col transition-all", !open && "hidden")}
+            className={cn(
+              "flex items-center gap-3 transition-all",
+              !open && "justify-center"
+            )}
           >
-            <p className="text-sm font-medium leading-none">
-              {session?.user?.name || "Loading..."}
-            </p>
-            <p className="text-xs text-muted-foreground">Administrator</p>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={session?.user?.image || ""} />
+              <AvatarFallback>
+                {session?.user?.name?.slice(0, 2).toUpperCase() || "AD"}
+              </AvatarFallback>
+            </Avatar>
+            <div
+              className={cn("flex flex-col transition-all", !open && "hidden")}
+            >
+              <p className="text-sm font-medium leading-none">
+                {session?.user?.name || "Loading..."}
+              </p>
+              <p className="text-xs text-muted-foreground">Administrator</p>
+            </div>
           </div>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+        </SidebarFooter>
+      </Sidebar>
+    </>
   );
 }

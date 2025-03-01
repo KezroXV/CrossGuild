@@ -281,7 +281,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      className={cn("h-7 w-7 fixed top-4 left-4 z-50", className)} // Ajout de classes pour rendre le bouton toujours visible
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
