@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -63,6 +64,7 @@ const ProductsPage = () => {
       const response = await axios.get("/api/admin/products");
       setProducts(response.data.products);
     } catch (error) {
+      toast.error("Failed to fetch products");
       setError("Failed to fetch products");
     }
   };
@@ -72,6 +74,7 @@ const ProductsPage = () => {
       const response = await axios.get("/api/admin/categories");
       setCategories(response.data.categories);
     } catch (error) {
+      toast.error("Failed to fetch categories");
       setError("Failed to fetch categories");
     }
   };
@@ -80,6 +83,7 @@ const ProductsPage = () => {
     e.preventDefault();
     try {
       await axios.post("/api/admin/products", formData);
+      toast.success("Product created successfully");
       setIsOpen(false);
       fetchProducts();
       setFormData({
@@ -91,6 +95,7 @@ const ProductsPage = () => {
         images: [],
       });
     } catch (error) {
+      toast.error("Failed to create product");
       setError("Failed to create product");
     }
   };
@@ -115,6 +120,7 @@ const ProductsPage = () => {
         id: editingProduct?.id,
         ...formData,
       });
+      toast.success("Product updated successfully");
       setIsEditOpen(false);
       fetchProducts();
       setFormData({
@@ -127,6 +133,7 @@ const ProductsPage = () => {
       });
       setEditingProduct(null);
     } catch (error) {
+      toast.error("Failed to update product");
       setError("Failed to update product");
     }
   };
@@ -134,8 +141,10 @@ const ProductsPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await axios.delete("/api/admin/products", { data: { id } });
+      toast.success("Product deleted successfully");
       fetchProducts();
     } catch (error) {
+      toast.error("Failed to delete product");
       setError("Failed to delete product");
     }
   };
@@ -143,18 +152,23 @@ const ProductsPage = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await axios.post("/api/upload", formData);
-        return response.data.url;
-      });
+      try {
+        const uploadPromises = Array.from(files).map(async (file) => {
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await axios.post("/api/upload", formData);
+          return response.data.url;
+        });
 
-      const urls = await Promise.all(uploadPromises);
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, ...urls],
-      }));
+        const urls = await Promise.all(uploadPromises);
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...urls],
+        }));
+        toast.success("Images uploaded successfully");
+      } catch (error) {
+        toast.error("Failed to upload images");
+      }
     }
   };
 

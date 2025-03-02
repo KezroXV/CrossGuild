@@ -90,6 +90,7 @@ model Item {
   cartId      String?
   cart        Cart?    @relation(fields: [cartId], references: [id])
   categories  Category[]
+  reviews     Review[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -108,6 +109,8 @@ model Review {
   rating    Int
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
   createdAt DateTime @default(now())
 }
 

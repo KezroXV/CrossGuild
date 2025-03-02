@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -47,6 +48,7 @@ const CategoriesPage = () => {
       const response = await axios.get("/api/admin/categories");
       setCategories(response.data.categories);
     } catch (error) {
+      toast.error("Failed to fetch categories");
       setError("Failed to fetch categories");
     }
   };
@@ -55,11 +57,12 @@ const CategoriesPage = () => {
     e.preventDefault();
     try {
       const response = await axios.post("/api/admin/categories", formData);
+      toast.success("Category created successfully");
       setCategories([...categories, response.data.category]);
       setIsOpen(false);
       setFormData({ name: "", description: "" });
     } catch (error) {
-      setError("Failed to add category");
+      toast.error("Failed to create category");
     }
   };
 
@@ -79,6 +82,7 @@ const CategoriesPage = () => {
         id: editingCategory?.id,
         ...formData,
       });
+      toast.success("Category updated successfully");
       setCategories(
         categories.map((cat) =>
           cat.id === editingCategory?.id ? response.data.category : cat
@@ -88,6 +92,7 @@ const CategoriesPage = () => {
       setFormData({ name: "", description: "" });
       setEditingCategory(null);
     } catch (error) {
+      toast.error("Failed to update category");
       setError("Failed to update category");
     }
   };
@@ -95,42 +100,19 @@ const CategoriesPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await axios.delete("/api/admin/categories", { data: { id } });
+      toast.success("Category deleted successfully");
       setCategories(categories.filter((category) => category.id !== id));
     } catch (error) {
+      toast.error("Failed to delete category");
       setError("Failed to delete category");
     }
   };
-
-  const CategoryForm = ({
-    onSubmit,
-    buttonText,
-  }: {
-    onSubmit: (e: React.FormEvent) => Promise<void>;
-    buttonText: string;
-  }) => (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        placeholder="Name"
-        value={formData.name}
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        required
-      />
-      <Textarea
-        placeholder="Description"
-        value={formData.description}
-        onChange={(e) =>
-          setFormData({ ...formData, description: e.target.value })
-        }
-      />
-      <Button type="submit">{buttonText}</Button>
-    </form>
-  );
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Categories</h1>
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>Add Category</Button>
           </DialogTrigger>
@@ -138,20 +120,51 @@ const CategoriesPage = () => {
             <DialogHeader>
               <DialogTitle>Add New Category</DialogTitle>
             </DialogHeader>
-            <CategoryForm
-              onSubmit={handleSubmit}
-              buttonText="Create Category"
-            />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                placeholder="Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                required
+              />
+              <Textarea
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+              <Button type="submit">Create Category</Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Dialog>
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
-          <CategoryForm onSubmit={handleUpdate} buttonText="Update Category" />
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <Input
+              placeholder="Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              required
+            />
+            <Textarea
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+            />
+            <Button type="submit">Update Category</Button>
+          </form>
         </DialogContent>
       </Dialog>
 
