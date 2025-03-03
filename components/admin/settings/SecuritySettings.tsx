@@ -45,7 +45,7 @@ export function SecuritySettings() {
           control={form.control}
           name="twoFactorAuth"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row border-primary border-2 items-center justify-between rounded-lg  p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">
                   Authentification à deux facteurs
@@ -82,7 +82,7 @@ export function SecuritySettings() {
           control={form.control}
           name="requireStrongPassword"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border-primary border-2 p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">
                   Mots de passe forts requis

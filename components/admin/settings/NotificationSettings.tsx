@@ -43,7 +43,7 @@ export function NotificationSettings() {
           control={form.control}
           name="emailNotifications"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border-primary border-2 p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">
                   Notifications par email
@@ -66,7 +66,7 @@ export function NotificationSettings() {
           control={form.control}
           name="pushNotifications"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border-primary border-2 p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Notifications push</FormLabel>
                 <FormDescription>
