@@ -88,8 +88,13 @@ export function AdminSidebar() {
   };
 
   return (
-    <>
-      <SidebarTrigger className="h-8 w-8 fixed top-4 right-4 z-50" />
+    <div className="relative">
+      <SidebarTrigger
+        className={cn(
+          "absolute right-[-40px] top-4 z-50 h-8 w-8",
+          "hover:bg-accent/50"
+        )}
+      />
       <Sidebar
         variant="inset"
         className={cn(
@@ -99,8 +104,8 @@ export function AdminSidebar() {
         open={open}
         onOpenChange={handleSidebarChange}
       >
-        <SidebarHeader className="border-b px-3 py-4">
-          <div className="flex items-center justify-between">
+        <SidebarHeader className="border-b">
+          <div className="flex items-center px-2 py-4">
             <h2
               className={cn(
                 "text-lg font-semibold tracking-tight transition-all",
@@ -185,6 +190,6 @@ export function AdminSidebar() {
           </div>
         </SidebarFooter>
       </Sidebar>
-    </>
+    </div>
   );
 }
