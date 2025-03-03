@@ -2,15 +2,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,8 +13,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface Review {
   id: string;
@@ -27,8 +22,10 @@ interface Review {
   rating: number;
   userId: string;
   itemId: string;
+  createdAt: string;
   user: {
     name: string;
+    image: string | null;
   };
   item: {
     name: string;
@@ -91,7 +88,7 @@ export default function ReviewsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className=" p-6 max-w-[80%]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Reviews Management</h1>
         <Button
@@ -105,52 +102,51 @@ export default function ReviewsPage() {
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Content</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead>User</TableHead>
-            <TableHead>Product</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {reviews.map((review) => (
-            <TableRow key={review.id}>
-              <TableCell>{review.content}</TableCell>
-              <TableCell>{review.rating}</TableCell>
-              <TableCell>{review.user.name}</TableCell>
-              <TableCell>{review.item.name}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setCurrentReview(review);
-                      setFormData({
-                        content: review.content,
-                        rating: review.rating,
-                        userId: review.userId,
-                        itemId: review.itemId,
-                      });
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(review.id)}
-                  >
-                    Delete
-                  </Button>
+      <div className="grid gap-4">
+        {reviews.map((review) => (
+          <Card key={review.id} className="p-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage src={review.user.image || undefined} />
+                    <AvatarFallback>
+                      {review.user.name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{review.user.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(review.id)}
+                >
+                  Delete
+                </Button>
+              </div>
+              <div>
+                <div className="flex items-center space-x-1 mb-2">
+                  {[...Array(review.rating)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                    />
+                  ))}
+                </div>
+                <p className="text-sm">{review.content}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Product: {review.item.name}
+                </p>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>

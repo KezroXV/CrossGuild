@@ -7,10 +7,11 @@ export async function GET(request: Request) {
   try {
     const reviews = await prisma.review.findMany({
       include: {
-        items: true,
+        item: true,
+        user: true,
       },
     });
-    return NextResponse.json({ reviews }, { status: 200 });
+    return NextResponse.json({ reviews: reviews || [] });
   } catch (error) {
     console.error("Error retrieving reviews:", error);
     return NextResponse.json(

@@ -122,7 +122,7 @@ export default function AdminDashboard() {
         <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">New Customers</h2>
           <div className="space-y-4">
-            {stats?.newUsers.map((user) => (
+            {stats?.newUsers.slice(0, 3).map((user) => (
               <div key={user.id} className="flex items-center space-x-4">
                 <Avatar>
                   <AvatarImage src={user.image || undefined} />
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
         <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">Recent Reviews</h2>
           <div className="space-y-4">
-            {stats?.recentReviews.map((review) => (
+            {stats?.recentReviews.slice(0, 3).map((review) => (
               <div key={review.id} className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
