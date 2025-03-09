@@ -1,31 +1,20 @@
 import { HeroSection } from "@/components/HeroSection";
 import { Navbar } from "@/components/navbar";
+import Reviews from "@/components/reviews";
+import { TopSellingGamingGear } from "@/components/TopSellingGamingGear";
 import { auth } from "@/lib/auth";
 import Image from "next/image";
-
+import Offres from "@/components/offres";
 export default async function Home() {
   const session = await auth();
 
   return (
-    <div className="p-4">
+    <div className="pt-4">
       <Navbar />
-      <HeroSection></HeroSection>
-      {session ? (
-        <div className="space-y-2">
-          <p className="text-lg">Logged in as {session.user?.email}</p>
-          {session.user?.image && (
-            <Image
-              src={session.user.image}
-              alt="Profile"
-              width={50}
-              height={50}
-              className="rounded-full"
-            />
-          )}
-        </div>
-      ) : (
-        <p className="text-lg">Not logged in</p>
-      )}
+      <HeroSection />
+      <TopSellingGamingGear></TopSellingGamingGear>
+      <Reviews />
+      <Offres />
     </div>
   );
 }

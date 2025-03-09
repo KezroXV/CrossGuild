@@ -93,6 +93,7 @@ model Item {
   reviews     Review[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  topSelling  Int      @default(0) // Changed to number to indicate top-selling rank
 }
 
 model Image {

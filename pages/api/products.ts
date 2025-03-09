@@ -19,7 +19,6 @@ export default async function handler(
         return { ...product, rating };
       });
 
-      console.log("Top-selling products:", productsWithRating); // Debug log
       res.status(200).json(productsWithRating);
     } catch (error) {
       console.error("Error retrieving top-selling products:", error); // Debug log
