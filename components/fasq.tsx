@@ -69,8 +69,8 @@ const Faqs = () => {
                 {item === 1
                   ? "WHAT MAKES YOUR STORE DIFFERENT FROM OTHERS?"
                   : item === 2
-                  ? "IS THERE A FREE TRIAL?"
-                  : "CAN I CANCEL MY SUBSCRIPTION ANYTIME?"}
+                  ? "HOW LONG DOES SHIPPING TAKE?"
+                  : "WHAT'S YOUR RETURN POLICY?"}
                 <Image
                   src={arrow}
                   alt="arrow"
@@ -83,8 +83,8 @@ const Faqs = () => {
                 {item === 1
                   ? "Our AI leverages advanced algorithms to ensure relevance and creativity."
                   : item === 2
-                  ? "Yes, we offer a free trial so you can explore some features of IdeateAI."
-                  : "Absolutely! You can cancel your subscription anytime without any hidden fees."}
+                  ? " Shipping takes 3 to 7 business days for standard delivery and 1 to 3 business days for express shipping, with a tracking number provided upon dispatch."
+                  : "You can return an unused item in its original packaging within 14 days of receipt, with potential return shipping fees depending on the reason; contact our support team with your order number to initiate a return."}
               </AccordionContent>
             </AccordionItem>
           </motion.div>

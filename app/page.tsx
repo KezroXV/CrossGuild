@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import Image from "next/image";
 import Offres from "@/components/offres";
 import Faqs from "@/components/fasq";
+import Footer from "@/components/footer";
 export default async function Home() {
   const session = await auth();
 
@@ -17,6 +18,7 @@ export default async function Home() {
       <Reviews />
       <Offres />
       <Faqs />
+      <Footer />
     </div>
   );
 }

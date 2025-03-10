@@ -81,3 +81,25 @@
     background-color: #f9f8fb;
   }
 }
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px; /* Ajouté pour les barres de défilement horizontales */
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #988ae6, #6047ec);
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #988ae6, #6047ec);
+}

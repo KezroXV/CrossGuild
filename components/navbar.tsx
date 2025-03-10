@@ -5,15 +5,30 @@ import { ShoppingCart, Heart, Menu } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logo from "@/public/CrossGuild.svg";
 
 export const Navbar = () => {
   const { data: session } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
-    <nav className="fixed w-full  bg-#F9F8FB backdrop-blur-sm">
+    <nav
+      className={`fixed w-full z-50 backdrop-blur-sm transition-shadow ${
+        isScrolled ? "shadow-lg bg-opacity-90" : "bg-opacity-50"
+      }`}
+    >
       <div className="max-w-7xl flex items-center justify-center mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Desktop Navigation */}

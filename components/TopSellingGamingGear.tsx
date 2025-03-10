@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -17,6 +18,11 @@ interface Product {
   rating: number;
   images: { url: string }[];
 }
+
+const slideFromBottom = {
+  hidden: { opacity: 0, y: 100 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export const TopSellingGamingGear = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -51,53 +57,62 @@ export const TopSellingGamingGear = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.length === 0 ? (
-            <p>No top-selling products available.</p>
+            <p></p>
           ) : (
             products.map((product) => (
-              <Card key={product.id} className="text-center border-4 shadow-md">
-                <CardHeader className="pb-0">
-                  <div className="h-48  flex items-center justify-center">
-                    <Image
-                      src={product.images[0]?.url || "/path/to/default.jpg"}
-                      alt={product.name}
-                      width={200}
-                      height={200}
-                      className="object-contain"
-                    />
-                  </div>
-                  <CardTitle className="text-xl text-left font-semibold">
-                    {product.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 pl-6 text-left">
-                  <div className="flex justify-left items-center my-2">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <span
-                        key={i}
-                        className={`text-xl ${
-                          i < product.rating
-                            ? "text-secondary"
-                            : "text-gray-300"
-                        }`}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-lg font-bold">{product.price}€</p>
-                </CardContent>
-                <CardFooter className="mt-4 flex justify-center gap-2">
-                  <Button className="bg-accent px-4 py-2 text-sm shadow-md">
-                    Buy Now
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="px-4 py-2 border-primary border-2 text-sm shadow-md"
-                  >
-                    Learn More
-                  </Button>
-                </CardFooter>
-              </Card>
+              <motion.div
+                key={product.id}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={slideFromBottom}
+                transition={{ duration: 0.5 }}
+              >
+                <Card className="text-center border-4 shadow-md">
+                  <CardHeader className="pb-0">
+                    <div className="h-48 flex items-center justify-center">
+                      <Image
+                        src={product.images[0]?.url || "/path/to/default.jpg"}
+                        alt={product.name}
+                        width={200}
+                        height={200}
+                        className="object-contain"
+                      />
+                    </div>
+                    <CardTitle className="text-xl text-left font-semibold">
+                      {product.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 pl-6 text-left">
+                    <div className="flex justify-left items-center my-2">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span
+                          key={i}
+                          className={`text-xl ${
+                            i < product.rating
+                              ? "text-secondary"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-lg font-bold">{product.price}€</p>
+                  </CardContent>
+                  <CardFooter className="mt-4 flex justify-center gap-2">
+                    <Button className="bg-accent px-4 py-2 text-sm shadow-md">
+                      Buy Now
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="px-4 py-2 border-primary border-2 text-sm shadow-md"
+                    >
+                      Learn More
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
             ))
           )}
         </div>
