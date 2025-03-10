@@ -5,6 +5,7 @@ import { TopSellingGamingGear } from "@/components/TopSellingGamingGear";
 import { auth } from "@/lib/auth";
 import Image from "next/image";
 import Offres from "@/components/offres";
+import Faqs from "@/components/fasq";
 export default async function Home() {
   const session = await auth();
 
@@ -15,6 +16,7 @@ export default async function Home() {
       <TopSellingGamingGear></TopSellingGamingGear>
       <Reviews />
       <Offres />
+      <Faqs />
     </div>
   );
 }

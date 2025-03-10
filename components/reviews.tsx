@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Marquee from "./magicui/marquee";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface Review {
   id: string;
@@ -21,20 +22,20 @@ const ReviewCard = ({
   content,
   rating,
 }: {
-  user: { name: string; profilePhoto: string };
+  user: { name: string; image: string };
   content: string;
   rating: number;
 }) => {
   return (
-    <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl border border-purple-500 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white ">
+    <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white ">
       <div className="absolute inset-0 rounded-xl border-gradient1"></div>
       <div className="relative flex flex-row items-center gap-2">
-        <img
+        <Image
           className="rounded-full"
           width="32"
           height="32"
           alt=""
-          src={user.profilePhoto}
+          src={user.image}
         />
         <div className="flex flex-col">
           <figcaption className="text-sm font-medium dark:text-black">
@@ -76,8 +77,8 @@ export default function Reviews() {
 
   return (
     <div className="mt-28 max-w-5/6 mx-auto">
-      <h2 className="text-4xl text-purple-500 font-bold tracking-widest text-center">
-        What Our <span className="text-purple-700">Customers Say</span>
+      <h2 className="text-4xl text-black font-bold ml-48 w-fit text-left">
+        What Our <span className="text-accent">Customers Say</span>
       </h2>
       <div className="relative flex bg-gray-100 mt-8 mb-12 w-full flex-col items-center justify-center overflow-hidden">
         <Marquee pauseOnHover className="[--duration:20s]">

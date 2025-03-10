@@ -43,7 +43,7 @@ export const TopSellingGamingGear = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">
-            Top-Selling <span className="text-purple-500">Gaming Gear</span>
+            Top-Selling <span className="text-accent">Gaming Gear</span>
           </h2>
           <a href="#" className="text-accent hover:underline">
             See More
@@ -54,7 +54,7 @@ export const TopSellingGamingGear = () => {
             <p>No top-selling products available.</p>
           ) : (
             products.map((product) => (
-              <Card key={product.id} className="text-center">
+              <Card key={product.id} className="text-center border-4 shadow-md">
                 <CardHeader className="pb-0">
                   <div className="h-48  flex items-center justify-center">
                     <Image
