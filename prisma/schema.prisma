@@ -124,11 +124,12 @@ model VerificationToken {
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String   @unique
+  createdAt   DateTime @default(now())
   description String?
-  items     Item[]
+  image       String?  // URL de l'image de la catégorie
+  items       Item[]
 }
 
 model Role {

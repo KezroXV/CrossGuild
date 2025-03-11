@@ -25,6 +25,7 @@ interface Category {
   id: string;
   name: string;
   description?: string;
+  image?: string;
   createdAt: string;
 }
 
@@ -37,6 +38,7 @@ const CategoriesPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -60,7 +62,7 @@ const CategoriesPage = () => {
       toast.success("Category created successfully");
       setCategories([...categories, response.data.category]);
       setIsOpen(false);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", image: "" });
     } catch (error) {
       toast.error("Failed to create category");
     }
@@ -71,6 +73,7 @@ const CategoriesPage = () => {
     setFormData({
       name: category.name,
       description: category.description || "",
+      image: category.image || "",
     });
     setIsEditOpen(true);
   };
@@ -78,10 +81,11 @@ const CategoriesPage = () => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put("/api/admin/categories", {
+      const data = {
         id: editingCategory?.id,
         ...formData,
-      });
+      };
+      const response = await axios.put("/api/admin/categories", data);
       toast.success("Category updated successfully");
       setCategories(
         categories.map((cat) =>
@@ -89,7 +93,7 @@ const CategoriesPage = () => {
         )
       );
       setIsEditOpen(false);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", image: "" });
       setEditingCategory(null);
     } catch (error) {
       toast.error("Failed to update category");
@@ -123,6 +127,7 @@ const CategoriesPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 placeholder="Name"
+                name="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -131,11 +136,40 @@ const CategoriesPage = () => {
               />
               <Textarea
                 placeholder="Description"
+                name="description"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
               />
+              <Input
+                type="file"
+                name="image"
+                accept="image/*"
+                className="cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setFormData({
+                        ...formData,
+                        image: reader.result as string,
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {formData.image && (
+                <div className="relative w-32 h-32">
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="absolute inset-0 w-full h-full object-cover rounded"
+                  />
+                </div>
+              )}
               <Button type="submit">Create Category</Button>
             </form>
           </DialogContent>
@@ -150,6 +184,7 @@ const CategoriesPage = () => {
           <form onSubmit={handleUpdate} className="space-y-4">
             <Input
               placeholder="Name"
+              name="name"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -158,11 +193,40 @@ const CategoriesPage = () => {
             />
             <Textarea
               placeholder="Description"
+              name="description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
             />
+            <Input
+              type="file"
+              name="image"
+              accept="image/*"
+              className="cursor-pointer"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setFormData({
+                      ...formData,
+                      image: reader.result as string,
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            {formData.image && (
+              <div className="relative w-32 h-32">
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  className="absolute inset-0 w-full h-full object-cover rounded"
+                />
+              </div>
+            )}
             <Button type="submit">Update Category</Button>
           </form>
         </DialogContent>
@@ -173,6 +237,7 @@ const CategoriesPage = () => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Created At</TableHead>
@@ -182,6 +247,15 @@ const CategoriesPage = () => {
         <TableBody>
           {categories.map((category) => (
             <TableRow key={category.id}>
+              <TableCell>
+                {category.image && (
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                )}
+              </TableCell>
               <TableCell className="font-medium">{category.name}</TableCell>
               <TableCell>{category.description}</TableCell>
               <TableCell>

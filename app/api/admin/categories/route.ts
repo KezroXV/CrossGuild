@@ -19,14 +19,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { name, description } = await request.json();
+    const { name, description, image } = await request.json();
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    // Create a new category record in the database
     const category = await prisma.category.create({
-      data: { name, description },
+      data: {
+        name,
+        description,
+        image, // stocke directement l'URL de l'image
+      },
     });
 
     return NextResponse.json({ category }, { status: 201 });
@@ -65,7 +68,8 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, name, description } = await request.json();
+    const { id, name, description, image } = await request.json();
+
     if (!id || !name) {
       return NextResponse.json(
         { error: "ID and name are required" },
@@ -75,7 +79,11 @@ export async function PUT(request: Request) {
 
     const category = await prisma.category.update({
       where: { id },
-      data: { name, description },
+      data: {
+        name,
+        description,
+        image,
+      },
     });
 
     return NextResponse.json({ category }, { status: 200 });
