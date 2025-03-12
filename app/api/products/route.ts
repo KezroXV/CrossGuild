@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const isTopSelling = searchParams.get("topSelling") === "true";
   const categoryName = searchParams.get("category");
 
   try {
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const isTopSelling = searchParams.get("topSelling") === "true";
+    // Pour les produits top selling
     if (isTopSelling) {
       const products = await prisma.item.findMany({
         where: {
@@ -53,7 +54,6 @@ export async function GET(request: Request) {
         include: {
           images: true,
           brand: true,
-          reviews: true,
         },
         orderBy: {
           topSelling: "asc",
@@ -61,14 +61,7 @@ export async function GET(request: Request) {
         take: 4,
       });
 
-      const productsWithRating = products.map((product) => ({
-        ...product,
-        rating:
-          product.reviews.reduce((acc, review) => acc + review.rating, 0) /
-            product.reviews.length || 0,
-      }));
-
-      return NextResponse.json({ products: productsWithRating });
+      return NextResponse.json({ products });
     }
 
     return NextResponse.json({ products: [] });

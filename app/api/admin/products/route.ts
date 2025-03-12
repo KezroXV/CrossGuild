@@ -9,7 +9,11 @@ export async function GET(request: Request) {
     const products = await prisma.item.findMany({
       include: {
         images: true,
-        categories: true,
+        category: true,
+        brand: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
     return NextResponse.json({ products }, { status: 200 });
@@ -26,7 +30,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { name, price, quantity, description, categoryIds, images } = data;
+    const { name, price, quantity, description, categoryId, images } = data;
 
     if (!name || !price || !quantity) {
       return NextResponse.json(
@@ -44,16 +48,18 @@ export async function POST(request: Request) {
         quantity: parseInt(quantity),
         description,
         slug,
-        categories: {
-          connect: categoryIds?.map((id: string) => ({ id })) || [],
-        },
+        category: categoryId
+          ? {
+              connect: { id: categoryId },
+            }
+          : undefined,
         images: {
           create: images?.map((url: string) => ({ url })) || [],
         },
       },
       include: {
         images: true,
-        categories: true,
+        category: true,
       },
     });
 
@@ -72,8 +78,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const data = await request.json();
-    const { id, name, price, quantity, description, categoryIds, images } =
-      data;
+    const { id, name, price, quantity, description, categoryId, images } = data;
 
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
@@ -94,11 +99,11 @@ export async function PUT(request: Request) {
       where: { id },
       data: {
         ...updateData,
-        ...(categoryIds && {
-          categories: {
-            set: categoryIds.map((id: string) => ({ id })),
-          },
-        }),
+        category: categoryId
+          ? {
+              connect: { id: categoryId },
+            }
+          : undefined,
         ...(images && {
           images: {
             deleteMany: {},
@@ -108,7 +113,7 @@ export async function PUT(request: Request) {
       },
       include: {
         images: true,
-        categories: true,
+        category: true,
       },
     });
 

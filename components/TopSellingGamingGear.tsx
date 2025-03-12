@@ -35,9 +35,10 @@ export const TopSellingGamingGear = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching top-selling products:", error);
+        setProducts([]);
       }
     };
 
@@ -56,9 +57,7 @@ export const TopSellingGamingGear = () => {
           </a>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.length === 0 ? (
-            <p></p>
-          ) : (
+          {Array.isArray(products) && products.length > 0 ? (
             products.map((product) => (
               <motion.div
                 key={product.id}
@@ -114,6 +113,8 @@ export const TopSellingGamingGear = () => {
                 </Card>
               </motion.div>
             ))
+          ) : (
+            <p></p>
           )}
         </div>
       </div>

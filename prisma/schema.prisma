@@ -76,26 +76,27 @@ model Cart {
 }
 
 model Item {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
   price       Float
   quantity    Int
   description String?
-  sku         String?  @unique // Stock Keeping Unit
-  slug        String   @unique
-  isPublished Boolean  @default(false)
+  sku         String?    @unique // Stock Keeping Unit
+  slug        String     @unique
+  isPublished Boolean    @default(false)
   images      Image[]
   orderId     String?
-  order       Order?   @relation(fields: [orderId], references: [id])
+  order       Order?     @relation(fields: [orderId], references: [id])
   cartId      String?
-  cart        Cart?    @relation(fields: [cartId], references: [id])
-  categories  Category[]
+  cart        Cart?      @relation(fields: [cartId], references: [id])
+  categoryId  String?    // Ajoute l'ID de la catégorie
+  category    Category?  @relation(fields: [categoryId], references: [id]) // Relation Many-to-One
   reviews     Review[]
   brandId     String?
-  brand       Brand?   @relation(fields: [brandId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  topSelling  Int      @default(0) // Changed to number to indicate top-selling rank
+  brand       Brand?     @relation(fields: [brandId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  topSelling  Int        @default(0) // Changed to number to indicate top-selling rank
 }
 
 model Image {
@@ -131,7 +132,7 @@ model Category {
   createdAt   DateTime @default(now())
   description String?
   image       String?  // URL de l'image de la catégorie
-  items       Item[]
+  items       Item[]   // Garde la relation One-to-Many
 }
 
 model Role {

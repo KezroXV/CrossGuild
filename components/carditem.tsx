@@ -1,107 +1,78 @@
-import React from "react";
-import { motion } from "framer-motion";
+"use client";
+
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Button } from "./ui/button";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   images: { url: string }[];
-  rating?: number;
   brand?: { name: string };
   slug: string;
 }
 
 interface CardItemProps {
   product: Product;
-  variant?: "topSelling" | "category" | "search";
+  variant?: "category" | "default";
   showRating?: boolean;
   animate?: boolean;
 }
 
-const slideFromBottom = {
-  hidden: { opacity: 0, y: 100 },
-  visible: { opacity: 1, y: 0 },
-};
-
 const CardItem = ({
   product,
-  variant = "category",
+  variant = "default",
   showRating = false,
-  animate = true,
+  animate = false,
 }: CardItemProps) => {
-  const CardWrapper = animate ? motion.div : "div";
-  const motionProps = animate
-    ? {
-        initial: "hidden",
-        whileInView: "visible",
-        viewport: { once: true },
-        variants: slideFromBottom,
-        transition: { duration: 0.5 },
-      }
-    : {};
-
-  const renderContent = () => (
-    <Card className="text-center border-4 shadow-md">
+  const card = (
+    <Card className="flex flex-col h-full">
       <CardHeader className="pb-0">
-        <div className="relative w-full h-[200px] flex items-center justify-center p-4">
+        <div className="relative w-full h-[200px]">
           <Image
-            src={product.images[0]?.url || "/images/placeholder.jpg"}
+            src={product.images[0]?.url || "/images/placeholder-product.png"}
             alt={product.name}
             fill
-            className="object-contain p-2"
+            className="object-contain"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
         </div>
-        <CardTitle className="text-xl text-left font-semibold truncate">
-          {product.name}
-        </CardTitle>
+        <CardTitle className="text-lg mt-2 truncate">{product.name}</CardTitle>
       </CardHeader>
-      <CardContent className="p-0 pl-6 text-left">
-        {showRating && product.rating && (
-          <div className="flex justify-left items-center my-2">
-            {Array.from({ length: 5 }, (_, i) => (
-              <span
-                key={i}
-                className={`text-xl ${
-                  i < product.rating ? "text-secondary" : "text-gray-300"
-                }`}
-              >
-                ★
-              </span>
-            ))}
-          </div>
+      <CardContent>
+        {product.brand?.name && (
+          <p className="text-sm text-gray-500">{product.brand.name}</p>
         )}
-        <div className="flex flex-col gap-2">
-          <p className="text-lg font-bold">${product.price.toFixed(2)}</p>
-          {product.brand && (
-            <p className="text-sm text-gray-500">{product.brand.name}</p>
-          )}
-        </div>
+        <p className="text-lg font-bold mt-2">{product.price}€</p>
       </CardContent>
-      <CardFooter className="mt-4 flex justify-center gap-2">
-        <Button className="bg-accent px-4 py-2 text-sm shadow-md">
-          {variant === "topSelling" ? "Buy Now" : "Add to Cart"}
-        </Button>
-        <Button
-          variant="outline"
-          className="px-4 py-2 border-primary border-2 text-sm shadow-md"
-        >
-          {variant === "search" ? "View Details" : "Learn More"}
-        </Button>
+      <CardFooter className="mt-auto">
+        <Button className="w-full">View Details</Button>
       </CardFooter>
     </Card>
   );
 
-  return <CardWrapper {...motionProps}>{renderContent()}</CardWrapper>;
+  if (animate) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        {card}
+      </motion.div>
+    );
+  }
+
+  return card;
 };
 
 export default CardItem;

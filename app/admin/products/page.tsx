@@ -35,7 +35,7 @@ interface Product {
   quantity: number;
   description?: string;
   images: { id: string; url: string }[];
-  categories: { id: string; name: string }[];
+  category?: { id: string; name: string };
   brand?: { id: string; name: string };
   brandId?: string;
 }
@@ -53,7 +53,7 @@ const ProductsPage = () => {
     price: "",
     quantity: "",
     description: "",
-    categoryIds: [] as string[],
+    categoryId: "",
     images: [] as string[],
     brandId: "",
   });
@@ -94,22 +94,40 @@ const ProductsPage = () => {
     }
   };
 
+  const closeAddDialog = () => {
+    setFormData({
+      name: "",
+      price: "",
+      quantity: "",
+      description: "",
+      categoryId: "",
+      images: [],
+      brandId: "",
+    });
+    setIsOpen(false);
+  };
+
+  const closeEditDialog = () => {
+    setFormData({
+      name: "",
+      price: "",
+      quantity: "",
+      description: "",
+      categoryId: "",
+      images: [],
+      brandId: "",
+    });
+    setEditingProduct(null);
+    setIsEditOpen(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await axios.post("/api/admin/products", formData);
       toast.success("Product created successfully");
-      setIsOpen(false);
+      closeAddDialog();
       fetchProducts();
-      setFormData({
-        name: "",
-        price: "",
-        quantity: "",
-        description: "",
-        categoryIds: [],
-        images: [],
-        brandId: "",
-      });
     } catch (error) {
       toast.error("Failed to create product");
       setError("Failed to create product");
@@ -123,7 +141,7 @@ const ProductsPage = () => {
       price: product.price.toString(),
       quantity: product.quantity.toString(),
       description: product.description || "",
-      categoryIds: product.categories.map((cat) => cat.id),
+      categoryId: product.category?.id || "",
       images: product.images.map((img) => img.url),
       brandId: product.brand?.id || "",
     });
@@ -138,18 +156,8 @@ const ProductsPage = () => {
         ...formData,
       });
       toast.success("Product updated successfully");
-      setIsEditOpen(false);
+      closeEditDialog();
       fetchProducts();
-      setFormData({
-        name: "",
-        price: "",
-        quantity: "",
-        description: "",
-        categoryIds: [],
-        images: [],
-        brandId: "",
-      });
-      setEditingProduct(null);
     } catch (error) {
       toast.error("Failed to update product");
       setError("Failed to update product");
@@ -233,7 +241,7 @@ const ProductsPage = () => {
           <DialogTrigger asChild>
             <Button>Add Product</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
@@ -271,9 +279,9 @@ const ProductsPage = () => {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <Select
-                    value={formData.categoryIds[0]}
+                    value={formData.categoryId}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, categoryIds: [value] })
+                      setFormData({ ...formData, categoryId: value })
                     }
                   >
                     <SelectTrigger>
@@ -325,7 +333,7 @@ const ProductsPage = () => {
       </div>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
@@ -363,9 +371,9 @@ const ProductsPage = () => {
             <div className="flex gap-4">
               <div className="flex-1">
                 <Select
-                  value={formData.categoryIds[0]}
+                  value={formData.categoryId}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, categoryIds: [value] })
+                    setFormData({ ...formData, categoryId: value })
                   }
                 >
                   <SelectTrigger>
@@ -444,9 +452,7 @@ const ProductsPage = () => {
               <TableCell>{product.name}</TableCell>
               <TableCell>${product.price}</TableCell>
               <TableCell>{product.quantity}</TableCell>
-              <TableCell>
-                {product.categories.map((cat) => cat.name).join(", ")}
-              </TableCell>
+              <TableCell>{product.category?.name || "No Category"}</TableCell>
               <TableCell>{product.brand?.name || "No Brand"}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
