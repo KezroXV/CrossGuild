@@ -91,6 +91,8 @@ model Item {
   cart        Cart?    @relation(fields: [cartId], references: [id])
   categories  Category[]
   reviews     Review[]
+  brandId     String?
+  brand       Brand?   @relation(fields: [brandId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   topSelling  Int      @default(0) // Changed to number to indicate top-selling rank
@@ -137,6 +139,16 @@ model Role {
   name        String   @unique
   permissions String[] // ["MANAGE_PRODUCTS", "MANAGE_CATEGORIES", "MANAGE_USERS", etc.]
   users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  logo        String?  // URL du logo de la marque
+  items       Item[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

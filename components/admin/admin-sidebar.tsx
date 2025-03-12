@@ -47,6 +47,11 @@ const adminNavItems = [
     icon: <FolderTree />,
   },
   {
+    title: "Brands",
+    href: "/admin/brands",
+    icon: <Box />,
+  },
+  {
     title: "Orders",
     href: "/admin/orders",
     icon: <ShoppingCart />,

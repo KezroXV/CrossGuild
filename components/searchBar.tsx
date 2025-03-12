@@ -90,7 +90,7 @@ const SearchBar = () => {
       {/* Dropdown Results */}
       <div
         className={cn(
-          "absolute w-full mt-2 py-2 bg-gray-900/95 backdrop-blur-sm",
+          "absolute w-full mt-2 py-2 bg-white backdrop-blur-sm",
           "rounded-lg border border-gray-700 shadow-lg",
           "transition-all duration-200 z-50",
           "overflow-hidden",
@@ -123,7 +123,7 @@ const SearchBar = () => {
                   </div>
                 )}
                 <div className="flex flex-col min-w-0">
-                  <span className="text-white font-medium truncate">
+                  <span className="text-black font-medium truncate">
                     {product.name}
                   </span>
                   <span className="text-sm text-gray-400">

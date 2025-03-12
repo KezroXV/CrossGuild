@@ -70,16 +70,16 @@ export const TopSellingGamingGear = () => {
               >
                 <Card className="text-center border-4 shadow-md">
                   <CardHeader className="pb-0">
-                    <div className="h-48 flex items-center justify-center">
+                    <div className="relative w-full h-[200px] flex items-center justify-center p-4">
                       <Image
                         src={product.images[0]?.url || "/path/to/default.jpg"}
                         alt={product.name}
-                        width={200}
-                        height={200}
-                        className="object-contain"
+                        fill
+                        className="object-contain p-2"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       />
                     </div>
-                    <CardTitle className="text-xl text-left font-semibold">
+                    <CardTitle className="text-xl text-left font-semibold truncate">
                       {product.name}
                     </CardTitle>
                   </CardHeader>

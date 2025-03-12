@@ -46,12 +46,13 @@ const CategoriesSection = () => {
             className="overflow-hidden shadow-md border-4 cursor-pointer p-4"
           >
             <CardContent className="p-4 flex flex-col items-center">
-              <div className="relative w-[150px] h-[150px] rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-square max-w-[200px]">
                 <Image
                   src={category.image || "/images/placeholder.jpg"}
                   alt={category.name}
                   fill
-                  className="object-cover"
+                  className="object-contain p-2"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 />
               </div>
             </CardContent>

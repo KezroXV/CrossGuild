@@ -31,9 +31,9 @@ const ExclusiveDeals = () => {
       <h1 className="text-4xl font-bold text-accent w-fit ml-48">
         Exclusive Deals <span className="text-black">You Can’t Miss!</span>
       </h1>
-      <div className="flex  w-4/5 mx-auto justify-between my-8">
+      <div className="flex w-4/5 mx-auto justify-between my-8 gap-8">
         <motion.div
-          className="bg-gradient-to-bl shadow-md from-[#988AE6] to-accent flex justify-evenly text-white p-10 rounded-lg relative"
+          className="bg-gradient-to-bl shadow-md from-[#988AE6] to-accent flex flex-1 justify-evenly text-white p-10 rounded-lg relative"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -56,7 +56,7 @@ const ExclusiveDeals = () => {
           <Image src={sale} alt="Sale" className="flex justify-center " />
         </motion.div>
         <motion.div
-          className="bg-gradient-to-br shadow-md from-[#988AE6] to-accent flex justify-evenly text-white p-10 rounded-lg relative"
+          className="bg-gradient-to-br shadow-md from-[#988AE6] to-accent flex flex-1 justify-evenly text-white p-10 rounded-lg relative"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}

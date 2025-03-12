@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Marquee from "./magicui/marquee";
+import { Marquee } from "./magicui/marquee";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -77,6 +77,7 @@ export default function Reviews() {
 
   return (
     <div className="mt-28 max-w-5/6 mx-auto">
+      <div></div>
       <h2 className="text-4xl text-black font-bold ml-48 w-fit text-left">
         What Our <span className="text-accent">Customers Say</span>
       </h2>

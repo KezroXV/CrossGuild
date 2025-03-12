@@ -36,11 +36,14 @@ interface Product {
   description?: string;
   images: { id: string; url: string }[];
   categories: { id: string; name: string }[];
+  brand?: { id: string; name: string };
+  brandId?: string;
 }
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -52,11 +55,13 @@ const ProductsPage = () => {
     description: "",
     categoryIds: [] as string[],
     images: [] as string[],
+    brandId: "",
   });
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchBrands();
   }, []);
 
   const fetchProducts = async () => {
@@ -79,6 +84,16 @@ const ProductsPage = () => {
     }
   };
 
+  const fetchBrands = async () => {
+    try {
+      const response = await axios.get("/api/brands");
+      setBrands(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch brands");
+      setError("Failed to fetch brands");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -93,6 +108,7 @@ const ProductsPage = () => {
         description: "",
         categoryIds: [],
         images: [],
+        brandId: "",
       });
     } catch (error) {
       toast.error("Failed to create product");
@@ -109,6 +125,7 @@ const ProductsPage = () => {
       description: product.description || "",
       categoryIds: product.categories.map((cat) => cat.id),
       images: product.images.map((img) => img.url),
+      brandId: product.brand?.id || "",
     });
     setIsEditOpen(true);
   };
@@ -130,6 +147,7 @@ const ProductsPage = () => {
         description: "",
         categoryIds: [],
         images: [],
+        brandId: "",
       });
       setEditingProduct(null);
     } catch (error) {
@@ -250,22 +268,46 @@ const ProductsPage = () => {
                   setFormData({ ...formData, description: e.target.value })
                 }
               />
-              <Select
-                onValueChange={(value) =>
-                  setFormData({ ...formData, categoryIds: [value] })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category: any) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Select
+                    value={formData.categoryIds[0]}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, categoryIds: [value] })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category: any) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Select
+                    value={formData.brandId}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, brandId: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brands.map((brand: any) => (
+                        <SelectItem key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <Input
                 type="file"
                 multiple
@@ -318,23 +360,46 @@ const ProductsPage = () => {
                 setFormData({ ...formData, description: e.target.value })
               }
             />
-            <Select
-              value={formData.categoryIds[0]}
-              onValueChange={(value) =>
-                setFormData({ ...formData, categoryIds: [value] })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category: any) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Select
+                  value={formData.categoryIds[0]}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, categoryIds: [value] })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category: any) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Select
+                  value={formData.brandId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, brandId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand: any) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <Input
               type="file"
               multiple
@@ -360,6 +425,7 @@ const ProductsPage = () => {
             <TableHead>Price</TableHead>
             <TableHead>Quantity</TableHead>
             <TableHead>Categories</TableHead>
+            <TableHead>Brand</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -381,6 +447,7 @@ const ProductsPage = () => {
               <TableCell>
                 {product.categories.map((cat) => cat.name).join(", ")}
               </TableCell>
+              <TableCell>{product.brand?.name || "No Brand"}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => handleEdit(product)}>
