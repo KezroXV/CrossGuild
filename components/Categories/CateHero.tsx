@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import CateImg from "@/public/CateImg.svg";
 import Image from "next/image";
+import Link from "next/link";
 
 export const HeroSection = () => {
   return (
@@ -30,12 +31,14 @@ export const HeroSection = () => {
 
       {/* Boutons */}
       <div className="mt-6 flex justify-center gap-4">
-        <Button
-          variant="outline"
-          className="px-6 border-2 border-primary text-white py-4 text-lg hover:bg-primary bg-transparent hover:text-white shadow-md"
-        >
-          Explore Categories{" "}
-        </Button>
+        <Link href="#categories">
+          <Button
+            variant="outline"
+            className="px-6 border-2 border-primary text-white py-4 text-lg hover:bg-primary bg-transparent hover:text-white shadow-md"
+          >
+            Explore Categories{" "}
+          </Button>
+        </Link>
       </div>
     </section>
   );

@@ -47,6 +47,21 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      animation: {
+        marquee: "marquee var(--duration, 40s) linear infinite",
+        "marquee-vertical":
+          "marquee-vertical var(--duration, 40s) linear infinite",
+      },
+      keyframes: {
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(calc(-50% - var(--gap)/2))" },
+        },
+        "marquee-vertical": {
+          from: { transform: "translateY(0)" },
+          to: { transform: "translateY(calc(-50% - var(--gap)/2))" },
+        },
+      },
     },
   },
   plugins: [],

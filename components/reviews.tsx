@@ -27,8 +27,8 @@ const ReviewCard = ({
   rating: number;
 }) => {
   return (
-    <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white ">
-      <div className="absolute inset-0 rounded-xl border-gradient1"></div>
+    <figure className="relative  w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white ">
+      <div className="absolute  inset-0 rounded-xl border-gradient1"></div>
       <div className="relative flex flex-row items-center gap-2">
         <Image
           className="rounded-full"
@@ -76,18 +76,18 @@ export default function Reviews() {
   const secondRow = reviews.slice(Math.ceil(reviews.length / 2));
 
   return (
-    <div className="mt-28 max-w-5/6 mx-auto">
-      <div></div>
+    <div className="my-28 mt-28 max-w-5/6 mx-auto">
       <h2 className="text-4xl text-black font-bold ml-48 w-fit text-left">
         What Our <span className="text-accent">Customers Say</span>
       </h2>
-      <div className="relative flex bg-gray-100 mt-8 mb-12 w-full flex-col items-center justify-center overflow-hidden">
-        <Marquee pauseOnHover className="[--duration:20s]">
+      <div className="relative flex flex-col gap-4 py-4">
+        <Marquee className="[--gap:1rem] [--duration:20s]" pauseOnHover>
           {firstRow.map((review) => (
             <ReviewCard key={review.id} {...review} />
           ))}
         </Marquee>
-        <Marquee reverse pauseOnHover className="[--duration:20s]">
+
+        <Marquee className="[--gap:1rem] [--duration:20s]" reverse pauseOnHover>
           {secondRow.map((review) => (
             <ReviewCard key={review.id} {...review} />
           ))}

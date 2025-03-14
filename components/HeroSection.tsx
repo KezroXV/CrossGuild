@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import HeroImg from "@/public/HeroImg.svg";
 import Image from "next/image";
-
+import Link from "next/link";
 export const HeroSection = () => {
   return (
     <section className="relative mt-20 flex flex-col items-center justify-center text-center text-white py-32">
@@ -30,10 +30,12 @@ export const HeroSection = () => {
 
       {/* Boutons */}
       <div className="mt-6 flex justify-center gap-4">
-        <Button className="bg-accent px-6 py-3 text-lg">Shop Now</Button>
+        <Link href="#top-selling">
+          <Button className="bg-accent px-6 py-3 text-lg">Shop Now</Button>
+        </Link>
         <Button
           variant="outline"
-          className="px-6 text-black py-3 text-lg hover:bg-primary hover:text-white border-none"
+          className="px-6 text-white py-3 bg-transparent text-lg hover:bg-primary hover:text-white border-2 border-primary"
         >
           New Arrivals!
         </Button>

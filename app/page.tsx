@@ -11,7 +11,7 @@ export default async function Home() {
   const session = await auth();
 
   return (
-    <div className="pt-4">
+    <div className="pt-1">
       <Navbar />
       <HeroSection />
       <TopSellingGamingGear></TopSellingGamingGear>

@@ -27,7 +27,7 @@ const slideFromBottom = {
 
 const ExclusiveDeals = () => {
   return (
-    <div className="text-left ">
+    <div className="my-28 text-left ">
       <h1 className="text-4xl font-bold text-accent w-fit ml-48">
         Exclusive Deals <span className="text-black">You Can’t Miss!</span>
       </h1>

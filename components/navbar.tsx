@@ -25,12 +25,14 @@ export const Navbar = () => {
 
   return (
     <nav
-      className={`fixed w-full z-50 backdrop-blur-sm transition-shadow ${
-        isScrolled ? "shadow-lg bg-opacity-90" : "bg-opacity-50"
+      className={`fixed w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/80 backdrop-blur-md shadow-sm"
+          : "bg-white/60 backdrop-blur-sm"
       }`}
     >
       <div className="max-w-7xl flex items-center justify-center mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8 px-12">
             <Link

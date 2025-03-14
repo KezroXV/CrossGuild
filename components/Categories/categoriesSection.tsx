@@ -40,7 +40,7 @@ const CategoriesSection = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div id="categories" className="container mx-auto py-8">
       <h1 className="text-2xl font-bold text-accent text-center mb-12">
         Categories
       </h1>

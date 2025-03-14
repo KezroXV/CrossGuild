@@ -17,6 +17,7 @@ interface Product {
   price: number;
   rating: number;
   images: { url: string }[];
+  topSelling: number; // ajout du champ topSelling
 }
 
 const slideFromBottom = {
@@ -30,12 +31,16 @@ export const TopSellingGamingGear = () => {
   useEffect(() => {
     const fetchTopSellingProducts = async () => {
       try {
-        const response = await fetch("/api/products?topSelling=true");
+        const response = await fetch("/api/products?sort=topSelling");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setProducts(Array.isArray(data) ? data : []);
+        // Filtrer pour ne garder que les produits avec topSelling > 0 et trier par ordre décroissant
+        const sortedProducts = data
+          .filter((product: Product) => product.topSelling > 0)
+          .sort((a: Product, b: Product) => b.topSelling - a.topSelling);
+        setProducts(sortedProducts);
       } catch (error) {
         console.error("Error fetching top-selling products:", error);
         setProducts([]);
@@ -46,7 +51,7 @@ export const TopSellingGamingGear = () => {
   }, []);
 
   return (
-    <section className="py-16">
+    <section id="top-selling" className="py-16">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">
@@ -105,7 +110,7 @@ export const TopSellingGamingGear = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="px-4 py-2 border-primary border-2 text-sm shadow-md"
+                      className="px-4 py-2 border-primary hover:text-white border-2 text-sm shadow-md"
                     >
                       Learn More
                     </Button>

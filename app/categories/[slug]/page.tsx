@@ -4,6 +4,9 @@ import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import ItemsCategories from "./itemsCategories";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   params: {
@@ -25,7 +28,6 @@ interface Category {
 
 async function getCategory(slug: string) {
   const formattedName = decodeURIComponent(slug).replace(/-/g, " ");
-  console.log("Searching for category:", formattedName);
 
   const category = await prisma.category.findFirst({
     where: {
@@ -48,16 +50,7 @@ async function getCategory(slug: string) {
     },
   });
 
-  console.log("Raw category data:", JSON.stringify(category, null, 2));
-
   if (!category) notFound();
-
-  // Vérifions si les items sont vraiment vides
-  if (!category.items || category.items.length === 0) {
-    console.log("No items found for category:", formattedName);
-  } else {
-    console.log("Found items:", category.items.length);
-  }
 
   return category;
 }
@@ -69,8 +62,6 @@ export const metadata: Metadata = {
 
 const CategoryPage = async ({ params }: Props) => {
   const category = await getCategory(params.slug);
-
-  console.log("Category data:", category); // Debug log
 
   if (!category || !category.items) {
     return (
@@ -96,7 +87,33 @@ const CategoryPage = async ({ params }: Props) => {
             <p className="text-gray-600 mt-2">{category.description}</p>
           )}
         </div>
-        <ItemsCategories items={category.items} />
+        <div className="flex flex-col md:flex-row gap-8">
+          <aside className="w-full md:w-1/4">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold">Availability</h2>
+              <div className="flex items-center mt-2">
+                <Checkbox id="available" />
+                <label htmlFor="available" className="ml-2">
+                  Available
+                </label>
+              </div>
+              <div className="flex items-center mt-2">
+                <Checkbox id="out-of-stock" />
+                <label htmlFor="out-of-stock" className="ml-2">
+                  Out of stock
+                </label>
+              </div>
+            </div>
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold">Price</h2>
+              <Slider min={0} max={1000} step={10} />
+              <Button className="mt-2">Filter</Button>
+            </div>
+          </aside>
+          <section className="w-full md:w-3/4">
+            <ItemsCategories items={category.items} />
+          </section>
+        </div>
       </main>
       <FooterSection />
     </div>
