@@ -1,7 +1,7 @@
-import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import getServerSession from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
@@ -11,35 +11,33 @@ export async function PATCH(
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return new NextResponse("Non autorisé", { status: 401 });
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const body = await req.json();
     const { orderId } = params;
 
     if (!orderId) {
-      return new NextResponse("Order ID est requis", { status: 400 });
+      return NextResponse.json(
+        { error: "Order ID est requis" },
+        { status: 400 }
+      );
     }
 
     const order = await prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        isPaid: body.isPaid,
-      },
+      where: { id: orderId },
+      data: { isPaid: body.isPaid },
     });
 
-    return NextResponse.json({ order, success: true });
+    return NextResponse.json({ order, success: true }, { status: 200 });
   } catch (error) {
-    console.log("[ORDER_PATCH]", error);
+    console.error("[ORDER_PATCH]", error);
     return NextResponse.json(
-      {
-        error: "Failed to update order",
-        success: false,
-      },
+      { error: "Failed to update order", success: false },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -51,25 +49,28 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return new NextResponse("Non autorisé", { status: 401 });
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { orderId } = params;
 
     if (!orderId) {
-      return new NextResponse("Order ID est requis", { status: 400 });
+      return NextResponse.json(
+        { error: "Order ID est requis" },
+        { status: 400 }
+      );
     }
 
-    const order = await prisma.order.delete({
-      where: {
-        id: orderId,
-      },
+    await prisma.order.delete({
+      where: { id: orderId },
     });
 
-    return NextResponse.json(order);
+    return NextResponse.json({ message: "Order deleted" }, { status: 200 });
   } catch (error) {
-    console.log("[ORDER_DELETE]", error);
-    return new NextResponse("Erreur interne", { status: 500 });
+    console.error("[ORDER_DELETE]", error);
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -81,31 +82,32 @@ export async function GET(
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return new NextResponse("Non autorisé", { status: 401 });
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { orderId } = params;
 
     if (!orderId) {
-      return new NextResponse("Order ID est requis", { status: 400 });
+      return NextResponse.json(
+        { error: "Order ID est requis" },
+        { status: 400 }
+      );
     }
 
     const order = await prisma.order.findUnique({
-      where: {
-        id: orderId,
-      },
+      where: { id: orderId },
       include: {
         orderItems: {
-          include: {
-            product: true,
-          },
+          include: { product: true },
         },
       },
     });
 
-    return NextResponse.json(order);
+    return NextResponse.json(order, { status: 200 });
   } catch (error) {
-    console.log("[ORDER_GET]", error);
-    return new NextResponse("Erreur interne", { status: 500 });
+    console.error("[ORDER_GET]", error);
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
