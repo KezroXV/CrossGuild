@@ -15,8 +15,11 @@ interface CategoryItem {
   id: string;
   name: string;
   price: number;
+  quantity: number;
   images: { url: string }[];
-  brand?: { name: string };
+  brand?: {
+    name: string;
+  };
   slug: string;
   rating?: number;
 }
@@ -82,7 +85,13 @@ const ItemsCategories = ({ items }: ItemsCategoriesProps) => {
                   </span>
                 ))}
               </div>
+              <p className="text-gray-600">{item.brand?.name}</p>
               <p className="text-lg font-bold">{item.price}€</p>
+              <p className="text-sm text-gray-500">
+                {item.quantity > 0
+                  ? `In Stock: ${item.quantity}`
+                  : "Out of Stock"}
+              </p>
             </CardContent>
             <CardFooter className="mt-4 flex justify-center gap-2">
               <Button className="bg-accent px-4 py-2 text-sm shadow-md">

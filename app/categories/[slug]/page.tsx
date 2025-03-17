@@ -20,14 +20,27 @@ interface Category {
   items: Array<{
     id: string;
     name: string;
+    price: number;
     images: Array<{ url: string }>;
-    brand: { name: string };
+    brand?: {
+      name: string;
+    };
     isPublished: boolean;
+    slug: string;
   }>;
 }
 
-async function getCategory(slug: string) {
-  const formattedName = decodeURIComponent(slug).replace(/-/g, " ");
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany();
+  return categories.map((category) => ({
+    slug: category.name.toLowerCase().replace(/ /g, "-"),
+  }));
+}
+
+async function getCategory(categorySlug: string) {
+  if (!categorySlug) return null;
+
+  const formattedName = decodeURIComponent(categorySlug).replace(/-/g, " ");
 
   const category = await prisma.category.findFirst({
     where: {
@@ -42,9 +55,19 @@ async function getCategory(slug: string) {
           isPublished: true,
         },
         include: {
-          images: true,
-          brand: true,
-          category: true,
+          images: {
+            select: {
+              url: true,
+            },
+          },
+          brand: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
@@ -52,7 +75,21 @@ async function getCategory(slug: string) {
 
   if (!category) notFound();
 
-  return category;
+  const formattedCategory = {
+    ...category,
+    items: category.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      images: item.images,
+      brand: item.brand,
+      slug: item.slug,
+      isPublished: item.isPublished,
+    })),
+  };
+
+  return formattedCategory;
 }
 
 export const metadata: Metadata = {
