@@ -97,6 +97,7 @@ model Item {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   topSelling  Int        @default(0) // Changed to number to indicate top-selling rank
+  averageRating Float    @default(0.0) // Nouvelle colonne pour la moyenne des ratings
 }
 
 model Image {
@@ -110,7 +111,7 @@ model Image {
 model Review {
   id        String   @id @default(cuid())
   content   String
-  rating    Int
+  rating    Int // Note donnée par l'utilisateur (1 à 5 par exemple)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   itemId    String

@@ -14,6 +14,7 @@ interface Review {
   };
   item: {
     name: string;
+    averageRating: number;
   };
 }
 
@@ -21,10 +22,12 @@ const ReviewCard = ({
   user,
   content,
   rating,
+  item,
 }: {
   user: { name: string; image: string };
   content: string;
   rating: number;
+  item: { name: string; averageRating: number };
 }) => {
   return (
     <figure className="relative  w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white ">
@@ -47,9 +50,14 @@ const ReviewCard = ({
         </div>
       </div>
       <div className="mt-2 text-sm line-clamp-3">{content}</div>
-      <div className="mt-2 text-sm text-yellow-500">
-        {"★".repeat(rating)}
-        {"☆".repeat(5 - rating)}
+      <div className="mt-2 flex justify-between items-center">
+        <div className="text-sm text-yellow-500">
+          {"★".repeat(rating)}
+          {"☆".repeat(5 - rating)}
+        </div>
+        <div className="text-xs text-gray-500">
+          Average: {item.averageRating.toFixed(1)}/5
+        </div>
       </div>
     </figure>
   );

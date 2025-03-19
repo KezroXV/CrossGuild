@@ -19,7 +19,12 @@ export async function GET(request: Request) {
       },
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json(
+      products.map((product) => ({
+        ...product,
+        slug: product.slug, // Assurez-vous que le slug est inclus
+      }))
+    );
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(

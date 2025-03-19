@@ -16,7 +16,7 @@ export default async function handler(
         const rating =
           product.reviews.reduce((acc, review) => acc + review.rating, 0) /
             product.reviews.length || 0;
-        return { ...product, rating };
+        return { ...product, rating, slug: product.slug }; // Assurez-vous que le slug est inclus
       });
 
       console.log("Top-selling products:", productsWithRating); // Debug log
@@ -28,7 +28,12 @@ export default async function handler(
   } else if (req.method === "GET") {
     try {
       const products = await prisma.item.findMany(); // Corrected model name to 'item'
-      res.status(200).json(products);
+      res.status(200).json(
+        products.map((product) => ({
+          ...product,
+          slug: product.slug, // Assurez-vous que le slug est inclus
+        }))
+      );
     } catch (error) {
       res.status(500).json({ error: "Error retrieving products" });
     }

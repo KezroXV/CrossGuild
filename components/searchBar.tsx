@@ -12,7 +12,7 @@ type Product = {
   name: string;
   price: number;
   images: { url: string }[];
-  slug: string;
+  slug: string; // Assurez-vous que le slug est inclus ici
 };
 
 const SearchBar = () => {

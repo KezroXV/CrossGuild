@@ -23,6 +23,23 @@ export async function GET(request: Request) {
   }
 }
 
+async function updateAverageRating(itemId: string) {
+  const reviews = await prisma.review.findMany({
+    where: { itemId },
+    select: { rating: true },
+  });
+
+  const average =
+    reviews.length > 0
+      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+      : 0;
+
+  await prisma.item.update({
+    where: { id: itemId },
+    data: { averageRating: average },
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -48,6 +65,7 @@ export async function POST(request: Request) {
       },
     });
 
+    await updateAverageRating(itemId);
     return NextResponse.json({ review: newReview }, { status: 201 });
   } catch (error) {
     console.error("Error creating review:", error);
@@ -71,9 +89,18 @@ export async function DELETE(request: Request) {
       );
     }
 
+    const review = await prisma.review.findUnique({
+      where: { id },
+      select: { itemId: true },
+    });
+
     await prisma.review.delete({
       where: { id },
     });
+
+    if (review) {
+      await updateAverageRating(review.itemId);
+    }
 
     return NextResponse.json({ message: "Review deleted" }, { status: 200 });
   } catch (error) {
