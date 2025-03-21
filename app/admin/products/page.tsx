@@ -38,6 +38,11 @@ interface Product {
   category?: { id: string; name: string };
   brand?: { id: string; name: string };
   brandId?: string;
+  options: Array<{
+    id: string;
+    name: string;
+    values: string[];
+  }>;
 }
 
 const ProductsPage = () => {
@@ -56,6 +61,12 @@ const ProductsPage = () => {
     categoryId: "",
     images: [] as string[],
     brandId: "",
+    options: [
+      {
+        name: "",
+        values: [] as string[],
+      },
+    ],
   });
 
   useEffect(() => {
@@ -103,6 +114,12 @@ const ProductsPage = () => {
       categoryId: "",
       images: [],
       brandId: "",
+      options: [
+        {
+          name: "",
+          values: [] as string[],
+        },
+      ],
     });
     setIsOpen(false);
   };
@@ -116,6 +133,12 @@ const ProductsPage = () => {
       categoryId: "",
       images: [],
       brandId: "",
+      options: [
+        {
+          name: "",
+          values: [] as string[],
+        },
+      ],
     });
     setEditingProduct(null);
     setIsEditOpen(false);
@@ -144,6 +167,13 @@ const ProductsPage = () => {
       categoryId: product.category?.id || "",
       images: product.images.map((img) => img.url),
       brandId: product.brand?.id || "",
+      options:
+        product.options && product.options.length > 0
+          ? product.options.map((opt) => ({
+              name: opt.name,
+              values: opt.values,
+            }))
+          : [{ name: "", values: [] }],
     });
     setIsEditOpen(true);
   };
@@ -151,16 +181,18 @@ const ProductsPage = () => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put("/api/admin/products", {
+      await axios.put("/api/admin/products", {
         id: editingProduct?.id,
         ...formData,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
       });
       toast.success("Product updated successfully");
       closeEditDialog();
       fetchProducts();
     } catch (error) {
+      console.error("Error updating product:", error);
       toast.error("Failed to update product");
-      setError("Failed to update product");
     }
   };
 
@@ -202,6 +234,29 @@ const ProductsPage = () => {
     setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
+  const handleOptionChange = (index: number, field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      options: prev.options.map((opt, i) =>
+        i === index ? { ...opt, [field]: value } : opt
+      ),
+    }));
+  };
+
+  const addOption = () => {
+    setFormData((prev) => ({
+      ...prev,
+      options: [...prev.options, { name: "", values: [] }],
+    }));
+  };
+
+  const removeOption = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index),
     }));
   };
 
@@ -316,6 +371,71 @@ const ProductsPage = () => {
                   </Select>
                 </div>
               </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Options</h3>
+                  <Button
+                    type="button"
+                    onClick={addOption}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Add Option
+                  </Button>
+                </div>
+
+                {formData.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className="space-y-2 p-3 bg-gray-50 rounded-lg relative"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Option {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeOption(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder="Option name (e.g., Size, Color)"
+                      value={option.name}
+                      onChange={(e) =>
+                        handleOptionChange(index, "name", e.target.value)
+                      }
+                    />
+                    <Input
+                      placeholder="Values (comma separated)"
+                      value={option.values.join(", ")}
+                      onChange={(e) =>
+                        handleOptionChange(
+                          index,
+                          "values",
+                          e.target.value
+                            .split(",")
+                            .map((v) => v.trim())
+                            .filter((v) => v !== "")
+                        )
+                      }
+                    />
+                    {option.values.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {option.values.map((value, vIndex) => (
+                          <div
+                            key={vIndex}
+                            className="bg-blue-100 px-2 py-1 rounded-full text-sm"
+                          >
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
               <Input
                 type="file"
                 multiple
@@ -408,6 +528,71 @@ const ProductsPage = () => {
                 </Select>
               </div>
             </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Options</h3>
+                <Button
+                  type="button"
+                  onClick={addOption}
+                  variant="outline"
+                  size="sm"
+                >
+                  Add Option
+                </Button>
+              </div>
+
+              {formData.options.map((option, index) => (
+                <div
+                  key={index}
+                  className="space-y-2 p-3 bg-gray-50 rounded-lg relative"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Option {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeOption(index)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="Option name (e.g., Size, Color)"
+                    value={option.name}
+                    onChange={(e) =>
+                      handleOptionChange(index, "name", e.target.value)
+                    }
+                  />
+                  <Input
+                    placeholder="Values (comma separated)"
+                    value={option.values.join(", ")}
+                    onChange={(e) =>
+                      handleOptionChange(
+                        index,
+                        "values",
+                        e.target.value
+                          .split(",")
+                          .map((v) => v.trim())
+                          .filter((v) => v !== "")
+                      )
+                    }
+                  />
+                  {option.values.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {option.values.map((value, vIndex) => (
+                        <div
+                          key={vIndex}
+                          className="bg-secondary/30 px-2 py-1 rounded-full text-sm"
+                        >
+                          {value}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
             <Input
               type="file"
               multiple
@@ -434,6 +619,7 @@ const ProductsPage = () => {
             <TableHead>Quantity</TableHead>
             <TableHead>Categories</TableHead>
             <TableHead>Brand</TableHead>
+            <TableHead>Options</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -454,6 +640,20 @@ const ProductsPage = () => {
               <TableCell>{product.quantity}</TableCell>
               <TableCell>{product.category?.name || "No Category"}</TableCell>
               <TableCell>{product.brand?.name || "No Brand"}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1">
+                  {product.options && product.options.length > 0 ? (
+                    product.options.map((option) => (
+                      <div key={option.id} className="text-xs">
+                        <span className="font-medium">{option.name}:</span>{" "}
+                        {option.values.join(", ")}
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-xs">No options</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => handleEdit(product)}>

@@ -98,6 +98,7 @@ model Item {
   updatedAt   DateTime   @updatedAt
   topSelling  Int        @default(0) // Changed to number to indicate top-selling rank
   averageRating Float    @default(0.0) // Nouvelle colonne pour la moyenne des ratings
+  options     ItemOption[]
 }
 
 model Image {
@@ -153,4 +154,12 @@ model Brand {
   items       Item[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ItemOption {
+  id          String   @id @default(cuid())
+  name        String   // ex: "Size" or "Color"
+  values      String[] // ex: ["S", "M", "L"] or ["Red", "Blue", "Black"]
+  itemId      String
+  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }

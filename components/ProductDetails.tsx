@@ -1,9 +1,26 @@
 "use client";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Star, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
+
+interface ProductOption {
+  id: string;
+  name: string;
+  values: string[];
+}
+
+interface ProductVariant {
+  id: string;
+  sku: string;
+  price: number;
+  quantity: number;
+  options: Array<{
+    optionId: string;
+    value: string;
+  }>;
+}
 
 interface ProductDetailsProps {
   product: {
@@ -18,23 +35,45 @@ interface ProductDetailsProps {
     category?: {
       name: string;
     };
-    reviews: Array<{
+    reviews?: Array<{
       rating: number;
+    }>;
+    options: Array<{
+      id: string;
+      name: string;
+      values: string[];
     }>;
   };
 }
 
 const ProductDetails = ({ product }: ProductDetailsProps) => {
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [startIndex, setStartIndex] = useState(0);
   const [scale, setScale] = useState(1);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLDivElement>(null);
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >({});
 
-  const handleColorSelect = (color: string) => {
-    setSelectedColor(color);
+  useEffect(() => {
+    if (product.options && product.options.length > 0) {
+      const defaultOptions: Record<string, string> = {};
+      product.options.forEach((option) => {
+        if (option.values.length > 0) {
+          defaultOptions[option.id] = option.values[0];
+        }
+      });
+      setSelectedOptions(defaultOptions);
+    }
+  }, [product.options]);
+
+  const handleOptionSelect = (optionId: string, value: string) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [optionId]: value,
+    }));
   };
 
   const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +110,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
   };
 
   const averageRating =
-    product.reviews.length > 0
+    product.reviews && product.reviews.length > 0
       ? product.reviews.reduce((acc, review) => acc + review.rating, 0) /
         product.reviews.length
       : 0;
@@ -154,23 +193,27 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
           </nav>
           <h1 className="text-3xl font-bold">{product.name}</h1>
           <div className="flex items-center mt-2">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Star
-                key={index}
-                className={`h-5 w-5 ${
-                  index < Math.round(averageRating)
-                    ? "text-yellow-500 fill-yellow-500"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
-            <span className="ml-2 text-gray-600">
-              {averageRating.toFixed(1)}
-            </span>
-            <span className="ml-2 text-gray-600">
-              ({product.reviews.length} rating
-              {product.reviews.length !== 1 ? "s" : ""})
-            </span>
+            {product.reviews && product.reviews.length > 0 && (
+              <>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star
+                    key={index}
+                    className={`h-5 w-5 ${
+                      index < Math.round(averageRating)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+                <span className="ml-2 text-gray-600">
+                  {averageRating.toFixed(1)}
+                </span>
+                <span className="ml-2 text-gray-600">
+                  ({product.reviews.length}{" "}
+                  {product.reviews.length === 1 ? "review" : "reviews"})
+                </span>
+              </>
+            )}
           </div>
           {product.brand && (
             <p className="text-gray-600 mt-2">Type: {product.brand.name}</p>
@@ -185,28 +228,53 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             </p>
           </div>
           <div className="mt-6">
-            <h2 className="text-xl font-semibold">Color</h2>
-            <div className="flex items-center mt-2">
-              <button
-                className={`w-8 h-8 rounded-full bg-black ${
-                  selectedColor === "black" ? "border-2 border-purple-500" : ""
-                }`}
-                onClick={() => handleColorSelect("black")}
-              ></button>
-              <button
-                className={`w-8 h-8 rounded-full bg-blue-500 ml-2 ${
-                  selectedColor === "blue" ? "border-2 border-purple-500" : ""
-                }`}
-                onClick={() => handleColorSelect("blue")}
-              ></button>
-              <button
-                className={`w-8 h-8 rounded-full bg-purple-500 ml-2 ${
-                  selectedColor === "purple" ? "border-2 border-purple-500" : ""
-                }`}
-                onClick={() => handleColorSelect("purple")}
-              ></button>
-            </div>
+            {product.options?.map((option) => (
+              <div key={option.id} className="mb-4">
+                <h3 className="text-lg font-medium mb-2">{option.name}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {option.values.map((value) => (
+                    <button
+                      key={value}
+                      onClick={() =>
+                        setSelectedOptions((prev) => ({
+                          ...prev,
+                          [option.id]: value,
+                        }))
+                      }
+                      className={`px-4 py-2 rounded-full border-2 transition-colors
+                        ${
+                          selectedOptions[option.id] === value
+                            ? "border-primary bg-primary text-white"
+                            : "border-accent hover:border-primary"
+                        }`}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
+          {Object.keys(selectedOptions).length > 0 && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Selected options:
+              </h4>
+              <div className="space-y-1">
+                {Object.entries(selectedOptions).map(([optionId, value]) => {
+                  const optionName = product.options.find(
+                    (o) => o.id === optionId
+                  )?.name;
+                  return (
+                    <div key={optionId} className="flex justify-between">
+                      <span className="text-gray-600">{optionName}:</span>
+                      <span className="font-medium">{value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="mt-6 flex gap-2 items-center">
             <button
               className="px-2 py-1 border-2 rounded-md border-accent"
@@ -238,6 +306,9 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             <Button
               className="w-full shadow-md md:w-auto bg-white text-black border-2 border-primary font-bold hover:text-white hover:bg-primary"
               disabled={product.quantity === 0}
+              onClick={() => {
+                console.log("Adding to cart with options:", selectedOptions);
+              }}
             >
               Add to Cart
               <ShoppingCart />

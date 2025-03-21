@@ -21,6 +21,11 @@ interface Product {
   brand?: {
     name: string;
   };
+  options: Array<{
+    id: string;
+    name: string;
+    values: string[];
+  }>;
 }
 
 export async function generateStaticParams() {
@@ -35,38 +40,42 @@ export async function generateStaticParams() {
 async function getProduct(slug: string) {
   if (!slug) return null;
 
-  const product = await prisma.item.findFirst({
-    where: {
-      slug: slug,
-      isPublished: true,
-    },
-    include: {
-      images: {
-        select: {
-          url: true,
-        },
+  try {
+    const product = await prisma.item.findFirst({
+      where: {
+        slug: slug,
+        isPublished: true,
       },
-      brand: {
-        select: {
-          name: true,
+      include: {
+        images: {
+          select: {
+            url: true,
+          },
         },
-      },
-      category: {
-        select: {
-          name: true,
+        brand: {
+          select: {
+            name: true,
+          },
         },
-      },
-      reviews: {
-        select: {
-          rating: true,
+        category: {
+          select: {
+            name: true,
+          },
         },
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
+        options: true,
       },
-    },
-  });
+    });
 
-  if (!product) notFound();
-
-  return product;
+    return product;
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
 }
 
 export const metadata: Metadata = {
@@ -75,30 +84,30 @@ export const metadata: Metadata = {
 };
 
 const ProductPage = async ({ params }: Props) => {
-  const product = await getProduct(params.slug);
+  // Vérifier que params et params.slug existent
+  if (!params || !params.slug) {
+    notFound();
+  }
 
-  if (!product) {
+  try {
+    const product = await getProduct(params.slug);
+
+    if (!product) {
+      notFound();
+    }
+
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
         <main className="flex-grow container mx-auto px-4 py-8">
-          <div className="text-center">
-            <p>Product not found.</p>
-          </div>
+          <ProductDetails product={product} />
         </main>
         <FooterSection />
       </div>
     );
+  } catch (error) {
+    console.error("Error in ProductPage:", error);
+    notFound();
   }
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <ProductDetails product={product} />
-      </main>
-      <FooterSection />
-    </div>
-  );
 };
 
 export default ProductPage;

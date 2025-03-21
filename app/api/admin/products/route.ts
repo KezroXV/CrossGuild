@@ -1,45 +1,52 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import slugify from "slugify";
 
-const prisma = new PrismaClient();
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const products = await prisma.item.findMany({
       include: {
         images: true,
         category: true,
         brand: true,
-      },
-      orderBy: {
-        createdAt: "desc",
+        options: true,
       },
     });
-    return NextResponse.json({ products }, { status: 200 });
+    return NextResponse.json({ products });
   } catch (error) {
+    console.error("Error fetching products:", error);
     return NextResponse.json(
-      { error: "Failed to retrieve products" },
+      { error: "Error fetching products" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { name, price, quantity, description, categoryId, images } = data;
+    const {
+      name,
+      price,
+      quantity,
+      description,
+      categoryId,
+      images,
+      brandId,
+      options,
+    } = data;
 
-    if (!name || !price || !quantity) {
-      return NextResponse.json(
-        { error: "Name, price and quantity are required" },
-        { status: 400 }
-      );
+    // Filtre les options qui ont un nom et au moins une valeur
+    const validOptions =
+      options?.filter(
+        (opt: { name: string; values: string[] }) =>
+          opt.name.trim() !== "" && opt.values.length > 0
+      ) || [];
+
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const slug = slugify(name, { lower: true });
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
 
     const product = await prisma.item.create({
       data: {
@@ -48,104 +55,122 @@ export async function POST(request: Request) {
         quantity: parseInt(quantity),
         description,
         slug,
-        category: categoryId
-          ? {
-              connect: { id: categoryId },
-            }
-          : undefined,
+        categoryId: categoryId || undefined,
+        brandId: brandId || undefined,
         images: {
-          create: images?.map((url: string) => ({ url })) || [],
+          create: images?.map((url: string) => ({ url })),
+        },
+        options: {
+          create: validOptions.map(
+            (option: { name: string; values: string[] }) => ({
+              name: option.name.trim(),
+              values: option.values.filter((v: string) => v.trim() !== ""),
+            })
+          ),
         },
       },
       include: {
         images: true,
         category: true,
+        brand: true,
+        options: true,
       },
     });
 
-    return NextResponse.json({ product }, { status: 201 });
+    return NextResponse.json({ product });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating product:", error);
     return NextResponse.json(
       { error: "Failed to create product" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function PUT(request: Request) {
   try {
-    const data = await request.json();
-    const { id, name, price, quantity, description, categoryId, images } = data;
+    const { id, ...data } = await request.json();
+
+    // Filtre les options qui ont un nom et au moins une valeur
+    const validOptions =
+      data.options?.filter(
+        (opt: { name: string; values: string[] }) =>
+          opt.name.trim() !== "" && opt.values.length > 0
+      ) || [];
 
     if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
     }
 
-    const updateData: any = {
-      ...(name && { name }),
-      ...(price && { price: parseFloat(price) }),
-      ...(quantity && { quantity: parseInt(quantity) }),
-      ...(description && { description }),
-    };
+    // D'abord, supprimer les anciennes options
+    await prisma.itemOption.deleteMany({
+      where: { itemId: id },
+    });
 
-    if (name) {
-      updateData.slug = slugify(name, { lower: true });
-    }
-
-    const product = await prisma.item.update({
+    const updatedProduct = await prisma.item.update({
       where: { id },
       data: {
-        ...updateData,
-        category: categoryId
-          ? {
-              connect: { id: categoryId },
-            }
-          : undefined,
-        ...(images && {
-          images: {
-            deleteMany: {},
-            create: images.map((url: string) => ({ url })),
-          },
-        }),
+        name: data.name,
+        price: parseFloat(data.price),
+        quantity: parseInt(data.quantity),
+        description: data.description,
+        categoryId: data.categoryId || undefined,
+        brandId: data.brandId || undefined,
+        images: {
+          deleteMany: {},
+          create: data.images?.map((url: string) => ({ url })),
+        },
+        options: {
+          create: validOptions.map(
+            (option: { name: string; values: string[] }) => ({
+              name: option.name.trim(),
+              values: option.values.filter((v: string) => v.trim() !== ""),
+            })
+          ),
+        },
       },
       include: {
         images: true,
         category: true,
+        brand: true,
+        options: true,
       },
     });
 
-    return NextResponse.json({ product }, { status: 200 });
+    return NextResponse.json({ product: updatedProduct });
   } catch (error) {
+    console.error("Error updating product:", error);
     return NextResponse.json(
       { error: "Failed to update product" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
+
     if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
     }
 
     await prisma.item.delete({
       where: { id },
     });
 
-    return NextResponse.json({ message: "Product deleted" }, { status: 200 });
+    return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error deleting product:", error);
     return NextResponse.json(
       { error: "Failed to delete product" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
