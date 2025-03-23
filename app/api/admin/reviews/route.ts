@@ -45,10 +45,79 @@ export async function POST(request: Request) {
     const data = await request.json();
     const { content, rating, userId, itemId } = data;
 
-    if (!content || !rating || !userId || !itemId) {
+    // Supprimer la validation en double
+    if (!content) {
       return NextResponse.json(
-        { error: "Content, rating, userId, and itemId are required" },
+        { error: "Review content is required" },
         { status: 400 }
+      );
+    }
+
+    if (!rating) {
+      return NextResponse.json(
+        { error: "Rating is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is missing. Please log in again." },
+        { status: 400 }
+      );
+    }
+
+    if (!itemId) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Review submission received:", {
+      content: content ? "provided" : "missing",
+      rating,
+      userId,
+      itemId,
+    });
+
+    // Vérifier l'existence de l'utilisateur
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      console.error(`User with ID ${userId} not found`);
+      return NextResponse.json(
+        { error: "User not found. Please log in again." },
+        { status: 404 }
+      );
+    }
+
+    // Verify item exists
+    const itemExists = await prisma.item.findUnique({
+      where: { id: itemId },
+    });
+
+    if (!itemExists) {
+      return NextResponse.json(
+        { error: "Product not found." },
+        { status: 404 }
+      );
+    }
+
+    // Check if user has already reviewed this product
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        userId,
+        itemId,
+      },
+    });
+
+    if (existingReview) {
+      return NextResponse.json(
+        { error: "You have already reviewed this product" },
+        { status: 409 }
       );
     }
 

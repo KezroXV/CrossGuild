@@ -266,7 +266,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
                     (o) => o.id === optionId
                   )?.name;
                   return (
-                    <div key={optionId} className="flex justify-between">
+                    <div key={optionId} className="flex gap-2 ">
                       <span className="text-gray-600">{optionName}:</span>
                       <span className="font-medium">{value}</span>
                     </div>

@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import FooterSection from "@/components/footer";
 import ProductDetails from "@/components/ProductDetails";
+import ProductReview from "@/components/ProductReview";
 
 interface Props {
   params: {
@@ -100,6 +101,7 @@ const ProductPage = async ({ params }: Props) => {
       <div className="min-h-screen flex flex-col">
         <main className="flex-grow container mx-auto px-4 py-8">
           <ProductDetails product={product} />
+          <ProductReview productId={product.id} />
         </main>
         <FooterSection />
       </div>

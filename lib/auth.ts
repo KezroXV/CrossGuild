@@ -20,6 +20,12 @@ export const {
   },
   callbacks: {
     async session({ session, token }) {
+      // Ajouter l'ID utilisateur à la session
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+
+      // Ajouter isAdmin comme avant
       if (session.user) {
         const user = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -27,6 +33,7 @@ export const {
         });
         session.user.isAdmin = user?.isAdmin ?? false;
       }
+
       return session;
     },
     async jwt({ token, user, trigger, session }) {
