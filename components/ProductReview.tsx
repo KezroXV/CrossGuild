@@ -193,7 +193,9 @@ const ProductReview = ({ productId }: { productId: string }) => {
   return (
     <div className="space-y-8 my-12">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Customer Reviews</h2>
+        <h2 className="text-2xl font-bold">
+          Customer Reviews {reviews.length > 0 && `(${reviews.length})`}
+        </h2>
 
         {session?.user ? (
           userHasReviewed ? (
