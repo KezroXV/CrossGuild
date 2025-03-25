@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 interface OrderItem {
   id: string;
@@ -26,7 +25,7 @@ interface Order {
 export default function OrderConfirmationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const orderId = searchParams.get("orderId");
+  const orderId = searchParams?.get("orderId") || "";
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -162,7 +161,7 @@ export default function OrderConfirmationPage() {
         <Button
           onClick={() => router.push("/")}
           variant="outline"
-          className="border-2 border-accent bg-white text-black hover:bg-blue-600"
+          className="border-2 border-primary bg-white text-black hover:bg-primary"
         >
           Continue Shopping
         </Button>

@@ -9,6 +9,8 @@ import {
   CardContent,
   CardFooter,
 } from "./ui/card";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const slideFromBottom = {
   hidden: { opacity: 0, y: 20 },
@@ -28,64 +30,103 @@ interface ProductCardProps {
   };
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ item }) => (
-  <motion.div
-    key={item.id}
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={slideFromBottom}
-    transition={{ duration: 0.5 }}
-  >
-    <Card className="text-center border-4 shadow-md">
-      <CardHeader className="pb-0">
-        <div className="relative w-full h-[200px] flex items-center justify-center p-4">
-          <Image
-            src={item.images[0]?.url || "/path/to/default.jpg"}
-            alt={item.name}
-            fill
-            className="object-contain p-2"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          />
-        </div>
-        <CardTitle className="text-xl text-left font-semibold truncate">
-          {item.name}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 pl-6 text-left">
-        <div className="flex justify-left items-center my-2">
-          {Array.from({ length: 5 }, (_, i) => (
-            <span
-              key={i}
-              className={`text-xl ${
-                i < (item.rating || 0) ? "text-secondary" : "text-gray-300"
-              }`}
-            >
-              ★
-            </span>
-          ))}
-        </div>
-        <p className="text-gray-600">{item.brand?.name}</p>
-        <p className="text-lg font-bold">{item.price}€</p>
-        <p className="text-sm text-gray-500">
-          {item.quantity > 0 ? `In Stock: ${item.quantity}` : "Out of Stock"}
-        </p>
-      </CardContent>
-      <CardFooter className="mt-4 flex justify-center gap-2">
-        <Button className="bg-accent px-4 py-2 text-sm shadow-md">
-          Buy Now
-        </Button>
-        <Link href={`/product/${item.slug}`}>
+const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleBuyNow = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          quantity: 1,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        router.push("/cart");
+      } else {
+        console.error("Failed to add to cart:", data.error);
+        alert(data.error || "Failed to add to cart");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("An error occurred while adding to cart");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      key={item.id}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={slideFromBottom}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="text-center border-4 shadow-md">
+        <CardHeader className="pb-0">
+          <div className="relative w-full h-[200px] flex items-center justify-center p-4">
+            <Image
+              src={item.images[0]?.url || "/path/to/default.jpg"}
+              alt={item.name}
+              fill
+              className="object-contain p-2"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            />
+          </div>
+          <CardTitle className="text-xl text-left font-semibold truncate">
+            {item.name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 pl-6 text-left">
+          <div className="flex justify-left items-center my-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span
+                key={i}
+                className={`text-xl ${
+                  i < (item.rating || 0) ? "text-secondary" : "text-gray-300"
+                }`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <p className="text-gray-600">{item.brand?.name}</p>
+          <p className="text-lg font-bold">{item.price}€</p>
+          <p className="text-sm text-gray-500">
+            {item.quantity > 0 ? `In Stock: ${item.quantity}` : "Out of Stock"}
+          </p>
+        </CardContent>
+        <CardFooter className="mt-4 flex justify-center gap-2">
           <Button
-            variant="outline"
-            className="px-4 py-2 border-primary border-2 hover:text-white text-sm shadow-md"
+            className="bg-accent px-4 py-2 text-sm shadow-md"
+            onClick={handleBuyNow}
+            disabled={isLoading || item.quantity <= 0}
           >
-            Learn More
+            {isLoading ? "Adding..." : "Buy Now"}
           </Button>
-        </Link>
-      </CardFooter>
-    </Card>
-  </motion.div>
-);
+          <Link href={`/product/${item.slug}`}>
+            <Button
+              variant="outline"
+              className="px-4 py-2 border-primary border-2 hover:text-white text-sm shadow-md"
+            >
+              Learn More
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    </motion.div>
+  );
+};
 
 export default ProductCard;

@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Navbar } from "@/components/navbar";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);

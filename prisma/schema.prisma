@@ -69,36 +69,46 @@ model Order {
 }
 
 model Cart {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-  items  Item[]
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id])
+  cartItems    CartItem[]
+}
+
+model CartItem {
+  id           String    @id @default(cuid())
+  cartId       String
+  cart         Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         Item      @relation(fields: [itemId], references: [id])
+  quantity     Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Item {
-  id          String     @id @default(cuid())
-  name        String
-  price       Float
-  quantity    Int
-  description String?
-  sku         String?    @unique // Stock Keeping Unit
-  slug        String     @unique
-  isPublished Boolean    @default(false)
-  images      Image[]
-  orderId     String?
-  order       Order?     @relation(fields: [orderId], references: [id])
-  cartId      String?
-  cart        Cart?      @relation(fields: [cartId], references: [id])
-  categoryId  String?    // Ajoute l'ID de la catégorie
-  category    Category?  @relation(fields: [categoryId], references: [id]) // Relation Many-to-One
-  reviews     Review[]
-  brandId     String?
-  brand       Brand?     @relation(fields: [brandId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  topSelling  Int        @default(0) // Changed to number to indicate top-selling rank
-  averageRating Float    @default(0.0) // Nouvelle colonne pour la moyenne des ratings
-  options     ItemOption[]
+  id            String      @id @default(cuid())
+  name          String
+  price         Float
+  quantity      Int
+  description   String?
+  sku           String?     @unique // Stock Keeping Unit
+  slug          String      @unique
+  isPublished   Boolean     @default(false)
+  images        Image[]
+  orderId       String?
+  order         Order?      @relation(fields: [orderId], references: [id])
+  cartItems     CartItem[]
+  categoryId    String?    
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  reviews       Review[]
+  brandId       String?
+  brand         Brand?      @relation(fields: [brandId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  topSelling    Int         @default(0)
+  averageRating Float       @default(0.0)
+  options       ItemOption[]
 }
 
 model Image {

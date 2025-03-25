@@ -14,18 +14,22 @@ export async function POST() {
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
       include: {
-        items: {
+        cartItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
-            options: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!cart || !cart.items.length) {
+    if (!cart || !cart.cartItems.length) {
       return NextResponse.json(
         { error: "Le panier est vide" },
         { status: 400 }
@@ -33,8 +37,8 @@ export async function POST() {
     }
 
     // Calculate total order amount
-    const total = cart.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+    const total = cart.cartItems.reduce(
+      (sum, cartItem) => sum + cartItem.item.price * cartItem.quantity,
       0
     );
 
@@ -44,27 +48,34 @@ export async function POST() {
         userId: session.user.id,
         total,
         status: "pending",
+        items: {
+          create: cart.cartItems.map((cartItem) => ({
+            itemId: cartItem.itemId,
+            quantity: cartItem.quantity,
+          })),
+        },
       },
     });
 
-    // Update item references to be part of the order instead of the cart
-    await Promise.all(
-      cart.items.map((item) =>
-        prisma.item.update({
-          where: { id: item.id },
-          data: {
-            orderId: order.id,
-            cartId: null,
-          },
-        })
-      )
-    );
+    // Clear the cart after creating the order
+    await prisma.cartItem.deleteMany({
+      where: {
+        cartId: cart.id,
+      },
+    });
 
     // Get the updated order
     const updatedOrder = await prisma.order.findUnique({
       where: { id: order.id },
       include: {
-        items: true,
+        items: {
+          include: {
+            images: true,
+            category: true,
+            brand: true,
+            options: true,
+          },
+        },
         user: true,
       },
     });

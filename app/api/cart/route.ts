@@ -87,59 +87,50 @@ export async function POST(req: Request) {
     // Récupérer ou créer le panier
     let cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
+      include: {
+        items: true,
+      },
     });
 
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId: session.user.id },
+        include: {
+          items: true,
+        },
       });
     }
 
-    // Créer une copie de l'article pour le panier
-    const cartItem = await prisma.item.create({
-      data: {
-        name: originalItem.name,
-        price: originalItem.price,
-        quantity,
-        description: originalItem.description,
-        sku: `${originalItem.sku || "item"}-cart-${Date.now()}`,
-        slug: `${originalItem.slug}-cart-${Date.now()}`,
-        isPublished: true,
-        cartId: cart.id,
-        categoryId: originalItem.categoryId,
-        brandId: originalItem.brandId,
-      },
-    });
+    // Vérifier si l'article est déjà dans le panier
+    const existingCartItem = cart.items.find((item) =>
+      item.sku?.includes(originalItem.sku || "")
+    );
 
-    // Copier les options de l'article
-    if (options.length > 0) {
-      await Promise.all(
-        options.map(async (option: { optionId: string; value: string }) => {
-          await prisma.itemOption.create({
-            data: {
-              name:
-                originalItem.options.find((o) => o.id === option.optionId)
-                  ?.name || "Option",
-              values: [option.value],
-              itemId: cartItem.id,
-            },
-          });
-        })
-      );
-    }
+    let cartItem;
 
-    // Copier les images de l'article
-    if (originalItem.images.length > 0) {
-      await Promise.all(
-        originalItem.images.map(async (image) => {
-          await prisma.image.create({
-            data: {
-              url: image.url,
-              itemId: cartItem.id,
-            },
-          });
-        })
-      );
+    if (existingCartItem) {
+      // Si l'article existe déjà, mettre à jour la quantité
+      cartItem = await prisma.item.update({
+        where: { id: existingCartItem.id },
+        data: {
+          quantity: existingCartItem.quantity + quantity,
+        },
+      });
+    } else {
+      // Sinon, créer une référence au panier
+      const cartRef = await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          itemId: originalItem.id,
+          quantity: quantity,
+        },
+      });
+
+      // Renvoyer l'item original avec la quantité spécifiée pour le panier
+      cartItem = {
+        ...originalItem,
+        cartQuantity: quantity,
+      };
     }
 
     // Récupérer le panier mis à jour
