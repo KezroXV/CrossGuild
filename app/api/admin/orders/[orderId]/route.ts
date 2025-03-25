@@ -9,7 +9,7 @@ export async function PATCH(
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
@@ -32,16 +32,33 @@ export async function PATCH(
         isPaid: body.isPaid !== undefined ? body.isPaid : undefined,
       },
       include: {
-        items: true,
+        orderItems: {
+          include: {
+            item: true,
+          },
+        },
       },
     });
 
     // If status is changed to "delivered" and wasn't previously, update stock
     if (body.status === "delivered" && prevStatus !== "delivered") {
-      await updateProductStock(order.items);
+      await updateProductStock(order.orderItems);
     }
 
-    return NextResponse.json({ order, success: true }, { status: 200 });
+    // Format the order to match frontend expectations
+    const formattedOrder = {
+      ...order,
+      items: order.orderItems.map((orderItem) => ({
+        ...orderItem.item,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+      })),
+    };
+
+    return NextResponse.json(
+      { order: formattedOrder, success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("[ORDER_PATCH]", error);
     return NextResponse.json(
@@ -70,40 +87,26 @@ async function getOrderStatus(orderId: string): Promise<string | null> {
 // Update product stock when an order is delivered
 async function updateProductStock(orderItems: any[]) {
   try {
-    for (const item of orderItems) {
-      // For each item in the order, find the original product
-      // We need to identify the original product by its SKU
-      const originalSku = item.sku?.split("-cart-")[0];
+    for (const orderItem of orderItems) {
+      const item = orderItem.item;
 
-      if (originalSku) {
-        const originalProduct = await prisma.item.findFirst({
-          where: {
-            sku: originalSku,
-            isPublished: true,
+      // Reduce the stock by the quantity ordered
+      if (item) {
+        await prisma.item.update({
+          where: { id: item.id },
+          data: {
+            quantity: Math.max(0, item.quantity - orderItem.quantity),
+            // If stock is 0, you might want to mark it as out of stock
+            isPublished: item.quantity - orderItem.quantity > 0,
           },
         });
 
-        if (originalProduct) {
-          // Reduce the stock by the quantity ordered
-          await prisma.item.update({
-            where: { id: originalProduct.id },
-            data: {
-              quantity: Math.max(0, originalProduct.quantity - item.quantity),
-              // If stock is 0, you might want to mark it as out of stock
-              isPublished: originalProduct.quantity - item.quantity > 0,
-            },
-          });
-
-          console.log(
-            `Updated stock for ${originalProduct.name}: from ${
-              originalProduct.quantity
-            } to ${Math.max(0, originalProduct.quantity - item.quantity)}`
-          );
-        } else {
-          console.log(`Original product with SKU ${originalSku} not found`);
-        }
-      } else {
-        console.log(`Could not identify original SKU for item ${item.id}`);
+        console.log(
+          `Updated stock for ${item.name}: from ${item.quantity} to ${Math.max(
+            0,
+            item.quantity - orderItem.quantity
+          )}`
+        );
       }
     }
   } catch (error) {
@@ -152,7 +155,7 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
@@ -169,12 +172,35 @@ export async function GET(
       where: { id: orderId },
       include: {
         orderItems: {
-          include: { product: true },
+          include: {
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+              },
+            },
+          },
         },
+        user: true,
       },
     });
 
-    return NextResponse.json(order, { status: 200 });
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // Format the order to match frontend expectations
+    const formattedOrder = {
+      ...order,
+      items: order.orderItems.map((orderItem) => ({
+        ...orderItem.item,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+      })),
+    };
+
+    return NextResponse.json(formattedOrder, { status: 200 });
   } catch (error) {
     console.error("[ORDER_GET]", error);
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });

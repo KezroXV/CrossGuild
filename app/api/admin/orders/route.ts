@@ -5,7 +5,8 @@ import { auth } from "@/lib/auth";
 export async function GET(req: Request) {
   try {
     const session = await auth();
-    if (!session?.user.isAdmin) {
+
+    if (!session?.user?.isAdmin) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -21,26 +22,45 @@ export async function GET(req: Request) {
     const totalOrders = await prisma.order.count();
     const totalPages = Math.ceil(totalOrders / pageSize);
 
-    // Get paginated orders
+    // Get paginated orders with the new schema structure
     const orders = await prisma.order.findMany({
       skip,
       take: pageSize,
       include: {
         user: true,
-        items: true,
+        orderItems: {
+          include: {
+            item: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
+    // Format orders to match the expected structure in the frontend
+    const formattedOrders = orders.map((order) => ({
+      ...order,
+      items: order.orderItems.map((orderItem) => ({
+        ...orderItem.item,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+      })),
+    }));
+
     return NextResponse.json({
-      orders,
+      orders: formattedOrders,
       currentPage: page,
       totalPages,
       totalOrders,
     });
   } catch (error) {
+    console.error("[ADMIN_ORDERS_GET]", error);
     return NextResponse.json(
       { error: "Failed to fetch orders" },
       { status: 500 }

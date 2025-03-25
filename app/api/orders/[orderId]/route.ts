@@ -15,15 +15,22 @@ export async function GET(
 
     const { orderId } = params;
 
+    // Adaptation pour le nouveau modèle avec OrderItem
     const order = await prisma.order.findUnique({
       where: {
         id: orderId,
         userId: session.user.id, // Ensure users can only access their own orders
       },
       include: {
-        items: {
+        orderItems: {
           include: {
-            images: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+              },
+            },
           },
         },
       },
@@ -33,7 +40,18 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json(order);
+    // Format de réponse adapté pour la migration
+    const formattedOrder = {
+      ...order,
+      items: order.orderItems.map((orderItem) => ({
+        ...orderItem.item,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+        orderItemId: orderItem.id,
+      })),
+    };
+
+    return NextResponse.json(formattedOrder);
   } catch (error) {
     console.error("[ORDER_GET]", error);
     return NextResponse.json(

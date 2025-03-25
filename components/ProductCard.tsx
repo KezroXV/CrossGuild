@@ -33,9 +33,11 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleBuyNow = async () => {
     setIsLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/cart", {
         method: "POST",
@@ -48,17 +50,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const text = await response.text();
+      let data;
+
+      try {
+        // Tenter de parser le texte en JSON
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Failed to parse response:", text);
+        throw new Error("Invalid server response");
+      }
 
       if (data.success) {
         router.push("/cart");
       } else {
-        console.error("Failed to add to cart:", data.error);
-        alert(data.error || "Failed to add to cart");
+        setError(data.error || "Failed to add to cart");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("An error occurred while adding to cart");
+      setError("An error occurred while adding to cart. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -107,22 +121,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
             {item.quantity > 0 ? `In Stock: ${item.quantity}` : "Out of Stock"}
           </p>
         </CardContent>
-        <CardFooter className="mt-4 flex justify-center gap-2">
-          <Button
-            className="bg-accent px-4 py-2 text-sm shadow-md"
-            onClick={handleBuyNow}
-            disabled={isLoading || item.quantity <= 0}
-          >
-            {isLoading ? "Adding..." : "Buy Now"}
-          </Button>
-          <Link href={`/product/${item.slug}`}>
+        <CardFooter className="mt-4 flex flex-col justify-center gap-2">
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+          <div className="flex justify-center gap-2">
             <Button
-              variant="outline"
-              className="px-4 py-2 border-primary border-2 hover:text-white text-sm shadow-md"
+              className="bg-accent px-4 py-2 text-sm shadow-md"
+              onClick={handleBuyNow}
+              disabled={isLoading || item.quantity <= 0}
             >
-              Learn More
+              {isLoading ? "Adding..." : "Buy Now"}
             </Button>
-          </Link>
+            <Link href={`/product/${item.slug}`}>
+              <Button
+                variant="outline"
+                className="px-4 py-2 border-primary border-2 hover:text-white text-sm shadow-md"
+              >
+                Learn More
+              </Button>
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </motion.div>

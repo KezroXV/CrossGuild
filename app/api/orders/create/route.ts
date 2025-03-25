@@ -7,7 +7,10 @@ export async function POST() {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Non autorisé", success: false },
+        { status: 401 }
+      );
     }
 
     // Get the user's cart with items
@@ -16,14 +19,7 @@ export async function POST() {
       include: {
         cartItems: {
           include: {
-            item: {
-              include: {
-                images: true,
-                category: true,
-                brand: true,
-                options: true,
-              },
-            },
+            item: true,
           },
         },
       },
@@ -31,7 +27,7 @@ export async function POST() {
 
     if (!cart || !cart.cartItems.length) {
       return NextResponse.json(
-        { error: "Le panier est vide" },
+        { error: "Le panier est vide", success: false },
         { status: 400 }
       );
     }
@@ -48,39 +44,50 @@ export async function POST() {
         userId: session.user.id,
         total,
         status: "pending",
-        items: {
+        orderItems: {
           create: cart.cartItems.map((cartItem) => ({
             itemId: cartItem.itemId,
             quantity: cartItem.quantity,
+            price: cartItem.item.price,
           })),
         },
       },
-    });
-
-    // Clear the cart after creating the order
-    await prisma.cartItem.deleteMany({
-      where: {
-        cartId: cart.id,
-      },
-    });
-
-    // Get the updated order
-    const updatedOrder = await prisma.order.findUnique({
-      where: { id: order.id },
       include: {
-        items: {
+        orderItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
-            options: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
         user: true,
       },
     });
 
-    return NextResponse.json({ order: updatedOrder, success: true });
+    // Clear the user's cart
+    await prisma.cartItem.deleteMany({
+      where: {
+        cartId: cart.id,
+      },
+    });
+
+    // Format the response to match the expected structure
+    const formattedOrder = {
+      ...order,
+      items: order.orderItems.map((orderItem) => ({
+        ...orderItem.item,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+        orderItemId: orderItem.id,
+      })),
+    };
+
+    return NextResponse.json({ order: formattedOrder, success: true });
   } catch (error) {
     console.error("[ORDER_CREATE]", error);
     return NextResponse.json(

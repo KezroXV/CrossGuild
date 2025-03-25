@@ -15,11 +15,16 @@ export async function GET() {
     let cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
       include: {
-        items: {
+        cartItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
       },
@@ -29,18 +34,33 @@ export async function GET() {
       cart = await prisma.cart.create({
         data: { userId: session.user.id },
         include: {
-          items: {
+          cartItems: {
             include: {
-              images: true,
-              category: true,
-              brand: true,
+              item: {
+                include: {
+                  images: true,
+                  category: true,
+                  brand: true,
+                  options: true,
+                },
+              },
             },
           },
         },
       });
     }
 
-    return NextResponse.json(cart);
+    // Format the response to match the expected structure by the client
+    const formattedCart = {
+      ...cart,
+      items: cart.cartItems.map((cartItem) => ({
+        ...cartItem.item,
+        quantity: cartItem.quantity,
+        cartItemId: cartItem.id,
+      })),
+    };
+
+    return NextResponse.json(formattedCart);
   } catch (error) {
     console.error("[CART_GET]", error);
     return NextResponse.json(
@@ -56,30 +76,35 @@ export async function POST(req: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Non autorisé", success: false },
+        { status: 401 }
+      );
     }
 
-    const { itemId, quantity = 1, options = [] } = await req.json();
+    const { itemId, quantity = 1 } = await req.json();
 
     if (!itemId) {
       return NextResponse.json(
-        { error: "L'ID de l'article est requis" },
+        { error: "L'ID de l'article est requis", success: false },
         { status: 400 }
       );
     }
 
     // Vérifier si l'article existe
-    const originalItem = await prisma.item.findUnique({
+    const item = await prisma.item.findUnique({
       where: { id: itemId },
       include: {
         images: true,
+        category: true,
+        brand: true,
         options: true,
       },
     });
 
-    if (!originalItem) {
+    if (!item) {
       return NextResponse.json(
-        { error: "Article non trouvé" },
+        { error: "Article non trouvé", success: false },
         { status: 404 }
       );
     }
@@ -88,7 +113,7 @@ export async function POST(req: Request) {
     let cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
       include: {
-        items: true,
+        cartItems: true,
       },
     });
 
@@ -96,59 +121,65 @@ export async function POST(req: Request) {
       cart = await prisma.cart.create({
         data: { userId: session.user.id },
         include: {
-          items: true,
+          cartItems: true,
         },
       });
     }
 
-    // Vérifier si l'article est déjà dans le panier
-    const existingCartItem = cart.items.find((item) =>
-      item.sku?.includes(originalItem.sku || "")
+    // Vérifier si cet article est déjà dans le panier
+    const existingCartItem = cart.cartItems.find(
+      (cartItem) => cartItem.itemId === itemId
     );
 
-    let cartItem;
-
+    // Si l'article existe déjà, augmenter la quantité
     if (existingCartItem) {
-      // Si l'article existe déjà, mettre à jour la quantité
-      cartItem = await prisma.item.update({
+      await prisma.cartItem.update({
         where: { id: existingCartItem.id },
         data: {
           quantity: existingCartItem.quantity + quantity,
         },
       });
     } else {
-      // Sinon, créer une référence au panier
-      const cartRef = await prisma.cartItem.create({
+      // Sinon, ajouter l'article au panier
+      await prisma.cartItem.create({
         data: {
           cartId: cart.id,
-          itemId: originalItem.id,
-          quantity: quantity,
+          itemId: item.id,
+          quantity,
         },
       });
-
-      // Renvoyer l'item original avec la quantité spécifiée pour le panier
-      cartItem = {
-        ...originalItem,
-        cartQuantity: quantity,
-      };
     }
 
     // Récupérer le panier mis à jour
     const updatedCart = await prisma.cart.findUnique({
       where: { id: cart.id },
       include: {
-        items: {
+        cartItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
-            options: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
       },
     });
 
-    return NextResponse.json({ cart: updatedCart, success: true });
+    // Format the response to match the expected structure by the client
+    const formattedCart = {
+      ...updatedCart,
+      items: updatedCart.cartItems.map((cartItem) => ({
+        ...cartItem.item,
+        quantity: cartItem.quantity,
+        cartItemId: cartItem.id,
+      })),
+    };
+
+    return NextResponse.json({ cart: formattedCart, success: true });
   } catch (error) {
     console.error("[CART_POST]", error);
     return NextResponse.json(
@@ -164,54 +195,80 @@ export async function PATCH(req: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Non autorisé", success: false },
+        { status: 401 }
+      );
     }
 
     const { itemId, quantity } = await req.json();
 
     if (!itemId) {
       return NextResponse.json(
-        { error: "L'ID de l'article est requis" },
+        { error: "L'ID de l'article est requis", success: false },
         { status: 400 }
       );
     }
 
-    // Vérifier que l'article appartient au panier de l'utilisateur
+    // Récupérer le panier
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: true },
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
+    if (!cart) {
+      return NextResponse.json(
+        { error: "Panier non trouvé", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Trouver l'article dans le panier
+    const cartItem = cart.cartItems.find((item) => item.itemId === itemId);
 
     if (!cartItem) {
       return NextResponse.json(
-        { error: "Article non trouvé dans le panier" },
+        { error: "Article non trouvé dans le panier", success: false },
         { status: 404 }
       );
     }
 
     // Mettre à jour la quantité
-    await prisma.item.update({
-      where: { id: itemId },
+    await prisma.cartItem.update({
+      where: { id: cartItem.id },
       data: { quantity },
     });
 
     // Récupérer le panier mis à jour
     const updatedCart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
+      where: { id: cart.id },
       include: {
-        items: {
+        cartItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
       },
     });
 
-    return NextResponse.json({ cart: updatedCart, success: true });
+    // Format the response
+    const formattedCart = {
+      ...updatedCart,
+      items: updatedCart.cartItems.map((cartItem) => ({
+        ...cartItem.item,
+        quantity: cartItem.quantity,
+        cartItemId: cartItem.id,
+      })),
+    };
+
+    return NextResponse.json({ cart: formattedCart, success: true });
   } catch (error) {
     console.error("[CART_PATCH]", error);
     return NextResponse.json(
@@ -227,7 +284,10 @@ export async function DELETE(req: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Non autorisé", success: false },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(req.url);
@@ -235,46 +295,69 @@ export async function DELETE(req: Request) {
 
     if (!itemId) {
       return NextResponse.json(
-        { error: "L'ID de l'article est requis" },
+        { error: "L'ID de l'article est requis", success: false },
         { status: 400 }
       );
     }
 
-    // Vérifier que l'article appartient au panier de l'utilisateur
+    // Récupérer le panier
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: true },
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
-
-    if (!cartItem) {
+    if (!cart) {
       return NextResponse.json(
-        { error: "Article non trouvé dans le panier" },
+        { error: "Panier non trouvé", success: false },
         { status: 404 }
       );
     }
 
-    // Supprimer l'article
-    await prisma.item.delete({
-      where: { id: itemId },
+    // Trouver l'article dans le panier
+    const cartItem = cart.cartItems.find((item) => item.itemId === itemId);
+
+    if (!cartItem) {
+      return NextResponse.json(
+        { error: "Article non trouvé dans le panier", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Supprimer l'article du panier
+    await prisma.cartItem.delete({
+      where: { id: cartItem.id },
     });
 
     // Récupérer le panier mis à jour
     const updatedCart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
+      where: { id: cart.id },
       include: {
-        items: {
+        cartItems: {
           include: {
-            images: true,
-            category: true,
-            brand: true,
+            item: {
+              include: {
+                images: true,
+                category: true,
+                brand: true,
+                options: true,
+              },
+            },
           },
         },
       },
     });
 
-    return NextResponse.json({ cart: updatedCart, success: true });
+    // Format the response
+    const formattedCart = {
+      ...updatedCart,
+      items: updatedCart.cartItems.map((cartItem) => ({
+        ...cartItem.item,
+        quantity: cartItem.quantity,
+        cartItemId: cartItem.id,
+      })),
+    };
+
+    return NextResponse.json({ cart: formattedCart, success: true });
   } catch (error) {
     console.error("[CART_DELETE]", error);
     return NextResponse.json(

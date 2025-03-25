@@ -59,31 +59,46 @@ model User {
 }
 
 model Order {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  items     Item[]
+  user      User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
   total     Float
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
+  status    String      @default("pending")
+  createdAt DateTime    @default(now())
 }
 
 model Cart {
-  id           String     @id @default(cuid())
-  userId       String     @unique
-  user         User       @relation(fields: [userId], references: [id])
-  cartItems    CartItem[]
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  cartItems CartItem[]
 }
 
 model CartItem {
-  id           String    @id @default(cuid())
-  cartId       String
-  cart         Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  itemId       String
-  item         Item      @relation(fields: [itemId], references: [id])
-  quantity     Int
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, itemId])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  quantity  Int      @default(1)
+  price     Float    // Prix au moment de l'achat
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, itemId])
 }
 
 model Item {
@@ -92,14 +107,13 @@ model Item {
   price         Float
   quantity      Int
   description   String?
-  sku           String?     @unique // Stock Keeping Unit
+  sku           String?     @unique
   slug          String      @unique
   isPublished   Boolean     @default(false)
   images        Image[]
-  orderId       String?
-  order         Order?      @relation(fields: [orderId], references: [id])
   cartItems     CartItem[]
-  categoryId    String?    
+  orderItems    OrderItem[]
+  categoryId    String?
   category      Category?   @relation(fields: [categoryId], references: [id])
   reviews       Review[]
   brandId       String?
@@ -163,7 +177,7 @@ model Brand {
   logo        String?  // URL du logo de la marque
   items       Item[]
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
 }
 
 model ItemOption {
