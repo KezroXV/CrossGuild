@@ -1,9 +1,11 @@
 "use client";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from "react";
 import { Star, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner"; // Import de Sonner pour les notifications
+import { useRouter } from "next/navigation";
 
 interface ProductOption {
   id: string;
@@ -24,6 +26,7 @@ interface ProductVariant {
 
 interface ProductDetailsProps {
   product: {
+    id: string; // ID du produit nécessaire pour l'ajout au panier
     name: string;
     description: string;
     price: number;
@@ -47,6 +50,8 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails = ({ product }: ProductDetailsProps) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [startIndex, setStartIndex] = useState(0);
@@ -56,6 +61,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >({});
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   useEffect(() => {
     if (product.options && product.options.length > 0) {
@@ -114,6 +120,53 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
       ? product.reviews.reduce((acc, review) => acc + review.rating, 0) /
         product.reviews.length
       : 0;
+
+  const handleAddToCart = async () => {
+    if (product.quantity === 0) {
+      toast.error("Ce produit est en rupture de stock");
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          itemId: product.id,
+          quantity: quantity,
+          options: Object.entries(selectedOptions).map(([optionId, value]) => ({
+            optionId,
+            value,
+          })),
+        }),
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Échec de l'ajout au panier");
+      }
+
+      toast.success(`${product.name} a été ajouté à votre panier`);
+
+      // Utiliser startTransition pour la mise à jour de l'UI
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout au panier:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Échec de l'ajout au panier"
+      );
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4">
@@ -235,18 +288,12 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
                   {option.values.map((value) => (
                     <button
                       key={value}
-                      onClick={() =>
-                        setSelectedOptions((prev) => ({
-                          ...prev,
-                          [option.id]: value,
-                        }))
-                      }
-                      className={`px-4 py-2 rounded-full border-2 transition-colors
-                        ${
-                          selectedOptions[option.id] === value
-                            ? "border-primary bg-primary text-white"
-                            : "border-accent hover:border-primary"
-                        }`}
+                      onClick={() => handleOptionSelect(option.id, value)}
+                      className={`px-4 py-2 rounded-full border-2 transition-colors ${
+                        selectedOptions[option.id] === value
+                          ? "border-primary bg-primary text-white"
+                          : "border-accent hover:border-primary"
+                      }`}
                     >
                       {value}
                     </button>
@@ -277,8 +324,8 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
           )}
           <div className="mt-6 flex gap-2 items-center">
             <button
-              className="px-2 py-1 border-2 rounded-md border-accent"
               onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="px-2 py-1 border-2 rounded-md border-accent"
             >
               -
             </button>
@@ -291,27 +338,53 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
               className="w-20 border-2 outline-accent text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button
-              className="px-2 py-1 shadow-md border-2 rounded-md border-accent"
               onClick={() =>
                 setQuantity((prev) => Math.min(product.quantity, prev + 1))
               }
+              className="px-2 py-1 shadow-md border-2 rounded-md border-accent"
             >
               +
             </button>
           </div>
           <div className="mt-8 flex gap-4">
             <Button className="w-full md:w-auto bg-accent text-white">
-              Buy It Now
+              Acheter maintenant
             </Button>
             <Button
               className="w-full shadow-md md:w-auto bg-white text-black border-2 border-primary font-bold hover:text-white hover:bg-primary"
-              disabled={product.quantity === 0}
-              onClick={() => {
-                console.log("Adding to cart with options:", selectedOptions);
-              }}
+              disabled={product.quantity === 0 || isAddingToCart || isPending}
+              onClick={handleAddToCart}
             >
-              Add to Cart
-              <ShoppingCart />
+              {isAddingToCart || isPending ? (
+                <span className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Ajout en cours...
+                </span>
+              ) : (
+                <>
+                  Ajouter au panier
+                  <ShoppingCart className="ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </div>
