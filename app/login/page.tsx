@@ -1,9 +1,9 @@
 "use client";
 import { signIn } from "next-auth/react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FaGithub, FaGoogle } from "react-icons/fa";
 import Image from "next/image";
 import GoogleLogo from "@/public/logo-google.png";
-import GithubLogo from "@/public/logo-github.png";
 import Link from "next/link";
 
 export default function Login() {

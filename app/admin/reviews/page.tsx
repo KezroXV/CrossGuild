@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -15,6 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Review {
   id: string;
@@ -42,17 +50,33 @@ export default function ReviewsPage() {
     userId: "",
     itemId: "",
   });
+  const [loading, setLoading] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState("10");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchReviews();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
 
   const fetchReviews = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("/api/admin/reviews");
+      const response = await axios.get("/api/admin/reviews", {
+        params: { page: currentPage, pageSize: parseInt(pageSize) },
+      });
       setReviews(response.data.reviews);
+      setTotalPages(
+        response.data.totalPages ||
+          Math.ceil(response.data.reviews.length / parseInt(pageSize))
+      );
     } catch (error) {
       toast.error("Failed to fetch reviews");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,8 +111,16 @@ export default function ReviewsPage() {
     }
   };
 
+  // Filter reviews based on search term
+  const filteredReviews = reviews.filter(
+    (review) =>
+      review.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className=" p-6 max-w-[80%]">
+    <div className="p-6 max-w-[80%]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Reviews Management</h1>
         <Button
@@ -102,8 +134,20 @@ export default function ReviewsPage() {
         </Button>
       </div>
 
+      {loading && <p className="text-blue-500 mb-4">Loading...</p>}
+
+      <div className="mb-4">
+        <Input
+          type="text"
+          placeholder="Search reviews..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full"
+        />
+      </div>
+
       <div className="grid gap-4">
-        {reviews.map((review) => (
+        {filteredReviews.map((review) => (
           <Card key={review.id} className="p-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -146,6 +190,50 @@ export default function ReviewsPage() {
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-6">
+        <div>
+          <Select
+            value={pageSize}
+            onValueChange={(value) => {
+              setPageSize(value);
+              setCurrentPage(1); // Reset to first page when changing page size
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 per page</SelectItem>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="25">25 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <span className="px-3 py-1">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            variant="outline"
+            size="sm"
+          >
+            Next
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

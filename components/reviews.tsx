@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Marquee } from "./magicui/marquee";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface Review {

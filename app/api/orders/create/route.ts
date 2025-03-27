@@ -69,6 +69,22 @@ export async function POST() {
       },
     });
 
+    // Update the product quantities and topSelling stats
+    await Promise.all(
+      cart.cartItems.map(async (cartItem) => {
+        // Update the original product stock and increase topSelling counter
+        await prisma.item.update({
+          where: { id: cartItem.itemId },
+          data: {
+            // Decrease the available quantity
+            quantity: Math.max(0, cartItem.item.quantity - cartItem.quantity),
+            // Increase the topSelling counter
+            topSelling: cartItem.item.topSelling + cartItem.quantity,
+          },
+        });
+      })
+    );
+
     // Clear the user's cart
     await prisma.cartItem.deleteMany({
       where: {

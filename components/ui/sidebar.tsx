@@ -64,6 +64,7 @@ const SidebarProvider = React.forwardRef<
   (
     {
       // Remplacer le prop defaultOpen par une valeur fixe true.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       defaultOpen = true, // force open pe default
       open: openProp,
       onOpenChange: setOpenProp,

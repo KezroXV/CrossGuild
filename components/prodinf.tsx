@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link"; // Import Link from Next.js
 import { Button } from "./ui/button";
 import {
   Card,

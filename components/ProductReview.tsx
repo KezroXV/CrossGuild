@@ -21,6 +21,7 @@ interface Review {
   content: string;
   rating: number;
   user: {
+    id: string;
     name: string;
     image?: string;
     profilePhoto?: string;
@@ -61,6 +62,7 @@ const ProductReview = ({ productId }: { productId: string }) => {
         itemId: productId,
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, session, status]);
 
   const fetchReviews = async () => {
@@ -137,6 +139,7 @@ const ProductReview = ({ productId }: { productId: string }) => {
       setReviews((prev) => [response.data.review, ...prev]);
       setFormData({ ...formData, content: "", rating: 0 });
       setIsDialogOpen(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error submitting review:", error);
       // Afficher les détails de l'erreur pour le débogage

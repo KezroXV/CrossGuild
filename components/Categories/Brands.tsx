@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { AnimatedCircularProgressBar } from "../magicui/animated-circular-progress-bar";
 
 interface Brand {
   id: string;

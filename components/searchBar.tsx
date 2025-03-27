@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import logo from "@/public/CrossGuild.svg";
 
 type Product = {
   id: string;

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 
 interface User {
   id: string;
@@ -44,19 +45,35 @@ const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState("10");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("/api/admin/users");
+      const response = await axios.get("/api/admin/users", {
+        params: { page: currentPage, pageSize: parseInt(pageSize) },
+      });
       setUsers(response.data.users);
+      setTotalPages(
+        response.data.totalPages ||
+          Math.ceil(response.data.users.length / parseInt(pageSize))
+      );
     } catch (error) {
       console.error("Failed to fetch users:", error);
       setError("Failed to fetch users");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,11 +127,30 @@ const UsersPage = () => {
     }
   };
 
+  // Filter users based on search term
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.role?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Users</h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
+      {loading && <p className="text-blue-500 mb-4">Loading...</p>}
+
+      <div className="mb-4">
+        <Input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full"
+        />
+      </div>
 
       <Table>
         <TableHeader>
@@ -129,7 +165,7 @@ const UsersPage = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <TableRow key={user.id}>
               <TableCell>
                 <Avatar className="h-8 w-8">
@@ -184,6 +220,47 @@ const UsersPage = () => {
           ))}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-6">
+        <div>
+          <Select
+            value={pageSize}
+            onValueChange={(value) => setPageSize(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 per page</SelectItem>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="25">25 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <span className="px-3 py-1">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            variant="outline"
+            size="sm"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

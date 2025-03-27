@@ -1,23 +1,80 @@
-import { prisma } from "@/lib/prisma";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.isAdmin) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+
+    // Get pagination and filtering params
+    const page = parseInt(searchParams.get("page") || "1");
+    const pageSize = parseInt(searchParams.get("pageSize") || "10");
+    const sort = searchParams.get("sort") || "createdAt";
+    const order = searchParams.get("order") || "desc";
+    const category = searchParams.get("category") || undefined;
+    const search = searchParams.get("search") || undefined;
+    const limit = parseInt(searchParams.get("limit") || "0");
+
+    // Construct the where clause for filtering
+    const where: any = { isPublished: true };
+
+    if (category) {
+      where.categoryId = category;
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // Define how to sort the results
+    const orderBy: any = {};
+    if (sort === "topSelling") {
+      orderBy.topSelling = order;
+    } else if (sort === "price") {
+      orderBy.price = order;
+    } else if (sort === "createdAt") {
+      orderBy.createdAt = order;
+    }
+
+    // Calculate pagination parameters
+    const skip = (page - 1) * pageSize;
+
+    // Get count for pagination
+    const totalProducts = await prisma.item.count({ where });
+    const totalPages = Math.ceil(totalProducts / pageSize);
+
+    // Get products
     const products = await prisma.item.findMany({
+      where,
       include: {
         images: true,
         category: true,
         brand: true,
-        options: true,
       },
+      orderBy,
+      skip: limit ? 0 : skip,
+      take: limit || pageSize,
     });
-    return NextResponse.json({ products });
+
+    return NextResponse.json({
+      products,
+      totalPages,
+      currentPage: page,
+      totalProducts,
+    });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Error fetching products" },
-      { status: 500 }
-    );
+    console.error("[PRODUCTS_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
 

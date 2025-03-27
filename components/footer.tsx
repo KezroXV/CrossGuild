@@ -5,7 +5,6 @@ import {
   FooterContent,
 } from "@/components/ui/footer";
 import crossguild from "@/public/CrossGuild.svg";
-import Link from "next/link";
 import paye from "@/public/paye.svg";
 import {
   DiscordLogoIcon,
@@ -13,7 +12,6 @@ import {
   TwitterLogoIcon,
 } from "@radix-ui/react-icons";
 import Image from "next/image";
-import { YoutubeIcon } from "lucide-react";
 import { FaYoutube } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";

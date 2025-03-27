@@ -1,3 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -53,6 +57,12 @@ const ProductsPage = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState("10");
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -73,15 +83,51 @@ const ProductsPage = () => {
     fetchProducts();
     fetchCategories();
     fetchBrands();
-  }, []);
+  }, [currentPage, pageSize]);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("/api/admin/products");
-      setProducts(response.data.products);
+      // Log what we're sending to the API for debugging
+      console.log("Fetching products with params:", {
+        page: currentPage,
+        pageSize: parseInt(pageSize),
+      });
+
+      const response = await axios.get("/api/admin/products", {
+        params: {
+          page: currentPage,
+          pageSize: parseInt(pageSize),
+          // Also include limit as some APIs use this instead
+          limit: parseInt(pageSize),
+        },
+      });
+
+      // Log the response for debugging
+      console.log("Products API response:", response.data);
+
+      setProducts(response.data.products || []);
+
+      // Calculate total pages
+      if (response.data.totalPages !== undefined) {
+        setTotalPages(response.data.totalPages);
+      } else if (response.data.total !== undefined) {
+        setTotalPages(
+          Math.max(1, Math.ceil(response.data.total / parseInt(pageSize)))
+        );
+      } else {
+        // If server doesn't provide pagination info, make an educated guess
+        const receivedCount = response.data.products?.length || 0;
+        const isFullPage = receivedCount >= parseInt(pageSize);
+        // If we got a full page, there might be more
+        setTotalPages(currentPage + (isFullPage ? 1 : 0));
+      }
     } catch (error) {
+      console.error("Error fetching products:", error);
       toast.error("Failed to fetch products");
       setError("Failed to fetch products");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -260,6 +306,18 @@ const ProductsPage = () => {
     }));
   };
 
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(value);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && (newPage <= totalPages || totalPages === 0)) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const ImagePreview = ({
     images,
     onRemove,
@@ -287,6 +345,20 @@ const ProductsPage = () => {
       ))}
     </div>
   );
+
+  // Filter products based on search term - only if searching
+  const filteredProducts = searchTerm
+    ? products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.category?.name || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (product.brand?.name || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      )
+    : products;
 
   return (
     <div className="container mx-auto p-6">
@@ -609,6 +681,17 @@ const ProductsPage = () => {
       </Dialog>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
+      {loading && <p className="text-blue-500 mb-4">Loading products...</p>}
+
+      <div className="mb-4">
+        <Input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full"
+        />
+      </div>
 
       <Table>
         <TableHeader>
@@ -624,53 +707,102 @@ const ProductsPage = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>
-                {product.images[0] && (
-                  <img
-                    src={product.images[0].url}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover"
-                  />
-                )}
-              </TableCell>
-              <TableCell>{product.name}</TableCell>
-              <TableCell>${product.price}</TableCell>
-              <TableCell>{product.quantity}</TableCell>
-              <TableCell>{product.category?.name || "No Category"}</TableCell>
-              <TableCell>{product.brand?.name || "No Brand"}</TableCell>
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  {product.options && product.options.length > 0 ? (
-                    product.options.map((option) => (
-                      <div key={option.id} className="text-xs">
-                        <span className="font-medium">{option.name}:</span>{" "}
-                        {option.values.join(", ")}
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 text-xs">No options</span>
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell>
+                  {product.images[0] && (
+                    <img
+                      src={product.images[0].url}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover"
+                    />
                   )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => handleEdit(product)}>
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                </TableCell>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>${product.price}</TableCell>
+                <TableCell>{product.quantity}</TableCell>
+                <TableCell>{product.category?.name || "No Category"}</TableCell>
+                <TableCell>{product.brand?.name || "No Brand"}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    {product.options && product.options.length > 0 ? (
+                      product.options.map((option) => (
+                        <div key={option.id} className="text-xs">
+                          <span className="font-medium">{option.name}:</span>{" "}
+                          {option.values.join(", ")}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-xs">No options</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleEdit(product)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-4">
+                {loading ? "Loading products..." : "No products found"}
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
+
+      {/* Improved Pagination Controls */}
+      <div className="flex justify-between items-center mt-6">
+        <div>
+          <Select value={pageSize} onValueChange={handlePageSizeChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 per page</SelectItem>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="25">25 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 items-center">
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1 || loading}
+            variant="outline"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <span className="px-3 py-1 text-sm">
+            Page {currentPage} {totalPages > 0 ? `of ${totalPages}` : ""}
+          </span>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={(totalPages > 0 && currentPage >= totalPages) || loading}
+            variant="outline"
+            size="sm"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

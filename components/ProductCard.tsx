@@ -60,6 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
       try {
         // Tenter de parser le texte en JSON
         data = JSON.parse(text);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (parseError) {
         console.error("Failed to parse response:", text);
         throw new Error("Invalid server response");

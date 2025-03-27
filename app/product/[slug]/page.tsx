@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { Navbar } from "@/components/navbar";
 import FooterSection from "@/components/footer";
 import ProductDetails from "@/components/ProductDetails";
 import ProductReview from "@/components/ProductReview";
@@ -12,6 +11,7 @@ interface Props {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Product {
   id: string;
   name: string;

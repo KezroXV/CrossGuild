@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 
 interface Product {
@@ -14,6 +13,7 @@ interface Product {
   topSelling: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const slideFromBottom = {
   hidden: { opacity: 0, y: 100 },
   visible: { opacity: 1, y: 0 },

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import { ModeToggle } from "../../ui/mode-toggle";
 import {
   Footer,
@@ -21,58 +22,34 @@ export default function FooterSection() {
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Product</h3>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Changelog
               </a>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Documentation
               </a>
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Company</h3>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 About
               </a>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Careers
               </a>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Blog
               </a>
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Contact</h3>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Discord
               </a>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Twitter
               </a>
-              <a
-                href="/"
-                className="text-sm text-muted-foreground"
-              >
+              <a href="/" className="text-sm text-muted-foreground">
                 Github
               </a>
             </FooterColumn>

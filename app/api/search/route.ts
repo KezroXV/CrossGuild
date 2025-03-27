@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({ products });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to search products" },

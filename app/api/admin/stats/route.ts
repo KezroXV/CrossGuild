@@ -61,6 +61,7 @@ export async function GET() {
       newUsers,
       recentReviews,
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -40,9 +41,18 @@ export async function PATCH(
       },
     });
 
-    // If status is changed to "delivered" and wasn't previously, update stock
+    // If status is changed from "pending" to "delivered", update stock and topSelling
     if (body.status === "delivered" && prevStatus !== "delivered") {
       await updateProductStock(order.orderItems);
+    }
+
+    // If status is changed to "cancelled" from a non-cancelled state, restore stock
+    if (
+      body.status === "cancelled" &&
+      prevStatus !== "cancelled" &&
+      prevStatus !== "pending"
+    ) {
+      await restoreProductStock(order.orderItems);
     }
 
     // Format the order to match frontend expectations
@@ -90,13 +100,14 @@ async function updateProductStock(orderItems: any[]) {
     for (const orderItem of orderItems) {
       const item = orderItem.item;
 
-      // Reduce the stock by the quantity ordered
       if (item) {
+        // Reduce stock and increase topSelling
         await prisma.item.update({
           where: { id: item.id },
           data: {
             quantity: Math.max(0, item.quantity - orderItem.quantity),
-            // If stock is 0, you might want to mark it as out of stock
+            topSelling: item.topSelling + orderItem.quantity,
+            // If stock is 0, mark as not published
             isPublished: item.quantity - orderItem.quantity > 0,
           },
         });
@@ -105,12 +116,46 @@ async function updateProductStock(orderItems: any[]) {
           `Updated stock for ${item.name}: from ${item.quantity} to ${Math.max(
             0,
             item.quantity - orderItem.quantity
-          )}`
+          )}, topSelling increased to ${item.topSelling + orderItem.quantity}`
         );
       }
     }
   } catch (error) {
     console.error("Error updating product stock:", error);
+    throw error;
+  }
+}
+
+// Restore product stock when an order is cancelled
+async function restoreProductStock(orderItems: any[]) {
+  try {
+    for (const orderItem of orderItems) {
+      const item = orderItem.item;
+
+      if (item) {
+        // Restore stock and decrease topSelling
+        await prisma.item.update({
+          where: { id: item.id },
+          data: {
+            quantity: item.quantity + orderItem.quantity,
+            topSelling: Math.max(0, item.topSelling - orderItem.quantity),
+            // If the item was marked as unavailable but now has stock, make it available again
+            isPublished: true,
+          },
+        });
+
+        console.log(
+          `Restored stock for ${item.name}: from ${item.quantity} to ${
+            item.quantity + orderItem.quantity
+          }, topSelling decreased to ${Math.max(
+            0,
+            item.topSelling - orderItem.quantity
+          )}`
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error restoring product stock:", error);
     throw error;
   }
 }
