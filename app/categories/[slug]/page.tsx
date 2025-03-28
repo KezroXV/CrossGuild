@@ -98,7 +98,10 @@ export const metadata: Metadata = {
 };
 
 const CategoryPage = async ({ params }: Props) => {
-  const category = await getCategory(params.slug);
+  // Use Promise.resolve to ensure params is fully resolved
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams.slug;
+  const category = await getCategory(slug);
 
   if (!category || !category.items) {
     return (
