@@ -7,7 +7,7 @@ import FooterSection from "@/components/footer";
 import Brands from "@/components/Categories/Brands";
 const page = () => {
   return (
-    <div className="pt-4">
+    <div className="pt-px">
       <Navbar />
       <Catehero />
       <CategoriesSection />

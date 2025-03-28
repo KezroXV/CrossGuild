@@ -75,7 +75,7 @@ const SearchBar = () => {
                        bg-white text-black
                        placeholder-gray-400 rounded-full
                        border border-gray-700
-                       focus:border-purple-500 focus:ring-2
+                       focus:border-accent focus:ring-2
                        focus:ring-purple-500/20 focus:outline-none
                        transition-all duration-300"
           />

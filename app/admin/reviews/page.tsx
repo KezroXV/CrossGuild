@@ -60,18 +60,22 @@ export default function ReviewsPage() {
   useEffect(() => {
     fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchTerm]);
 
   const fetchReviews = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/admin/reviews", {
-        params: { page: currentPage, pageSize: parseInt(pageSize) },
+        params: {
+          page: currentPage,
+          pageSize: parseInt(pageSize),
+          search: searchTerm,
+        },
       });
       setReviews(response.data.reviews);
       setTotalPages(
         response.data.totalPages ||
-          Math.ceil(response.data.reviews.length / parseInt(pageSize))
+          Math.ceil(response.data.totalCount / parseInt(pageSize))
       );
     } catch (error) {
       toast.error("Failed to fetch reviews");
@@ -111,13 +115,13 @@ export default function ReviewsPage() {
     }
   };
 
-  // Filter reviews based on search term
-  const filteredReviews = reviews.filter(
-    (review) =>
-      review.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  // Remove the client-side filtering since we're now doing it server-side
+  const filteredReviews = reviews;
 
   return (
     <div className="p-6 max-w-[80%]">
@@ -141,7 +145,7 @@ export default function ReviewsPage() {
           type="text"
           placeholder="Search reviews..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           className="w-full"
         />
       </div>
