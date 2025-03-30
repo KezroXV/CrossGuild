@@ -18,6 +18,7 @@ export const Navbar = () => {
   const { data: session } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +29,36 @@ export const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // Effect to fetch cart items count
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (session?.user) {
+        try {
+          // Use the dedicated cart count API endpoint
+          const response = await fetch("/api/cart/count");
+          if (response.ok) {
+            const data = await response.json();
+            setCartItemCount(data.count);
+          } else {
+            setCartItemCount(0);
+          }
+        } catch (error) {
+          console.error("Failed to fetch cart count:", error);
+          setCartItemCount(0);
+        }
+      } else {
+        setCartItemCount(0);
+      }
+    };
+
+    fetchCartCount();
+
+    // Set up interval to refresh cart count when changes might happen
+    const intervalId = setInterval(fetchCartCount, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [session]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -98,8 +129,13 @@ export const Navbar = () => {
             {/* Mobile buttons */}
 
             <div className="md:hidden flex items-center space-x-3">
-              <Link href="/cart">
+              <Link href="/cart" className="relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </span>
+                )}
               </Link>
               <button
                 onClick={toggleMobileMenu}
@@ -123,8 +159,13 @@ export const Navbar = () => {
               <Link href="/wishlist" className="group">
                 <Heart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
               </Link>
-              <Link href="/cart" className="group">
+              <Link href="/cart" className="group relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </span>
+                )}
               </Link>
               {session?.user ? (
                 <div className="relative group">
