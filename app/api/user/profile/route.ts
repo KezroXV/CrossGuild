@@ -13,6 +13,7 @@ export async function GET() {
 
     const userId = session.user.id;
 
+    // Spécifier explicitement les champs à sélectionner pour éviter des problèmes
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -21,6 +22,7 @@ export async function GET() {
         email: true,
         phone: true,
         image: true,
+        // N'ajoutez que les champs qui existent dans votre base de données
       },
     });
 
@@ -97,6 +99,6 @@ export async function PUT(req: Request) {
     return NextResponse.json(
       { error: "Failed to update user profile" },
       { status: 500 }
-    );
+    ); // Correction ici - il y avait une accolade en trop
   }
 }

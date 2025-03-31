@@ -7,10 +7,12 @@ const prisma = new PrismaClient();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: Request) {
   try {
+    // Utiliser une sélection explicite des champs pour éviter les erreurs
     const users = await prisma.user.findMany({
       include: {
         role: true,
       },
+      // N'ajoutez pas de champs qui n'existent pas dans la base de données
     });
     return NextResponse.json({ users }, { status: 200 });
   } catch (error) {

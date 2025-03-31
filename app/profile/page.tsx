@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -47,17 +47,26 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-// Use Sonner for toast notifications
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import axios from "axios";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Form schemas
 const personalInfoSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-  email: z.string().email("Email invalide"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email"),
   phone: z.string().optional(),
 });
 
@@ -65,16 +74,14 @@ const passwordChangeSchema = z
   .object({
     currentPassword: z
       .string()
-      .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-    newPassword: z
-      .string()
-      .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+      .min(6, "Password must be at least 6 characters"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z
       .string()
-      .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+      .min(6, "Password must be at least 6 characters"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
@@ -90,7 +97,6 @@ type Order = {
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  // Remove useToast hook
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,8 +104,15 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedOrderForCancel, setSelectedOrderForCancel] =
+    useState<Order | null>(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
-  // Personal Info Form
+  // Personal info form
   const personalInfoForm = useForm<z.infer<typeof personalInfoSchema>>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
@@ -109,7 +122,7 @@ export default function ProfilePage() {
     },
   });
 
-  // Password Change Form
+  // Password change form
   const passwordChangeForm = useForm<z.infer<typeof passwordChangeSchema>>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
@@ -119,7 +132,7 @@ export default function ProfilePage() {
     },
   });
 
-  // Redirect if not logged in
+  // Redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
@@ -139,7 +152,7 @@ export default function ProfilePage() {
     }
   }, [session]);
 
-  // Fetch user orders
+  // Fetch orders
   const fetchOrders = async (page: number) => {
     setIsLoading(true);
     try {
@@ -151,25 +164,86 @@ export default function ProfilePage() {
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
-      // Use Sonner toast for error notifications
-      toast.error("Impossible de récupérer vos commandes");
+      toast.error("Failed to fetch your orders");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Update personal info
+  // Update personal info with image
   const onPersonalInfoSubmit = async (
     values: z.infer<typeof personalInfoSchema>
   ) => {
     try {
+      // Update textual info
       await axios.put("/api/user/profile", values);
-      // Use Sonner toast for success notifications
-      toast.success("Vos informations ont été mises à jour");
+
+      // If an image is selected, upload it
+      if (image) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append("image", image);
+
+        const imageResponse = await axios.post(
+          "/api/user/profile/image",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (!imageResponse.data.success) {
+          throw new Error("Image upload failed");
+        }
+      }
+
+      toast.success("Your information has been updated");
+
+      // Reset image state
+      setImage(null);
+      setImagePreview(null);
+
+      // Reload the page to see image changes
+      window.location.reload();
     } catch (error) {
       console.error("Failed to update profile:", error);
-      toast.error("Impossible de mettre à jour vos informations");
+      toast.error("Failed to update your information");
+      setIsUploading(false);
     }
+  };
+
+  // Handle image change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image is too large. Max size: 5MB.");
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selected file is not an image");
+      return;
+    }
+
+    setImage(file);
+
+    // Create image preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Trigger file input click
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   // Change password
@@ -182,7 +256,7 @@ export default function ProfilePage() {
         newPassword: values.newPassword,
       });
 
-      toast.success("Votre mot de passe a été mis à jour");
+      toast.success("Your password has been updated");
 
       passwordChangeForm.reset({
         currentPassword: "",
@@ -192,7 +266,7 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Failed to change password:", error);
       toast.error(
-        "Impossible de changer votre mot de passe. Vérifiez que votre mot de passe actuel est correct."
+        "Failed to change your password. Please check your current password."
       );
     }
   };
@@ -203,67 +277,153 @@ export default function ProfilePage() {
     setIsOrderDetailsOpen(true);
   };
 
-  // Get status badge color
+  // Open cancel dialog
+  const openCancelDialog = (order: Order) => {
+    setSelectedOrderForCancel(order);
+    setIsCancelDialogOpen(true);
+  };
+
+  // Cancel order
+  const handleCancelOrder = async () => {
+    if (!selectedOrderForCancel) return;
+
+    try {
+      const response = await axios.put(
+        `/api/user/orders/${selectedOrderForCancel.id}/cancel`
+      );
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully");
+
+        // Update the order status in the local state
+        setOrders(
+          orders.map((order) =>
+            order.id === selectedOrderForCancel.id
+              ? { ...order, status: "CANCELLED" }
+              : order
+          )
+        );
+
+        // If the selected order is the one being displayed in the details dialog, update it
+        if (selectedOrder && selectedOrder.id === selectedOrderForCancel.id) {
+          setSelectedOrder({ ...selectedOrder, status: "CANCELLED" });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to cancel order:", error);
+      toast.error("Failed to cancel the order");
+    } finally {
+      setIsCancelDialogOpen(false);
+      setSelectedOrderForCancel(null);
+    }
+  };
+
+  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="outline">En attente</Badge>;
+        return <Badge variant="outline">Pending</Badge>;
       case "PROCESSING":
-        return <Badge variant="secondary">En cours</Badge>;
+        return <Badge variant="secondary">Processing</Badge>;
       case "SHIPPED":
-        return <Badge variant="default">Expédiée</Badge>;
+        return <Badge variant="default">Shipped</Badge>;
       case "DELIVERED":
-        return <Badge variant="success">Livrée</Badge>;
+        return <Badge variant="success">Delivered</Badge>;
       case "CANCELLED":
-        return <Badge variant="destructive">Annulée</Badge>;
+        return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  // Safely format number with fallback
+  // Format number with fallback
   const safelyFormatNumber = (value: number | undefined | null): string => {
     return value !== undefined && value !== null ? value.toFixed(2) : "0.00";
   };
 
   if (status === "loading") {
-    return <div className="container mx-auto py-10">Chargement...</div>;
+    return <div className="container mx-auto py-10">Loading...</div>;
   }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
+      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
 
       <Tabs defaultValue="personal-info" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="personal-info">
-            Informations Personnelles
-          </TabsTrigger>
-          <TabsTrigger value="orders">Mes Commandes</TabsTrigger>
+          <TabsTrigger value="personal-info">Personal Information</TabsTrigger>
+          <TabsTrigger value="orders">My Orders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal-info" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informations Personnelles</CardTitle>
+              <CardTitle>Personal Information</CardTitle>
               <CardDescription>
-                Mettez à jour vos informations personnelles ici.
+                Update your profile information and photo here.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...personalInfoForm}>
                 <form
                   onSubmit={personalInfoForm.handleSubmit(onPersonalInfoSubmit)}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
+                  {/* Profile Photo */}
+                  <div className="flex flex-col items-center space-y-4 mb-6">
+                    <div className="relative h-24 w-24 rounded-full overflow-hidden border">
+                      <img
+                        src={
+                          imagePreview ||
+                          session?.user?.image ||
+                          "/placeholder-avatar.png"
+                        }
+                        alt="Avatar"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col items-center space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleButtonClick}
+                      >
+                        Choose Image
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        id="profile-image"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                        disabled={isUploading}
+                      />
+                      {image && (
+                        <p className="text-sm text-green-600">
+                          New image selected
+                        </p>
+                      )}
+                      {isUploading && (
+                        <p className="text-sm text-muted-foreground">
+                          Uploading...
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Max size: 5MB. Supported formats: JPG, PNG, GIF, WEBP
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Personal info fields */}
                   <FormField
                     control={personalInfoForm.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom & Prénom</FormLabel>
+                        <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Votre nom complet" {...field} />
+                          <Input placeholder="Your full name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -275,13 +435,12 @@ export default function ProfilePage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Adresse e-mail</FormLabel>
+                        <FormLabel>Email Address</FormLabel>
                         <FormControl>
-                          <Input placeholder="votre@email.com" {...field} />
+                          <Input placeholder="your@email.com" {...field} />
                         </FormControl>
                         <FormDescription>
-                          La modification de l'email peut nécessiter une
-                          vérification.
+                          Changing your email might require verification.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -293,19 +452,18 @@ export default function ProfilePage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Numéro de téléphone (optionnel)</FormLabel>
+                        <FormLabel>Phone Number (optional)</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Votre numéro de téléphone"
-                            {...field}
-                          />
+                          <Input placeholder="Your phone number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit">Mettre à jour mes informations</Button>
+                  <Button type="submit" disabled={isUploading}>
+                    {isUploading ? "Updating..." : "Update Profile"}
+                  </Button>
                 </form>
               </Form>
             </CardContent>
@@ -313,9 +471,9 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Modifier mon mot de passe</CardTitle>
+              <CardTitle>Change Password</CardTitle>
               <CardDescription>
-                Assurez-vous d'utiliser un mot de passe sécurisé.
+                Make sure to use a secure password.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -331,11 +489,11 @@ export default function ProfilePage() {
                     name="currentPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mot de passe actuel</FormLabel>
+                        <FormLabel>Current Password</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Votre mot de passe actuel"
+                            placeholder="Your current password"
                             {...field}
                           />
                         </FormControl>
@@ -349,11 +507,11 @@ export default function ProfilePage() {
                     name="newPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nouveau mot de passe</FormLabel>
+                        <FormLabel>New Password</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Votre nouveau mot de passe"
+                            placeholder="Your new password"
                             {...field}
                           />
                         </FormControl>
@@ -367,11 +525,11 @@ export default function ProfilePage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirmer le nouveau mot de passe</FormLabel>
+                        <FormLabel>Confirm New Password</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Confirmez votre nouveau mot de passe"
+                            placeholder="Confirm your new password"
                             {...field}
                           />
                         </FormControl>
@@ -380,7 +538,7 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  <Button type="submit">Changer mon mot de passe</Button>
+                  <Button type="submit">Change Password</Button>
                 </form>
               </Form>
             </CardContent>
@@ -390,30 +548,26 @@ export default function ProfilePage() {
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Historique des commandes</CardTitle>
-              <CardDescription>
-                Consultez toutes vos commandes passées.
-              </CardDescription>
+              <CardTitle>Order History</CardTitle>
+              <CardDescription>View all your past orders.</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-6">
-                  Chargement des commandes...
-                </div>
+                <div className="text-center py-6">Loading orders...</div>
               ) : orders.length === 0 ? (
                 <div className="text-center py-6">
-                  Vous n'avez pas encore de commandes.
+                  You don't have any orders yet. yet.
                 </div>
               ) : (
                 <>
                   <Table>
-                    <TableCaption>Liste de vos commandes</TableCaption>
+                    <TableCaption>List of your orders</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Numéro de commande</TableHead>
+                        <TableHead>Order Number</TableHead>
                         <TableHead>Date</TableHead>
-                        <TableHead>Montant</TableHead>
-                        <TableHead>Statut</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -435,13 +589,27 @@ export default function ProfilePage() {
                             {getStatusBadge(order.status || "")}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openOrderDetails(order)}
-                            >
-                              Voir détails
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openOrderDetails(order)}
+                              >
+                                View
+                              </Button>
+
+                              {/* Only show cancel button for PENDING or PROCESSING orders */}
+                              {(order.status === "pending" ||
+                                order.status === "processing") && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => openCancelDialog(order)}
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -507,10 +675,10 @@ export default function ProfilePage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              Détails de la commande {selectedOrder?.orderNumber || "N/A"}
+              Order Details {selectedOrder?.orderNumber || "N/A"}
             </DialogTitle>
             <DialogDescription>
-              Commande passée le{" "}
+              Order placed on{" "}
               {selectedOrder?.createdAt
                 ? new Date(selectedOrder.createdAt).toLocaleDateString()
                 : "N/A"}
@@ -536,9 +704,9 @@ export default function ProfilePage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Produit</TableHead>
-                      <TableHead className="text-right">Quantité</TableHead>
-                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -566,17 +734,55 @@ export default function ProfilePage() {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">
-                          Aucun produit trouvé
+                          No products found
                         </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
                 </Table>
               </div>
+
+              {/* Add cancel button in the details view too */}
+              {selectedOrder.status === "PENDING" ||
+              selectedOrder.status === "PROCESSING" ? (
+                <div className="flex justify-end">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setIsOrderDetailsOpen(false);
+                      openCancelDialog(selectedOrder);
+                    }}
+                  >
+                    Cancel Order
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Cancel Order Confirmation Dialog */}
+      <AlertDialog
+        open={isCancelDialogOpen}
+        onOpenChange={setIsCancelDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this order? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep order</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelOrder}>
+              Yes, cancel order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
