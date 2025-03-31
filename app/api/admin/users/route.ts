@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { mapUserFields } from "@/lib/user-fields";
 
 const prisma = new PrismaClient();
 
@@ -25,27 +26,19 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, roleId, isAdmin } = await request.json();
+    const body = await request.json();
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
+    // Map any inconsistent field names
+    const mappedUser = mapUserFields(body);
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: {
-        roleId,
-        isAdmin: isAdmin ?? undefined,
-      },
-      include: {
-        role: true,
-      },
+    // Update user with the mapped fields
+    const updatedUser = await prisma.user.update({
+      where: { id: mappedUser.id },
+      data: mappedUser,
     });
 
-    return NextResponse.json({ user }, { status: 200 });
+    // Return the updated user
+    return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(

@@ -4,6 +4,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 export const {
   handlers: { GET, POST },
@@ -16,8 +18,8 @@ export const {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
+    signIn: "/login",
+    error: "/login/error",
   },
   callbacks: {
     async session({ session, token }) {
@@ -44,13 +46,24 @@ export const {
       return token;
     },
     async signIn({ user, account, profile, email, credentials }) {
+      // Création automatique du panier lors de la première connexion sociale
       if (account?.provider === "google" || account?.provider === "github") {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
-          include: { accounts: true },
+          include: { accounts: true, cart: true },
         });
 
         if (existingUser) {
+          // Vérifier si l'utilisateur a un panier
+          if (!existingUser.cart) {
+            // Créer un panier vide pour l'utilisateur
+            await prisma.cart.create({
+              data: {
+                userId: existingUser.id,
+              },
+            });
+          }
+
           // Si l'utilisateur existe déjà mais n'a pas de compte lié avec ce provider
           const existingAccount = existingUser.accounts.find(
             (acc) => acc.provider === account.provider
@@ -74,6 +87,21 @@ export const {
               },
             });
           }
+        } else if (user.id) {
+          // Si l'utilisateur vient d'être créé via un provider social
+          // Vérifier si un panier existe déjà
+          const existingCart = await prisma.cart.findUnique({
+            where: { userId: user.id },
+          });
+
+          if (!existingCart) {
+            // Créer un panier
+            await prisma.cart.create({
+              data: {
+                userId: user.id,
+              },
+            });
+          }
         }
       }
       return true;
@@ -87,6 +115,43 @@ export const {
     GoogleProvider({
       clientId: process.env.GOOGLE_ID || "",
       clientSecret: process.env.GOOGLE_SECRET || "",
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          isAdmin: user.isAdmin,
+        };
+      },
     }),
   ],
 });
