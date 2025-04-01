@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -30,7 +30,8 @@ export async function PATCH(
       where: { id: orderId },
       data: {
         status: body.status,
-        isPaid: body.isPaid !== undefined ? body.isPaid : undefined,
+        // Ensure the field exists in the schema before using it
+        ...(body.isPaid !== undefined && { isPaid: body.isPaid }),
       },
       include: {
         orderItems: {
@@ -194,7 +195,7 @@ export async function DELETE(
 }
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
