@@ -90,12 +90,22 @@ type Order = {
   orderNumber: string;
   createdAt: string;
   totalAmount: number;
-  status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status:
+    | "PENDING"
+    | "PROCESSING"
+    | "SHIPPED"
+    | "DELIVERED"
+    | "cancelled"
+    | "pending"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
   items: any[];
 };
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -176,7 +186,27 @@ export default function ProfilePage() {
   ) => {
     try {
       // Update textual info
-      await axios.put("/api/user/profile", values);
+      const response = await axios.put("/api/user/profile", values);
+
+      if (response.data.success) {
+        // Update the form with the new values
+        personalInfoForm.reset({
+          name: values.name,
+          email: values.email,
+          phone: values.phone || "",
+        });
+
+        // Update session data to reflect changes immediately
+        await updateSession({
+          ...session,
+          user: {
+            ...session?.user,
+            name: values.name,
+            email: values.email,
+            phone: values.phone,
+          },
+        });
+      }
 
       // If an image is selected, upload it
       if (image) {
@@ -194,7 +224,24 @@ export default function ProfilePage() {
           }
         );
 
-        if (!imageResponse.data.success) {
+        if (imageResponse.data.success && imageResponse.data.imageUrl) {
+          // Update session with new image URL
+          await updateSession({
+            ...session,
+            user: {
+              ...session?.user,
+              image: imageResponse.data.imageUrl,
+            },
+          });
+
+          // Explicitly update the UI with the new image URL
+          setImagePreview(imageResponse.data.imageUrl);
+
+          // Force a session refresh to ensure the UI updates
+          // This makes sure the image actually updates in the UI
+          const updatedSession = await updateSession();
+          console.log("Session updated with new image:", updatedSession);
+        } else {
           throw new Error("Image upload failed");
         }
       }
@@ -203,10 +250,15 @@ export default function ProfilePage() {
 
       // Reset image state
       setImage(null);
-      setImagePreview(null);
 
-      // Reload the page to see image changes
-      window.location.reload();
+      // Don't reset the imagePreview if we just set it to the new image URL
+      if (!image) {
+        setImagePreview(null);
+      }
+
+      setIsUploading(false);
+
+      // No need to reload the page anymore
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error("Failed to update your information");
@@ -320,7 +372,10 @@ export default function ProfilePage() {
 
   // Get status badge
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    // Normalize status to uppercase for consistent comparison
+    const normalizedStatus = status.toUpperCase();
+
+    switch (normalizedStatus) {
       case "PENDING":
         return <Badge variant="outline">Pending</Badge>;
       case "PROCESSING":
@@ -564,7 +619,7 @@ export default function ProfilePage() {
                     <TableCaption>List of your orders</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Order Number</TableHead>
+                        <TableHead>Order ID</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
@@ -599,8 +654,9 @@ export default function ProfilePage() {
                               </Button>
 
                               {/* Only show cancel button for PENDING or PROCESSING orders */}
-                              {(order.status === "pending" ||
-                                order.status === "processing") && (
+                              {(order.status.toUpperCase() === "PENDING" ||
+                                order.status.toUpperCase() ===
+                                  "PROCESSING") && (
                                 <Button
                                   variant="destructive"
                                   size="sm"
@@ -743,8 +799,8 @@ export default function ProfilePage() {
               </div>
 
               {/* Add cancel button in the details view too */}
-              {selectedOrder.status === "PENDING" ||
-              selectedOrder.status === "PROCESSING" ? (
+              {selectedOrder.status.toUpperCase() === "PENDING" ||
+              selectedOrder.status.toUpperCase() === "PROCESSING" ? (
                 <div className="flex justify-end">
                   <Button
                     variant="destructive"

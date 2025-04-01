@@ -110,8 +110,8 @@ const OrdersPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto p-8">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Orders</h1>
         <Button
           onClick={handleExportOrders}
@@ -122,78 +122,84 @@ const OrdersPage = () => {
         </Button>
       </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {loading && <p className="text-blue-500 mb-4">Loading...</p>}
+      {error && <p className="text-red-500 mb-6">{error}</p>}
+      {loading && <p className="text-blue-500 mb-6">Loading...</p>}
 
-      <div className="mb-4">
+      <div className="mb-6">
         <Input
           type="text"
           placeholder="Search orders..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full"
+          className="w-full py-2"
         />
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Order ID</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Items</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredOrders.map((order: any) => (
-            <TableRow key={order.id}>
-              <TableCell>{order.id}</TableCell>
-              <TableCell>{order.user?.name}</TableCell>
-              <TableCell>
-                {order.items.map((item: any) => (
-                  <div key={item.id}>{item.name}</div>
-                ))}
-              </TableCell>
-              <TableCell>{order.total}€</TableCell>
-              <TableCell>
-                <Select
-                  value={order.status}
-                  onValueChange={(value) => handleStatusUpdate(order.id, value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
-                {format(new Date(order.createdAt), "Pp", { locale: fr })}
-              </TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleStatusUpdate(order.id, "delivered")}
-                  className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white mr-2"
-                  size="sm"
-                >
-                  Validate
-                </Button>
-              </TableCell>
+      <div className="overflow-x-auto mb-8">
+        <Table className="w-full">
+          <TableHeader>
+            <TableRow className="border-b-2">
+              <TableHead className="py-4 px-4">Order ID</TableHead>
+              <TableHead className="py-4 px-4">Customer</TableHead>
+              <TableHead className="py-4 px-4">Items</TableHead>
+              <TableHead className="py-4 px-4">Total</TableHead>
+              <TableHead className="py-4 px-4">Status</TableHead>
+              <TableHead className="py-4 px-4">Date</TableHead>
+              <TableHead className="py-4 px-4">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {filteredOrders.map((order: any) => (
+              <TableRow key={order.id} className="hover:bg-gray-50">
+                <TableCell className="py-3 px-4">{order.id}</TableCell>
+                <TableCell className="py-3 px-4">{order.user?.name}</TableCell>
+                <TableCell className="py-3 px-4">
+                  {order.items.map((item: any) => (
+                    <div key={item.id} className="py-1">
+                      {item.name}
+                    </div>
+                  ))}
+                </TableCell>
+                <TableCell className="py-3 px-4">{order.total}€</TableCell>
+                <TableCell className="py-3 px-4">
+                  <Select
+                    value={order.status}
+                    onValueChange={(value) =>
+                      handleStatusUpdate(order.id, value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell className="py-3 px-4">
+                  {format(new Date(order.createdAt), "Pp", { locale: fr })}
+                </TableCell>
+                <TableCell className="py-3 px-4">
+                  <Button
+                    onClick={() => handleStatusUpdate(order.id, "delivered")}
+                    className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white"
+                    size="sm"
+                  >
+                    Validate
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex justify-between items-center mt-8 py-4">
         <div>
           <Select
             value={pageSize}
@@ -210,16 +216,17 @@ const OrdersPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <Button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
             variant="outline"
             size="sm"
+            className="px-4"
           >
             Previous
           </Button>
-          <span className="px-3 py-1">
+          <span className="px-4 py-1">
             Page {currentPage} of {totalPages}
           </span>
           <Button
@@ -227,6 +234,7 @@ const OrdersPage = () => {
             disabled={currentPage === totalPages}
             variant="outline"
             size="sm"
+            className="px-4"
           >
             Next
           </Button>

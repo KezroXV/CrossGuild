@@ -12,7 +12,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must contain at least 6 characters"),
   image: z.string().optional().nullable(),
-  phoneNumber: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(), // Changed from phoneNumber to phone
   address: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
   postalCode: z.string().optional().nullable(),
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       email,
       password,
       image,
-      phoneNumber,
+      phone, // Changed from phoneNumber to phone
       address,
       city,
       postalCode,
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         image,
-        phoneNumber,
+        phone, // Changed from phoneNumber to phone
         address,
         city,
         postalCode,

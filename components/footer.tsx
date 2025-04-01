@@ -61,7 +61,7 @@ export default function FooterSection() {
                 href="#"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
-                Careers
+                Profile
               </a>
               <a
                 href="#"
