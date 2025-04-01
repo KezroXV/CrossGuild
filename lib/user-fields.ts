@@ -3,6 +3,7 @@
  * This helps handle cases where field names might be different
  * between code and database
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mapUserFields = (user: any) => {
   // Create a mapped user object that ensures consistent field naming
   const mappedUser = { ...user };
@@ -21,6 +22,7 @@ export const mapUserFields = (user: any) => {
 /**
  * Map database user fields to frontend field names
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mapDatabaseUserToFrontend = (dbUser: any) => {
   const frontendUser = { ...dbUser };
 

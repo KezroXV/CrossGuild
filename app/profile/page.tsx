@@ -101,6 +101,7 @@ type Order = {
     | "shipped"
     | "delivered"
     | "cancelled";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   items: any[];
 };
 
@@ -155,7 +156,7 @@ export default function ProfilePage() {
       personalInfoForm.reset({
         name: session.user.name || "",
         email: session.user.email || "",
-        phone: session.user.phone || "",
+        phone: "", // Removed session.user?.phone as it does not exist on the type
       });
 
       fetchOrders(1);
@@ -351,14 +352,14 @@ export default function ProfilePage() {
         setOrders(
           orders.map((order) =>
             order.id === selectedOrderForCancel.id
-              ? { ...order, status: "CANCELLED" }
+              ? { ...order, status: "cancelled" }
               : order
           )
         );
 
         // If the selected order is the one being displayed in the details dialog, update it
         if (selectedOrder && selectedOrder.id === selectedOrderForCancel.id) {
-          setSelectedOrder({ ...selectedOrder, status: "CANCELLED" });
+          setSelectedOrder({ ...selectedOrder, status: "cancelled" });
         }
       }
     } catch (error) {
@@ -383,7 +384,7 @@ export default function ProfilePage() {
       case "SHIPPED":
         return <Badge variant="default">Shipped</Badge>;
       case "DELIVERED":
-        return <Badge variant="success">Delivered</Badge>;
+        return <Badge variant="default">Delivered</Badge>;
       case "CANCELLED":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -611,7 +612,7 @@ export default function ProfilePage() {
                 <div className="text-center py-6">Loading orders...</div>
               ) : orders.length === 0 ? (
                 <div className="text-center py-6">
-                  You don't have any orders yet. yet.
+                  You don&apos;t have any orders yet. yet.
                 </div>
               ) : (
                 <>

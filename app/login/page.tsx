@@ -28,7 +28,7 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams?.get("callbackUrl") || "/";
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -105,6 +105,7 @@ export default function LoginPage() {
         router.push(callbackUrl);
         router.refresh();
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("An error occurred during login");
     } finally {

@@ -49,6 +49,7 @@ export default function PasswordReset({
         } else {
           setError(data.error || "Invalid or expired token");
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         setError("An error occurred while verifying the token");
       } finally {

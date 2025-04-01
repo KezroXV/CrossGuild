@@ -30,6 +30,7 @@ export default function SignIn() {
         router.push("/");
         router.refresh();
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Une erreur est survenue lors de la connexion");
     } finally {

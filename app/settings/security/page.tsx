@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Laptop, Smartphone, Lock, Globe, X } from "lucide-react";
+import Link from "next/link";
 
 type Session = {
   id: string;
@@ -161,7 +162,7 @@ export default function SecuritySettings() {
         </CardHeader>
         <CardContent>
           <Button asChild>
-            <a href="/password-reset">Change Password</a>
+            <Link href="/password-reset">Change Password</Link>
           </Button>
         </CardContent>
       </Card>

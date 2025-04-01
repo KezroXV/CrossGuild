@@ -41,6 +41,7 @@ export async function POST(req: Request) {
     // S'assurer que le dossier existe
     try {
       await mkdir(uploadDir, { recursive: true });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       console.log("Directory already exists or cannot be created");
     }
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
     const imageUrl = `/uploads/profiles/${uniqueFilename}`;
 
     // Mettre à jour l'URL de l'image de l'utilisateur dans la base de données
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { id: userId },
       data: { image: imageUrl },
     });
