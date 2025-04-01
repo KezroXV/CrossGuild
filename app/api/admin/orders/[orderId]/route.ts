@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
@@ -162,7 +162,7 @@ async function restoreProductStock(orderItems: any[]) {
 }
 
 export async function DELETE(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
