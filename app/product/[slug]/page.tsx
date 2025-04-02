@@ -32,12 +32,20 @@ interface Product {
 }
 
 export async function generateStaticParams() {
-  const products = await prisma.item.findMany({
-    where: { isPublished: true },
-  });
-  return products.map((product) => ({
-    slug: product.slug,
-  }));
+  try {
+    const products = await prisma.item.findMany({
+      where: { isPublished: true },
+      select: {
+        slug: true,
+      },
+    });
+    return products.map((product) => ({
+      slug: product.slug,
+    }));
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
 }
 
 async function getProduct(slug: string) {
