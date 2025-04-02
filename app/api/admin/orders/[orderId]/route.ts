@@ -195,8 +195,8 @@ export async function DELETE(
 }
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } }
+  request: NextRequest,
+  context: { params: { orderId: string } }
 ) {
   try {
     const session = await auth();
@@ -205,7 +205,7 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { orderId } = params;
+    const { orderId } = context.params;
 
     if (!orderId) {
       return NextResponse.json(
