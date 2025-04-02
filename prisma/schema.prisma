@@ -72,6 +72,7 @@ model Order {
   orderItems  OrderItem[]
   total       Float
   status      String      @default("pending")
+  isPaid      Boolean     @default(false)  // Ajout de ce champ manquant
   createdAt   DateTime    @default(now())
   orderNumber String?     // Ajouté un champ optionnel pour le numéro de commande
 }

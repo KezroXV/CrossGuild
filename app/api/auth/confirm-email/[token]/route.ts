@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { token: string } }
 ) {
   const token = params.token;
@@ -45,7 +45,7 @@ export async function GET(
 
     // Delete the used token
     await prisma.verificationToken.delete({
-      where: { id: verificationToken.id },
+      where: { token: verificationToken.token },
     });
 
     // Redirect to success page
