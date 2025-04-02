@@ -27,10 +27,10 @@ export async function PATCH(
     // Vérifier que l'article appartient au panier de l'utilisateur
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: true }, // Correction ici: "items" -> "cartItems"
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
+    const cartItem = cart?.cartItems.find((item) => item.id === itemId); // Correction ici: "items" -> "cartItems"
 
     if (!cartItem) {
       return NextResponse.json(
@@ -79,10 +79,10 @@ export async function DELETE(
     // Vérifier que l'article appartient au panier de l'utilisateur
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: true }, // Correction ici: "items" -> "cartItems"
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
+    const cartItem = cart?.cartItems.find((item) => item.id === itemId); // Correction ici: "items" -> "cartItems"
 
     if (!cartItem) {
       return NextResponse.json(

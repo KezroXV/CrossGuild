@@ -83,6 +83,7 @@ export function AdminSidebar() {
   const { data: session } = useSession();
   const { open, setOpen } = useSidebar();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSidebarChange = (newState: boolean) => {
     setOpen(newState);
     localStorage.setItem("sidebar-state", String(newState));
@@ -106,8 +107,6 @@ export function AdminSidebar() {
           "border-r transition-all duration-300",
           !open ? "w-[60px]" : "w-[240px]"
         )}
-        open={open}
-        onOpenChange={handleSidebarChange}
       >
         <SidebarHeader className="border-b">
           <div className="flex items-center px-2 py-4">

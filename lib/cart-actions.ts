@@ -56,9 +56,17 @@ export async function addToCart(data: {
         sku: `${originalItem.sku || "item"}-cart-${Date.now()}`,
         slug: `${originalItem.slug}-cart-${Date.now()}`,
         isPublished: true,
-        cartId: cart.id,
         categoryId: originalItem.categoryId,
         brandId: originalItem.brandId,
+      },
+    });
+
+    // Créer la relation entre l'article et le panier via CartItem
+    await prisma.cartItem.create({
+      data: {
+        cartId: cart.id,
+        itemId: cartItem.id,
+        quantity,
       },
     });
 
@@ -128,12 +136,12 @@ export async function updateCartItem(data: {
     // Vérifier que l'article appartient au panier de l'utilisateur
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: { include: { item: true } } },
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
+    const cartItemRelation = cart?.cartItems.find((ci) => ci.itemId === itemId);
 
-    if (!cartItem) {
+    if (!cartItemRelation) {
       return { error: "Article non trouvé dans le panier", success: false };
     }
 
@@ -174,12 +182,12 @@ export async function removeFromCart(itemId: string) {
     // Vérifier que l'article appartient au panier de l'utilisateur
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
-      include: { items: true },
+      include: { cartItems: { include: { item: true } } },
     });
 
-    const cartItem = cart?.items.find((item) => item.id === itemId);
+    const cartItemRelation = cart?.cartItems.find((ci) => ci.itemId === itemId);
 
-    if (!cartItem) {
+    if (!cartItemRelation) {
       return { error: "Article non trouvé dans le panier", success: false };
     }
 

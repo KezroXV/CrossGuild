@@ -11,6 +11,7 @@ interface Product {
   brand: { name: string };
   quantity: number;
   topSelling: number;
+  slug: string; // Added slug property
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

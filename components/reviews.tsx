@@ -90,13 +90,25 @@ export default function Reviews() {
       <div className="relative flex flex-col gap-4 py-4">
         <Marquee className="[--gap:1rem] [--duration:20s]" pauseOnHover>
           {firstRow.map((review) => (
-            <ReviewCard key={review.id} {...review} />
+            <ReviewCard
+              key={review.id}
+              user={{ name: review.user.name, image: review.user.profilePhoto }}
+              content={review.content}
+              rating={review.rating}
+              item={review.item}
+            />
           ))}
         </Marquee>
 
         <Marquee className="[--gap:1rem] [--duration:20s]" reverse pauseOnHover>
           {secondRow.map((review) => (
-            <ReviewCard key={review.id} {...review} />
+            <ReviewCard
+              key={review.id}
+              user={{ name: review.user.name, image: review.user.profilePhoto }}
+              content={review.content}
+              rating={review.rating}
+              item={review.item}
+            />
           ))}
         </Marquee>
       </div>

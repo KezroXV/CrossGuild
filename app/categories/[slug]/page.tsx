@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -8,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface Props {
+// Modifié pour être compatible avec les attentes de type de Next.js
+type PageParams = {
   params: {
     slug: string;
   };
-}
+  searchParams?: Record<string, string | string[] | undefined>;
+};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Category {
   name: string;
   description?: string;
@@ -84,7 +86,7 @@ async function getCategory(categorySlug: string) {
       price: item.price,
       quantity: item.quantity,
       images: item.images,
-      brand: item.brand,
+      brand: item.brand || undefined,
       slug: item.slug,
       isPublished: item.isPublished,
     })),
@@ -98,10 +100,9 @@ export const metadata: Metadata = {
   description: "Browse items by category",
 };
 
-const CategoryPage = async ({ params }: Props) => {
-  // Use Promise.resolve to ensure params is fully resolved
-  const resolvedParams = await Promise.resolve(params);
-  const slug = resolvedParams.slug;
+const CategoryPage = async ({ params }: PageParams) => {
+  // Get the slug directly from params
+  const slug = params.slug;
   const category = await getCategory(slug);
 
   if (!category || !category.items) {

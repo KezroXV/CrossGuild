@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { unlink } from "fs/promises";
+import { unlink, writeFile } from "fs/promises";
 import { join } from "path";
 
 export async function DELETE(

@@ -172,7 +172,7 @@ export async function POST(req: Request) {
     // Format the response to match the expected structure by the client
     const formattedCart = {
       ...updatedCart,
-      items: updatedCart.cartItems.map((cartItem) => ({
+      items: updatedCart?.cartItems.map((cartItem) => ({
         ...cartItem.item,
         quantity: cartItem.quantity,
         cartItemId: cartItem.id,
@@ -261,11 +261,12 @@ export async function PATCH(req: Request) {
     // Format the response
     const formattedCart = {
       ...updatedCart,
-      items: updatedCart.cartItems.map((cartItem) => ({
-        ...cartItem.item,
-        quantity: cartItem.quantity,
-        cartItemId: cartItem.id,
-      })),
+      items:
+        updatedCart?.cartItems.map((cartItem) => ({
+          ...cartItem.item,
+          quantity: cartItem.quantity,
+          cartItemId: cartItem.id,
+        })) || [],
     };
 
     return NextResponse.json({ cart: formattedCart, success: true });
@@ -350,11 +351,12 @@ export async function DELETE(req: Request) {
     // Format the response
     const formattedCart = {
       ...updatedCart,
-      items: updatedCart.cartItems.map((cartItem) => ({
-        ...cartItem.item,
-        quantity: cartItem.quantity,
-        cartItemId: cartItem.id,
-      })),
+      items:
+        updatedCart?.cartItems.map((cartItem) => ({
+          ...cartItem.item,
+          quantity: cartItem.quantity,
+          cartItemId: cartItem.id,
+        })) || [],
     };
 
     return NextResponse.json({ cart: formattedCart, success: true });

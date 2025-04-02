@@ -49,7 +49,7 @@ export const {
       // Création automatique du panier lors de la première connexion sociale
       if (account?.provider === "google" || account?.provider === "github") {
         const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
+          where: { email: user.email ?? undefined },
           include: { accounts: true, cart: true },
         });
 
@@ -83,7 +83,10 @@ export const {
                 token_type: account.token_type,
                 scope: account.scope,
                 id_token: account.id_token,
-                session_state: account.session_state,
+                session_state:
+                  typeof account.session_state === "string"
+                    ? account.session_state
+                    : null,
               },
             });
           }
@@ -128,7 +131,7 @@ export const {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
         });
 
         if (!user || !user.password) {
@@ -136,7 +139,7 @@ export const {
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          credentials.password as string,
           user.password
         );
 

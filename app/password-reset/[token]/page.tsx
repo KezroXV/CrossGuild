@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 
-export default function PasswordReset({
-  params,
-}: {
+// Modification du type de props pour être compatible avec Next.js
+type PageParams = {
   params: { token: string };
-}) {
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
+export default function PasswordReset({ params }: PageParams) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

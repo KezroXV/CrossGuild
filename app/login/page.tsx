@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { Suspense, useState, useRef } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -24,11 +24,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
-  const router = useRouter();
+// Component that uses useSearchParams
+function LoginContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams?.get("callbackUrl") || "/";
+  const callbackUrl = searchParams ? searchParams.get("callbackUrl") : null;
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -102,7 +104,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push(callbackUrl);
+        router.push(callbackUrl || "/");
         router.refresh();
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -185,7 +187,7 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      router.push(callbackUrl);
+      router.push(callbackUrl || "/");
       router.refresh();
     } catch (error) {
       if (error instanceof Error) {
@@ -201,7 +203,7 @@ export default function LoginPage() {
   // Handle social login
   const handleSocialLogin = (provider: string) => {
     setIsLoading(true);
-    signIn(provider, { callbackUrl });
+    signIn(provider, { callbackUrl: callbackUrl || "/" });
   };
 
   return (
@@ -472,6 +474,19 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Main login page component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+      <Suspense
+        fallback={<div className="text-center">Loading login form...</div>}
+      >
+        <LoginContent />
+      </Suspense>
     </div>
   );
 }

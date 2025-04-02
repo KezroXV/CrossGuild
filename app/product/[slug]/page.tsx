@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -5,13 +6,14 @@ import FooterSection from "@/components/footer";
 import ProductDetails from "@/components/ProductDetails";
 import ProductReview from "@/components/ProductReview";
 
-interface Props {
+// Modifié pour être compatible avec les attentes de type de Next.js
+type PageParams = {
   params: {
     slug: string;
   };
-}
+  searchParams?: Record<string, string | string[] | undefined>;
+};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Product {
   id: string;
   name: string;
@@ -84,24 +86,45 @@ export const metadata: Metadata = {
   description: "View product details and specifications",
 };
 
-const ProductPage = async ({ params }: Props) => {
+// Function to ensure product data matches the expected Product interface
+function formatProduct(dbProduct: any): Product {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name || "",
+    description: dbProduct.description || "",
+    price: dbProduct.price || 0,
+    quantity: dbProduct.quantity || 0,
+    images: dbProduct.images || [],
+    brand: dbProduct.brand || undefined,
+    options: dbProduct.options.map((option: any) => ({
+      id: option.id,
+      name: option.name,
+      values: Array.isArray(option.values) ? option.values : [],
+    })),
+  };
+}
+
+const ProductPage = async ({ params }: PageParams) => {
   // Vérifier que params et params.slug existent
   if (!params || !params.slug) {
     notFound();
   }
 
   try {
-    const product = await getProduct(params.slug);
+    const dbProduct = await getProduct(params.slug);
 
-    if (!product) {
+    if (!dbProduct) {
       notFound();
     }
+
+    // Format the product to match the expected Product interface
+    const formattedProduct = formatProduct(dbProduct);
 
     return (
       <div className="min-h-screen flex flex-col">
         <main className="flex-grow container mx-auto px-4 py-8">
-          <ProductDetails product={product} />
-          <ProductReview productId={product.id} />
+          <ProductDetails product={formattedProduct} />
+          <ProductReview productId={dbProduct.id} />
         </main>
         <FooterSection />
       </div>
