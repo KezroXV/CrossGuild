@@ -3,20 +3,84 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") || "reviews";
+
   try {
-    const reviews = await prisma.review.findMany({
-      include: {
-        item: true,
-        user: true,
-      },
-    });
-    return NextResponse.json({ reviews: reviews || [] });
+    if (type === "faqs") {
+      const page = parseInt(url.searchParams.get("page") || "1");
+      const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
+      const search = url.searchParams.get("search") || "";
+
+      const skip = (page - 1) * pageSize;
+
+      // Add search for FAQs
+      const where = search
+        ? {
+            OR: [
+              { question: { contains: search, mode: "insensitive" } },
+              { answer: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {};
+
+      const [faqs, count] = await Promise.all([
+        prisma.fAQ.findMany({
+          where,
+          skip,
+          take: pageSize,
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.fAQ.count({ where }),
+      ]);
+
+      return NextResponse.json({
+        faqs: faqs || [],
+        totalCount: count,
+        totalPages: Math.ceil(count / pageSize),
+      });
+    } else {
+      const page = parseInt(url.searchParams.get("page") || "1");
+      const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
+      const search = url.searchParams.get("search") || "";
+
+      const skip = (page - 1) * pageSize;
+
+      const where = search
+        ? {
+            OR: [
+              { content: { contains: search, mode: "insensitive" } },
+              { user: { name: { contains: search, mode: "insensitive" } } },
+              { item: { name: { contains: search, mode: "insensitive" } } },
+            ],
+          }
+        : {};
+
+      const [reviews, count] = await Promise.all([
+        prisma.review.findMany({
+          where,
+          include: {
+            item: true,
+            user: true,
+          },
+          skip,
+          take: pageSize,
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.review.count({ where }),
+      ]);
+
+      return NextResponse.json({
+        reviews: reviews || [],
+        totalCount: count,
+        totalPages: Math.ceil(count / pageSize),
+      });
+    }
   } catch (error) {
-    console.error("Error retrieving reviews:", error);
+    console.error(`Error retrieving ${type}:`, error);
     return NextResponse.json(
-      { error: "Failed to retrieve reviews" },
+      { error: `Failed to retrieve ${type}` },
       { status: 500 }
     );
   } finally {
@@ -150,33 +214,121 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { id } = await request.json();
+    const data = await request.json();
+    const { id, type } = data;
 
-    if (!id) {
+    if (type === "faq") {
+      if (!id) {
+        return NextResponse.json(
+          { error: "FAQ ID is required" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.fAQ.delete({
+        where: { id },
+      });
+
+      return NextResponse.json({ message: "FAQ deleted" }, { status: 200 });
+    } else {
+      // Handle review deletion (existing code)
+      if (!id) {
+        return NextResponse.json(
+          { error: "Review ID is required" },
+          { status: 400 }
+        );
+      }
+
+      const review = await prisma.review.findUnique({
+        where: { id },
+        select: { itemId: true },
+      });
+
+      await prisma.review.delete({
+        where: { id },
+      });
+
+      if (review) {
+        await updateAverageRating(review.itemId);
+      }
+
+      return NextResponse.json({ message: "Review deleted" }, { status: 200 });
+    }
+  } catch (error) {
+    console.error("Error deleting:", error);
+    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// Add FAQ endpoints
+export async function PUT(request: Request) {
+  try {
+    const data = await request.json();
+
+    if (data.type === "faq") {
+      const { id, question, answer, isPublished } = data;
+
+      const updatedFaq = await prisma.fAQ.update({
+        where: { id },
+        data: {
+          question,
+          answer,
+          isPublished,
+          updatedAt: new Date(),
+        },
+      });
+
+      return NextResponse.json({ faq: updatedFaq }, { status: 200 });
+    } else {
+      // Handle review updates
+      const { id, data: reviewData } = data;
+
+      const updatedReview = await prisma.review.update({
+        where: { id },
+        data: reviewData,
+        include: {
+          user: true,
+          item: true,
+        },
+      });
+
+      return NextResponse.json({ review: updatedReview }, { status: 200 });
+    }
+  } catch (error) {
+    console.error("Error updating:", error);
+    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// Add an endpoint for FAQ creation
+export async function PATCH(request: Request) {
+  try {
+    const { question } = await request.json();
+
+    if (!question) {
       return NextResponse.json(
-        { error: "Review ID is required" },
+        { error: "Question is required" },
         { status: 400 }
       );
     }
 
-    const review = await prisma.review.findUnique({
-      where: { id },
-      select: { itemId: true },
+    const newFaq = await prisma.fAQ.create({
+      data: {
+        question,
+        answer: "",
+        isPublished: false,
+      },
     });
 
-    await prisma.review.delete({
-      where: { id },
-    });
-
-    if (review) {
-      await updateAverageRating(review.itemId);
-    }
-
-    return NextResponse.json({ message: "Review deleted" }, { status: 200 });
+    return NextResponse.json({ faq: newFaq }, { status: 201 });
   } catch (error) {
-    console.error("Error deleting review:", error);
+    console.error("Error creating FAQ:", error);
     return NextResponse.json(
-      { error: "Failed to delete review" },
+      { error: "Failed to create FAQ" },
       { status: 500 }
     );
   } finally {

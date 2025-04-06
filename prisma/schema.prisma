@@ -206,3 +206,21 @@ model ItemOption {
   itemId      String
   item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
+
+model FAQ {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model fAQ {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
