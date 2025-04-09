@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       data: {
         name,
         description,
-        image, // stocke directement l'URL de l'image
+        image,
       },
     });
 
@@ -51,7 +51,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    // Delete the category record from the database
     await prisma.category.delete({
       where: { id },
     });

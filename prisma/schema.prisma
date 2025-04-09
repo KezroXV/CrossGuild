@@ -216,11 +216,26 @@ model FAQ {
   updatedAt   DateTime @updatedAt
 }
 
-model fAQ {
-  id          String   @id @default(cuid())
-  question    String
-  answer      String?
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model HeroContent {
+  id                String   @id @default(cuid())
+  tagline           String
+  heading           String
+  highlightedText   String
+  description       String   @db.Text
+  primaryButtonText String
+  secondaryButtonText String
+  backgroundImage   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CategoryHeroContent {
+  id                String   @id @default(cuid())
+  heading           String
+  highlightedText   String
+  description       String   @db.Text
+  buttonText        String
+  backgroundImage   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

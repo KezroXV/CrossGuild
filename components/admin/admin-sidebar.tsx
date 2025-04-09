@@ -76,6 +76,11 @@ const adminNavItems = [
     href: "/admin/settings",
     icon: <Settings />,
   },
+  {
+    title: "Content Management",
+    href: "/admin/content-management",
+    icon: <Settings />,
+  },
 ];
 
 export function AdminSidebar() {
