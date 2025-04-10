@@ -42,6 +42,8 @@ interface Product {
   category?: { id: string; name: string };
   brand?: { id: string; name: string };
   brandId?: string;
+  cost?: number;
+  margin?: number;
   options: Array<{
     id: string;
     name: string;
@@ -71,6 +73,7 @@ const ProductsPage = () => {
     categoryId: "",
     images: [] as string[],
     brandId: "",
+    cost: "",
     options: [
       {
         name: "",
@@ -160,6 +163,7 @@ const ProductsPage = () => {
       categoryId: "",
       images: [],
       brandId: "",
+      cost: "",
       options: [
         {
           name: "",
@@ -179,6 +183,7 @@ const ProductsPage = () => {
       categoryId: "",
       images: [],
       brandId: "",
+      cost: "",
       options: [
         {
           name: "",
@@ -213,6 +218,7 @@ const ProductsPage = () => {
       categoryId: product.category?.id || "",
       images: product.images.map((img) => img.url),
       brandId: product.brand?.id || "",
+      cost: product.cost ? product.cost.toString() : "0",
       options:
         product.options && product.options.length > 0
           ? product.options.map((opt) => ({
@@ -232,6 +238,7 @@ const ProductsPage = () => {
         ...formData,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
+        cost: parseFloat(formData.cost),
       });
       toast.success("Product updated successfully");
       closeEditDialog();
@@ -380,14 +387,24 @@ const ProductsPage = () => {
                   setFormData({ ...formData, name: e.target.value })
                 }
               />
-              <Input
-                type="number"
-                placeholder="Price"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-              />
+              <div className="flex gap-4">
+                <Input
+                  type="number"
+                  placeholder="Price"
+                  value={formData.price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
+                />
+                <Input
+                  type="number"
+                  placeholder="Cost"
+                  value={formData.cost}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cost: e.target.value })
+                  }
+                />
+              </div>
               <Input
                 type="number"
                 placeholder="Quantity"
@@ -537,14 +554,24 @@ const ProductsPage = () => {
                 setFormData({ ...formData, name: e.target.value })
               }
             />
-            <Input
-              type="number"
-              placeholder="Price"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({ ...formData, price: e.target.value })
-              }
-            />
+            <div className="flex gap-4">
+              <Input
+                type="number"
+                placeholder="Price"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+              />
+              <Input
+                type="number"
+                placeholder="Cost"
+                value={formData.cost}
+                onChange={(e) =>
+                  setFormData({ ...formData, cost: e.target.value })
+                }
+              />
+            </div>
             <Input
               type="number"
               placeholder="Quantity"
@@ -699,6 +726,8 @@ const ProductsPage = () => {
             <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Cost</TableHead>
+            <TableHead>Margin</TableHead>
             <TableHead>Quantity</TableHead>
             <TableHead>Categories</TableHead>
             <TableHead>Brand</TableHead>
@@ -721,6 +750,10 @@ const ProductsPage = () => {
                 </TableCell>
                 <TableCell>{product.name}</TableCell>
                 <TableCell>${product.price}</TableCell>
+                <TableCell>${product.cost || "0"}</TableCell>
+                <TableCell>
+                  {product.margin ? `${product.margin.toFixed(1)}%` : "N/A"}
+                </TableCell>
                 <TableCell>{product.quantity}</TableCell>
                 <TableCell>{product.category?.name || "No Category"}</TableCell>
                 <TableCell>{product.brand?.name || "No Brand"}</TableCell>
@@ -758,7 +791,7 @@ const ProductsPage = () => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-4">
+              <TableCell colSpan={10} className="text-center py-4">
                 {loading ? "Loading products..." : "No products found"}
               </TableCell>
             </TableRow>

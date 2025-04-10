@@ -17,6 +17,7 @@ import { CalendarIcon, Download } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 // Chart components
 import {
@@ -101,10 +102,27 @@ export default function ReportsPage() {
   const [salesData, setSalesData] = useState(sampleSalesData);
   const [categoryData, setCategoryData] = useState(sampleCategoryData);
   const [productData, setProductData] = useState(sampleProductData);
+  const [profitabilityData, setProfitabilityData] = useState([]);
   const [customerData, setCustomerData] = useState(sampleCustomerData);
   const [ordersStats, setOrdersStats] = useState(sampleOrdersStats);
+  const [customerCategoryData, setCustomerCategoryData] = useState([]);
+  const [customerSegments, setCustomerSegments] = useState({
+    newCustomers: "Loading...",
+    returningCustomers: "Loading...",
+  });
+  const [categoryPerformance, setCategoryPerformance] = useState({
+    categoryPerformance: [],
+    mostProfitableCategory: null,
+    fastestGrowingCategory: null,
+    mostReviewedCategory: null,
+    popularBrandCategoryRelations: [],
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [reportType, setReportType] = useState("sales");
+  const [reportTimeframe, setReportTimeframe] = useState("last30days");
+  const [reportFormat, setReportFormat] = useState("csv");
 
   // Fetch data based on selected timeframe
   useEffect(() => {
@@ -112,7 +130,6 @@ export default function ReportsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch sales data
         const salesResponse = await fetch(
           `/api/admin/reports/sales?timeframe=${timeframe}${
             timeframe === "custom"
@@ -129,7 +146,6 @@ export default function ReportsPage() {
         setSalesData(salesResult.salesData || sampleSalesData);
         setCategoryData(salesResult.categoryData || sampleCategoryData);
 
-        // Fetch products data
         const productsResponse = await fetch(
           `/api/admin/reports/products?timeframe=${timeframe}`
         );
@@ -141,7 +157,17 @@ export default function ReportsPage() {
         const productsResult = await productsResponse.json();
         setProductData(productsResult.topProducts || sampleProductData);
 
-        // Fetch customer data
+        const profitabilityResponse = await fetch(
+          `/api/admin/reports/products/profitability?limit=10`
+        );
+
+        if (!profitabilityResponse.ok) {
+          throw new Error("Failed to fetch profitability data");
+        }
+
+        const profitabilityResult = await profitabilityResponse.json();
+        setProfitabilityData(profitabilityResult.products || []);
+
         const customersResponse = await fetch(
           `/api/admin/reports/customers?timeframe=${timeframe}`
         );
@@ -153,7 +179,21 @@ export default function ReportsPage() {
         const customersResult = await customersResponse.json();
         setCustomerData(customersResult.countryData || sampleCustomerData);
 
-        // Fetch orders stats
+        const customerCategoriesResponse = await fetch(
+          `/api/admin/reports/customers/categories?timeframe=${timeframe}`
+        );
+
+        if (customerCategoriesResponse.ok) {
+          const categoriesResult = await customerCategoriesResponse.json();
+          setCustomerCategoryData(categoriesResult.categoryData || []);
+          setCustomerSegments(
+            categoriesResult.segmentPreferences || {
+              newCustomers: "Data not available",
+              returningCustomers: "Data not available",
+            }
+          );
+        }
+
         const ordersResponse = await fetch(
           `/api/admin/reports/orders?timeframe=${timeframe}`
         );
@@ -171,6 +211,15 @@ export default function ReportsPage() {
             cancelled: ordersResult.orderCounts.cancelled || 0,
             returned: ordersResult.orderCounts.returned || 0,
           });
+        }
+
+        const categoryPerformanceResponse = await fetch(
+          `/api/admin/reports/categories/performance?timeframe=${timeframe}`
+        );
+
+        if (categoryPerformanceResponse.ok) {
+          const performanceResult = await categoryPerformanceResponse.json();
+          setCategoryPerformance(performanceResult);
         }
       } catch (error) {
         console.error("Error fetching report data:", error);
@@ -211,6 +260,17 @@ export default function ReportsPage() {
             .join("\n");
         fileName = "products-report.csv";
         break;
+      case "profitability":
+        csvData =
+          "Product,Cost,Price,Margin,Margin %,Total Profit\n" +
+          profitabilityData
+            .map(
+              (d) =>
+                `${d.name},${d.cost},${d.price},${d.margin},${d.marginPercentage},${d.totalProfit}`
+            )
+            .join("\n");
+        fileName = "profitability-report.csv";
+        break;
       case "customers":
         csvData =
           "Country,Customers\n" +
@@ -248,21 +308,273 @@ export default function ReportsPage() {
     document.body.removeChild(link);
   };
 
-  // Show error message if API request fails
+  // Custom report export
+  const handleCustomExport = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/admin/reports/custom?reportType=${reportType}&timeframe=${reportTimeframe}&format=${reportFormat}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate custom report");
+      }
+
+      const result = await response.json();
+
+      let csvData;
+      let fileName;
+
+      switch (reportType) {
+        case "sales":
+          csvData =
+            "Date,Sales,Orders\n" +
+            result.reportData.dailySales
+              .map((d) => `${d.date},${d.sales.toFixed(2)},${d.orders}`)
+              .join("\n");
+          fileName = "custom-sales-report.csv";
+          break;
+
+        case "products":
+          csvData =
+            "Product,Category,Quantity Sold,Revenue,Cost,Profit,Margin\n" +
+            result.reportData.products
+              .map(
+                (p) =>
+                  `"${p.name}","${p.category}",${
+                    p.quantitySold
+                  },${p.revenue.toFixed(2)},${p.cost.toFixed(
+                    2
+                  )},${p.profit.toFixed(2)},${p.margin}`
+              )
+              .join("\n");
+          fileName = "custom-products-report.csv";
+          break;
+
+        case "customers":
+          csvData =
+            "Customer ID,Name,Email,Orders,Total Spent,Avg Order Value\n" +
+            result.reportData.customers
+              .map(
+                (c) =>
+                  `${c.id},"${c.name}",${c.email},${
+                    c.orderCount
+                  },${c.totalSpent.toFixed(2)},${c.averageOrderValue}`
+              )
+              .join("\n");
+          fileName = "custom-customers-report.csv";
+          break;
+
+        case "orders":
+          csvData =
+            "Date,Orders,Revenue\n" +
+            result.reportData.dailyOrders
+              .map((d) => `${d.date},${d.count},${d.revenue.toFixed(2)}`)
+              .join("\n");
+          fileName = "custom-orders-report.csv";
+          break;
+
+        default:
+          csvData = "No data available";
+          fileName = "custom-report.csv";
+          break;
+      }
+
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Custom report generated successfully");
+    } catch (error) {
+      console.error("Error generating custom report:", error);
+      toast.error("Failed to generate custom report");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderProductProfitabilityTable = () => {
+    if (isLoading) {
+      return (
+        <div className="h-40 flex items-center justify-center">
+          <p>Loading profitability data...</p>
+        </div>
+      );
+    }
+
+    if (!profitabilityData || profitabilityData.length === 0) {
+      return (
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs uppercase bg-gray-50">
+            <tr>
+              <th className="px-6 py-3">Product</th>
+              <th className="px-6 py-3">Cost</th>
+              <th className="px-6 py-3">Price</th>
+              <th className="px-6 py-3">Margin</th>
+              <th className="px-6 py-3">Margin %</th>
+              <th className="px-6 py-3">Total Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-white border-b">
+              <td colSpan={6} className="px-6 py-4 text-center">
+                No profitability data available
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      );
+    }
+
+    return (
+      <div className="relative overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs uppercase bg-gray-50">
+            <tr>
+              <th className="px-6 py-3">Product</th>
+              <th className="px-6 py-3">Cost</th>
+              <th className="px-6 py-3">Price</th>
+              <th className="px-6 py-3">Margin</th>
+              <th className="px-6 py-3">Margin %</th>
+              <th className="px-6 py-3">Total Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {profitabilityData.map((product, index) => (
+              <tr key={product.id} className="bg-white border-b">
+                <td className="px-6 py-4">{product.name}</td>
+                <td className="px-6 py-4">${product.cost}</td>
+                <td className="px-6 py-4">${product.price}</td>
+                <td className="px-6 py-4">${product.margin}</td>
+                <td className="px-6 py-4">{product.marginPercentage}%</td>
+                <td className="px-6 py-4">${product.totalProfit}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const getColorByIndex = (index: number): string => {
+    const colors = [
+      "#FF6384",
+      "#36A2EB",
+      "#FFCE56",
+      "#4BC0C0",
+      "#9966FF",
+      "#FF9F40",
+      "#8AC054",
+      "#5D9CEC",
+      "#DADAEB",
+      "#F49AC2",
+    ];
+    return colors[index % colors.length];
+  };
+
+  const renderCustomerCategories = () => {
+    if (isLoading) {
+      return (
+        <div className="h-80 flex items-center justify-center">
+          <p>Loading data...</p>
+        </div>
+      );
+    }
+
+    if (!customerCategoryData || customerCategoryData.length === 0) {
+      return <EmptyState message="No customer category data available" />;
+    }
+
+    return (
+      <>
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Visualize your customers' preferred product categories to better
+            target your offers.
+          </p>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={customerCategoryData.map((cat, index) => ({
+                name: cat.name,
+                value: cat.percentage,
+                color: getColorByIndex(index),
+              }))}
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="value"
+              label={({ name, percent }) =>
+                `${name} ${(percent * 100).toFixed(0)}%`
+              }
+            >
+              {customerCategoryData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getColorByIndex(index)} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => [`${value}%`, "Percentage of purchases"]}
+            />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border rounded-lg p-4">
+            <h3 className="text-sm font-medium mb-2">
+              Top category by customer segment
+            </h3>
+            <ul className="space-y-2">
+              <li className="flex justify-between">
+                <span>New customers</span>
+                <span className="font-medium">
+                  {customerSegments.newCustomers}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span>Loyal customers</span>
+                <span className="font-medium">
+                  {customerSegments.returningCustomers}
+                </span>
+              </li>
+            </ul>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="text-sm font-medium mb-2">
+              Average cart by category
+            </h3>
+            <ul className="space-y-2">
+              {customerCategoryData.slice(0, 3).map((category, index) => (
+                <li key={index} className="flex justify-between">
+                  <span>{category.name}</span>
+                  <span className="font-medium">${category.avgOrderValue}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   if (error) {
     return (
       <div className="container mx-auto p-6">
         <div className="bg-red-50 p-4 rounded-md border border-red-200 mb-6">
-          <h2 className="text-red-800 font-medium">
-            Erreur de chargement des données
-          </h2>
+          <h2 className="text-red-800 font-medium">Error loading data</h2>
           <p className="text-red-700">{error}</p>
           <Button
             variant="outline"
             className="mt-2"
             onClick={() => window.location.reload()}
           >
-            Réessayer
+            Try again
           </Button>
         </div>
       </div>
@@ -319,18 +631,15 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="marketing">Marketing</TabsTrigger>
         </TabsList>
 
-        {/* Sales Reports Tab */}
         <TabsContent value="sales" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Sales Overview Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Sales Trend</CardTitle>
@@ -368,7 +677,6 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Category Distribution Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Sales by Category</CardTitle>
@@ -430,7 +738,6 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Period Comparison Section */}
           {compareMode && (
             <Card>
               <CardHeader>
@@ -464,39 +771,66 @@ export default function ReportsPage() {
             </Card>
           )}
 
-          {/* Seasonal Analysis */}
           <Card>
             <CardHeader>
-              <CardTitle>Seasonal Trends & Forecasting</CardTitle>
+              <CardTitle>Product Category Performance</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-700">Peak Day</p>
-                  <p className="text-2xl font-bold">Saturday</p>
-                  <p className="text-sm text-blue-600">+35% vs. average day</p>
+                  <p className="font-medium text-blue-700">
+                    Most profitable category
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {categoryPerformance.mostProfitableCategory?.name ||
+                      "Loading..."}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Average margin:{" "}
+                    {categoryPerformance.mostProfitableCategory?.avgMargin || 0}
+                    %
+                  </p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="font-medium text-green-700">Best Month</p>
-                  <p className="text-2xl font-bold">December</p>
+                  <p className="font-medium text-green-700">Growing category</p>
+                  <p className="text-2xl font-bold">
+                    {categoryPerformance.fastestGrowingCategory?.name ||
+                      "Loading..."}
+                  </p>
                   <p className="text-sm text-green-600">
-                    +85% vs. average month
+                    +
+                    {categoryPerformance.fastestGrowingCategory?.totalSales ||
+                      0}{" "}
+                    this month
                   </p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="font-medium text-purple-700">
-                    Projected Growth
+                    Most reviewed category
                   </p>
-                  <p className="text-2xl font-bold">+18%</p>
+                  <p className="text-2xl font-bold">
+                    {categoryPerformance.mostReviewedCategory?.name ||
+                      "Loading..."}
+                  </p>
                   <p className="text-sm text-purple-600">
-                    Next quarter forecast
+                    Average rating:{" "}
+                    {categoryPerformance.mostReviewedCategory?.avgRating || 0}/5
                   </p>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={salesData}>
+                <LineChart
+                  data={[
+                    { period: "Jan", sales: 780, profit: 340 },
+                    { period: "Feb", sales: 820, profit: 420 },
+                    { period: "Mar", sales: 950, profit: 550 },
+                    { period: "Apr", sales: 1100, profit: 620 },
+                    { period: "May", sales: 1250, profit: 680 },
+                    { period: "Jun", sales: 1380, profit: 720 },
+                  ]}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="period" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -504,19 +838,79 @@ export default function ReportsPage() {
                     type="monotone"
                     dataKey="sales"
                     stroke="#8884d8"
-                    strokeDasharray="5 5"
+                    name="Sales"
                   />
-                  {/* Forecasted data would extend this line */}
+                  <Line
+                    type="monotone"
+                    dataKey="profit"
+                    stroke="#82ca9d"
+                    name="Profit"
+                  />
                 </LineChart>
               </ResponsiveContainer>
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-sm mb-3">
+                    Stock by category
+                  </h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {categoryPerformance.categoryPerformance
+                        ?.slice(0, 4)
+                        .map((category, idx) => (
+                          <tr key={idx} className={idx < 3 ? "border-b" : ""}>
+                            <td className="py-2">{category?.name}</td>
+                            <td className="py-2 font-medium text-right">
+                              {category?.totalStock} units
+                            </td>
+                          </tr>
+                        )) || (
+                        <tr>
+                          <td className="py-2" colSpan={2}>
+                            Loading data...
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-sm mb-3">
+                    Popular product-brand relationships
+                  </h3>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {categoryPerformance.popularBrandCategoryRelations
+                        ?.slice(0, 4)
+                        .map((relation, idx) => (
+                          <tr key={idx} className={idx < 3 ? "border-b" : ""}>
+                            <td className="py-2">{relation?.brandName}</td>
+                            <td className="py-2 text-gray-600">
+                              {relation?.categoryName}
+                            </td>
+                            <td className="py-2 font-medium text-right">
+                              {relation?.percentage}%
+                            </td>
+                          </tr>
+                        )) || (
+                        <tr>
+                          <td className="py-2" colSpan={3}>
+                            Loading data...
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Products Reports Tab */}
         <TabsContent value="products" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Best Sellers Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Best Selling Products</CardTitle>
@@ -553,7 +947,6 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Inventory Status Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Inventory Status</CardTitle>
@@ -586,60 +979,23 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Products Profitability */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Product Profitability</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleExportCSV("profitability")}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
             </CardHeader>
-            <CardContent>
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3">Product</th>
-                      <th className="px-6 py-3">Cost</th>
-                      <th className="px-6 py-3">Price</th>
-                      <th className="px-6 py-3">Margin</th>
-                      <th className="px-6 py-3">Margin %</th>
-                      <th className="px-6 py-3">Total Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">Gaming Mouse X1</td>
-                      <td className="px-6 py-4">$15</td>
-                      <td className="px-6 py-4">$30</td>
-                      <td className="px-6 py-4">$15</td>
-                      <td className="px-6 py-4">50%</td>
-                      <td className="px-6 py-4">$1,800</td>
-                    </tr>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">Mechanical Keyboard Pro</td>
-                      <td className="px-6 py-4">$45</td>
-                      <td className="px-6 py-4">$100</td>
-                      <td className="px-6 py-4">$55</td>
-                      <td className="px-6 py-4">55%</td>
-                      <td className="px-6 py-4">$5,225</td>
-                    </tr>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">Ultra HD Monitor</td>
-                      <td className="px-6 py-4">$95</td>
-                      <td className="px-6 py-4">$150</td>
-                      <td className="px-6 py-4">$55</td>
-                      <td className="px-6 py-4">36.7%</td>
-                      <td className="px-6 py-4">$4,400</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
+            <CardContent>{renderProductProfitabilityTable()}</CardContent>
           </Card>
         </TabsContent>
 
-        {/* Customers Tab */}
         <TabsContent value="customers" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Customer Demographics */}
             <Card>
               <CardHeader>
                 <CardTitle>Customer Demographics</CardTitle>
@@ -658,7 +1014,6 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Customer Value Metrics */}
             <Card>
               <CardHeader>
                 <CardTitle>Customer Value Metrics</CardTitle>
@@ -702,47 +1057,16 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Acquisition Channels */}
           <Card>
             <CardHeader>
-              <CardTitle>Customer Acquisition Channels</CardTitle>
+              <CardTitle>Customer Purchase Categories</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: "Organic Search", value: 40, color: "#4BC0C0" },
-                      { name: "Social Media", value: 25, color: "#FFCE56" },
-                      { name: "Direct", value: 20, color: "#36A2EB" },
-                      { name: "Referral", value: 10, color: "#FF6384" },
-                      { name: "Paid Search", value: 5, color: "#9966FF" },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {sampleCategoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
+            <CardContent>{renderCustomerCategories()}</CardContent>
           </Card>
         </TabsContent>
 
-        {/* Orders Tab */}
         <TabsContent value="orders" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Order Statistics Cards */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -812,7 +1136,6 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Order Status Chart */}
           <Card>
             <CardHeader>
               <CardTitle>Order Status Distribution</CardTitle>
@@ -863,7 +1186,6 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
 
-          {/* Delivery Performance */}
           <Card>
             <CardHeader>
               <CardTitle>Delivery Performance</CardTitle>
@@ -897,167 +1219,8 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Marketing Tab */}
-        <TabsContent value="marketing" className="space-y-6">
-          {/* Promo Codes Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Promotional Codes Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3">Promo Code</th>
-                      <th className="px-6 py-3">Discount</th>
-                      <th className="px-6 py-3">Uses</th>
-                      <th className="px-6 py-3">Revenue</th>
-                      <th className="px-6 py-3">Avg. Order</th>
-                      <th className="px-6 py-3">Conversion</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">SUMMER25</td>
-                      <td className="px-6 py-4">25%</td>
-                      <td className="px-6 py-4">245</td>
-                      <td className="px-6 py-4">$15,625</td>
-                      <td className="px-6 py-4">$63.78</td>
-                      <td className="px-6 py-4">8.5%</td>
-                    </tr>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">WELCOME10</td>
-                      <td className="px-6 py-4">10%</td>
-                      <td className="px-6 py-4">356</td>
-                      <td className="px-6 py-4">$20,420</td>
-                      <td className="px-6 py-4">$57.36</td>
-                      <td className="px-6 py-4">12.4%</td>
-                    </tr>
-                    <tr className="bg-white border-b">
-                      <td className="px-6 py-4">FLASH50</td>
-                      <td className="px-6 py-4">50%</td>
-                      <td className="px-6 py-4">124</td>
-                      <td className="px-6 py-4">$8,750</td>
-                      <td className="px-6 py-4">$70.56</td>
-                      <td className="px-6 py-4">18.9%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Campaign Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Marketing Campaign Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-700">Black Friday</p>
-                  <p className="text-2xl font-bold">$58,240</p>
-                  <p className="text-sm text-blue-600">ROI: 425%</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <p className="font-medium text-purple-700">Summer Sale</p>
-                  <p className="text-2xl font-bold">$32,180</p>
-                  <p className="text-sm text-purple-600">ROI: 280%</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="font-medium text-green-700">New Year</p>
-                  <p className="text-2xl font-bold">$24,650</p>
-                  <p className="text-sm text-green-600">ROI: 195%</p>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart
-                  data={[
-                    { name: "Black Friday", cost: 11000, revenue: 58240 },
-                    { name: "Summer Sale", cost: 8500, revenue: 32180 },
-                    { name: "New Year", cost: 8300, revenue: 24650 },
-                    { name: "Spring Clearance", cost: 5200, revenue: 14500 },
-                  ]}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="revenue" name="Revenue" fill="#82ca9d" />
-                  <Bar dataKey="cost" name="Cost" fill="#ff7675" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* User Behavior */}
-          <Card>
-            <CardHeader>
-              <CardTitle>User Behavior</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-orange-50 rounded-lg">
-                  <p className="font-medium text-orange-700">
-                    Cart Abandonment
-                  </p>
-                  <p className="text-2xl font-bold">68.2%</p>
-                  <p className="text-sm text-orange-600">
-                    -2.5% from last month
-                  </p>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-700">Avg. Session Time</p>
-                  <p className="text-2xl font-bold">3m 45s</p>
-                  <p className="text-sm text-blue-600">+15s from last month</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <p className="font-medium text-purple-700">
-                    Page Views/Session
-                  </p>
-                  <p className="text-2xl font-bold">4.8</p>
-                  <p className="text-sm text-purple-600">
-                    +0.3 from last month
-                  </p>
-                </div>
-
-                {/* Add cart abandonment chart */}
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart
-                    data={[
-                      { month: "Jan", abandonment: 72.3 },
-                      { month: "Feb", abandonment: 70.8 },
-                      { month: "Mar", abandonment: 69.5 },
-                      { month: "Apr", abandonment: 68.7 },
-                      { month: "May", abandonment: 68.2 },
-                      { month: "Jun", abandonment: 67.9 },
-                    ]}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[65, 75]} />
-                    <Tooltip
-                      formatter={(value) => [`${value}%`, "Cart Abandonment"]}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="abandonment"
-                      stroke="#ff7675"
-                      name="Cart Abandonment Rate (%)"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
-      {/* Custom Report Builder */}
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Custom Report Builder</CardTitle>
@@ -1066,7 +1229,7 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
               <Label htmlFor="report-type">Report Type</Label>
-              <Select defaultValue="sales">
+              <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger id="report-type">
                   <SelectValue placeholder="Select report type" />
                 </SelectTrigger>
@@ -1080,7 +1243,10 @@ export default function ReportsPage() {
             </div>
             <div>
               <Label htmlFor="report-period">Time Period</Label>
-              <Select defaultValue="last30days">
+              <Select
+                value={reportTimeframe}
+                onValueChange={setReportTimeframe}
+              >
                 <SelectTrigger id="report-period">
                   <SelectValue placeholder="Select time period" />
                 </SelectTrigger>
@@ -1097,7 +1263,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <Label htmlFor="report-format">Export Format</Label>
-              <Select defaultValue="csv">
+              <Select value={reportFormat} onValueChange={setReportFormat}>
                 <SelectTrigger id="report-format">
                   <SelectValue placeholder="Select format" />
                 </SelectTrigger>
@@ -1116,7 +1282,13 @@ export default function ReportsPage() {
                 Schedule regular delivery of this report
               </Label>
             </div>
-            <Button className="bg-primary">Generate Custom Report</Button>
+            <Button
+              onClick={handleCustomExport}
+              className="bg-primary hover:bg-primary/90"
+              disabled={isLoading}
+            >
+              {isLoading ? "Generating..." : "Generate Custom Report"}
+            </Button>
           </div>
         </CardContent>
       </Card>

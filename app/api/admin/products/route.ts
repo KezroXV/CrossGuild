@@ -90,6 +90,7 @@ export async function POST(request: Request) {
       images,
       brandId,
       options,
+      cost, // Nouveau champ
     } = data;
 
     // Filtre les options qui ont un nom et au moins une valeur
@@ -103,17 +104,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
+    const priceValue = parseFloat(price);
+    const costValue = parseFloat(cost || "0");
+
+    // Calcul automatique de la marge et du profit
+    const profitValue = priceValue - costValue;
+    const marginValue = costValue > 0 ? (profitValue / priceValue) * 100 : 0;
+
     const slug = name.toLowerCase().replace(/\s+/g, "-");
 
     const product = await prisma.item.create({
       data: {
         name,
-        price: parseFloat(price),
+        price: priceValue,
         quantity: parseInt(quantity),
         description,
         slug,
         categoryId: categoryId || undefined,
         brandId: brandId || undefined,
+        cost: costValue,
+        profit: profitValue,
+        margin: marginValue,
+        totalProfit: 0, // Initialement à zéro, sera mis à jour lors des ventes
         images: {
           create: images?.map((url: string) => ({ url })),
         },
@@ -147,6 +159,11 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const { id, ...data } = await request.json();
+    const {
+      price,
+      cost,
+      // ...other fields
+    } = data;
 
     // Filtre les options qui ont un nom et au moins une valeur
     const validOptions =
@@ -162,6 +179,13 @@ export async function PUT(request: Request) {
       );
     }
 
+    const priceValue = parseFloat(price);
+    const costValue = parseFloat(cost || "0");
+
+    // Calcul automatique de la marge et du profit
+    const profitValue = priceValue - costValue;
+    const marginValue = costValue > 0 ? (profitValue / priceValue) * 100 : 0;
+
     // D'abord, supprimer les anciennes options
     await prisma.itemOption.deleteMany({
       where: { itemId: id },
@@ -171,11 +195,14 @@ export async function PUT(request: Request) {
       where: { id },
       data: {
         name: data.name,
-        price: parseFloat(data.price),
+        price: priceValue,
         quantity: parseInt(data.quantity),
         description: data.description,
         categoryId: data.categoryId || undefined,
         brandId: data.brandId || undefined,
+        cost: costValue,
+        profit: profitValue,
+        margin: marginValue,
         images: {
           deleteMany: {},
           create: data.images?.map((url: string) => ({ url })),

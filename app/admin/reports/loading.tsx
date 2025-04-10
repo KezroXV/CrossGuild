@@ -11,34 +11,40 @@ export default function ReportsLoading() {
           <Skeleton className="h-10 w-40" />
         </div>
       </div>
-      
+
       <div className="w-full">
         <Skeleton className="h-12 w-full mb-6" />
-        
+
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle><Skeleton className="h-6 w-40" /></CardTitle>
+                <CardTitle>
+                  <Skeleton className="h-6 w-40" />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-[300px] w-full" />
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
-                <CardTitle><Skeleton className="h-6 w-40" /></CardTitle>
+                <CardTitle>
+                  <Skeleton className="h-6 w-40" />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-[300px] w-full" />
               </CardContent>
             </Card>
           </div>
-          
+
           <Card>
             <CardHeader>
-              <CardTitle><Skeleton className="h-6 w-48" /></CardTitle>
+              <CardTitle>
+                <Skeleton className="h-6 w-48" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

@@ -23,7 +23,12 @@ export function ReportCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium">{title}</CardTitle>
         {onExport && (
-          <Button variant="ghost" size="sm" onClick={onExport} disabled={isLoading}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onExport}
+            disabled={isLoading}
+          >
             <Download className="h-4 w-4 mr-1" /> Export
           </Button>
         )}

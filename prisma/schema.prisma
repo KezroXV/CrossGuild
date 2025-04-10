@@ -132,6 +132,10 @@ model Item {
   topSelling    Int         @default(0)
   averageRating Float       @default(0.0)
   options       ItemOption[]
+  cost          Float       @default(0.0)  // Coût du produit
+  profit        Float?      // Profit unitaire calculé (price - cost)
+  margin        Float?      // Marge en pourcentage ((price - cost) / price * 100)
+  totalProfit   Float?      // Profit total basé sur les ventes (calculé par le système)
 }
 
 model Image {
