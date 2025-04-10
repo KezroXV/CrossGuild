@@ -16,6 +16,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface HeroContent {
   id: string;
@@ -35,6 +45,14 @@ interface CategoryHeroContent {
   description: string;
   buttonText: string;
   backgroundImage: string;
+}
+
+interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  buttonLabel: string;
 }
 
 export default function ContentManagementPage() {
@@ -61,6 +79,14 @@ export default function ContentManagementPage() {
       backgroundImage: "",
     });
 
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+  const [newOffer, setNewOffer] = useState({
+    title: "",
+    description: "",
+    buttonLabel: "Free Delivery",
+  });
+
   const [loading, setLoading] = useState({
     heroFetch: false,
     categoryHeroFetch: false,
@@ -68,10 +94,16 @@ export default function ContentManagementPage() {
     categoryHeroSubmit: false,
   });
 
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
+
   useEffect(() => {
     if (activeTab === "hero-sections") {
       fetchHeroContent();
       fetchCategoryHeroContent();
+    } else if (activeTab === "offers") {
+      fetchOffers();
     }
   }, [activeTab]);
 
@@ -108,6 +140,24 @@ export default function ContentManagementPage() {
       toast.error("An error occurred while fetching category hero content");
     } finally {
       setLoading((prev) => ({ ...prev, categoryHeroFetch: false }));
+    }
+  };
+
+  const fetchOffers = async () => {
+    setLoadingOffers(true);
+    try {
+      const response = await fetch("/api/offers");
+      if (response.ok) {
+        const data = await response.json();
+        setOffers(data);
+      } else {
+        toast.error("Failed to fetch offers");
+      }
+    } catch (error) {
+      console.error("Error fetching offers:", error);
+      toast.error("An error occurred while fetching offers");
+    } finally {
+      setLoadingOffers(false);
     }
   };
 
@@ -190,6 +240,105 @@ export default function ContentManagementPage() {
       toast.error("An error occurred while updating category hero content");
     } finally {
       setLoading((prev) => ({ ...prev, categoryHeroSubmit: false }));
+    }
+  };
+
+  const handleAddOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingOffer(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", newOffer.title);
+      formData.append("description", newOffer.description);
+      formData.append("buttonLabel", newOffer.buttonLabel);
+
+      const fileInput = document.getElementById(
+        "newOfferImage"
+      ) as HTMLInputElement;
+      if (fileInput?.files && fileInput.files.length > 0) {
+        formData.append("image", fileInput.files[0]);
+      }
+
+      const response = await fetch("/api/offers", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success("Offer added successfully");
+        setNewOffer({
+          title: "",
+          description: "",
+          buttonLabel: "Free Delivery",
+        });
+        if (fileInput) fileInput.value = "";
+        fetchOffers();
+      } else {
+        toast.error("Failed to add offer");
+      }
+    } catch (error) {
+      console.error("Error adding offer:", error);
+      toast.error("An error occurred while adding the offer");
+    } finally {
+      setSubmittingOffer(false);
+    }
+  };
+
+  const handleUpdateOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOffer) return;
+
+    setSubmittingOffer(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", selectedOffer.title);
+      formData.append("description", selectedOffer.description);
+      formData.append("buttonLabel", selectedOffer.buttonLabel);
+
+      const fileInput = document.getElementById(
+        "updateOfferImage"
+      ) as HTMLInputElement;
+      if (fileInput?.files && fileInput.files.length > 0) {
+        formData.append("image", fileInput.files[0]);
+      }
+
+      const response = await fetch(`/api/offers/${selectedOffer.id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success("Offer updated successfully");
+        setSelectedOffer(null);
+        fetchOffers();
+      } else {
+        toast.error("Failed to update offer");
+      }
+    } catch (error) {
+      console.error("Error updating offer:", error);
+      toast.error("An error occurred while updating the offer");
+    } finally {
+      setSubmittingOffer(false);
+    }
+  };
+
+  const handleDeleteOffer = async (id: string) => {
+    try {
+      const response = await fetch(`/api/offers/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Offer deleted successfully");
+        fetchOffers();
+      } else {
+        toast.error("Failed to delete offer");
+      }
+    } catch (error) {
+      console.error("Error deleting offer:", error);
+      toast.error("An error occurred while deleting the offer");
+    } finally {
+      setOfferToDelete(null);
     }
   };
 
@@ -533,13 +682,265 @@ export default function ContentManagementPage() {
               <CardTitle>Offers Management</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
-                This section will be implemented later.
-              </p>
+              {loadingOffers ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Current Offers
+                    </h3>
+                    {offers.length === 0 ? (
+                      <p className="text-muted-foreground">No offers found.</p>
+                    ) : (
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                        {offers.map((offer) => (
+                          <Card key={offer.id} className="overflow-hidden">
+                            <CardContent className="p-4">
+                              <div className="flex flex-col md:flex-row gap-4">
+                                <div className="w-full md:w-1/3 relative h-40">
+                                  <Image
+                                    src={offer.image}
+                                    alt={offer.title}
+                                    fill
+                                    className="object-cover rounded"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-bold">{offer.title}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {offer.description}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Button Label: {offer.buttonLabel}
+                                  </p>
+                                  <div className="flex gap-2 mt-4">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setSelectedOffer(offer)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => setOfferToDelete(offer.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {selectedOffer ? (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Update Offer
+                      </h3>
+                      <form onSubmit={handleUpdateOffer} className="space-y-4">
+                        <div>
+                          <Label htmlFor="updateOfferTitle">Title</Label>
+                          <Input
+                            id="updateOfferTitle"
+                            value={selectedOffer.title}
+                            onChange={(e) =>
+                              setSelectedOffer({
+                                ...selectedOffer,
+                                title: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="updateOfferDescription">
+                            Description
+                          </Label>
+                          <Textarea
+                            id="updateOfferDescription"
+                            value={selectedOffer.description}
+                            onChange={(e) =>
+                              setSelectedOffer({
+                                ...selectedOffer,
+                                description: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="updateOfferButtonLabel">
+                            Button Label
+                          </Label>
+                          <Input
+                            id="updateOfferButtonLabel"
+                            value={selectedOffer.buttonLabel}
+                            onChange={(e) =>
+                              setSelectedOffer({
+                                ...selectedOffer,
+                                buttonLabel: e.target.value,
+                              })
+                            }
+                            placeholder="Free Delivery"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="updateOfferImage">Image</Label>
+                          <Input
+                            id="updateOfferImage"
+                            type="file"
+                            accept="image/*"
+                          />
+                          <div className="mt-2 relative h-40 w-full overflow-hidden rounded-lg border">
+                            <Image
+                              src={selectedOffer.image}
+                              alt="Current offer image"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="submit" disabled={submittingOffer}>
+                            {submittingOffer ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Updating...
+                              </>
+                            ) : (
+                              "Update Offer"
+                            )}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setSelectedOffer(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Add New Offer
+                      </h3>
+                      <form onSubmit={handleAddOffer} className="space-y-4">
+                        <div>
+                          <Label htmlFor="newOfferTitle">Title</Label>
+                          <Input
+                            id="newOfferTitle"
+                            value={newOffer.title}
+                            onChange={(e) =>
+                              setNewOffer({
+                                ...newOffer,
+                                title: e.target.value,
+                              })
+                            }
+                            placeholder="Holiday Special"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newOfferDescription">
+                            Description
+                          </Label>
+                          <Textarea
+                            id="newOfferDescription"
+                            value={newOffer.description}
+                            onChange={(e) =>
+                              setNewOffer({
+                                ...newOffer,
+                                description: e.target.value,
+                              })
+                            }
+                            placeholder="Get 30% Off"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newOfferButtonLabel">
+                            Button Label
+                          </Label>
+                          <Input
+                            id="newOfferButtonLabel"
+                            value={newOffer.buttonLabel}
+                            onChange={(e) =>
+                              setNewOffer({
+                                ...newOffer,
+                                buttonLabel: e.target.value,
+                              })
+                            }
+                            placeholder="Free Delivery"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newOfferImage">Image</Label>
+                          <Input
+                            id="newOfferImage"
+                            type="file"
+                            accept="image/*"
+                            required
+                          />
+                        </div>
+                        <Button type="submit" disabled={submittingOffer}>
+                          {submittingOffer ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Adding...
+                            </>
+                          ) : (
+                            "Add Offer"
+                          )}
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Alert Dialog for Delete Confirmation */}
+      <AlertDialog
+        open={!!offerToDelete}
+        onOpenChange={(open) => !open && setOfferToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              offer and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => offerToDelete && handleDeleteOffer(offerToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

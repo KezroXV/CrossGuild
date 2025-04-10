@@ -1,23 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import Image from "next/image";
+import Link from "next/link";
 
 const slideFromLeft = {
   hidden: { opacity: 0, x: -100 },
   visible: { opacity: 1, x: 0 },
-};
-
-const slideFromRight = {
-  hidden: { opacity: 0, x: 100 },
-  visible: { opacity: 1, x: 0 },
-};
-
-const slideFromBottom = {
-  hidden: { opacity: 0, y: 100 },
-  visible: { opacity: 1, y: 0 },
 };
 
 interface Offer {
@@ -25,6 +14,7 @@ interface Offer {
   title: string;
   description: string;
   image: string;
+  buttonLabel: string;
 }
 
 const ExclusiveDeals = () => {
@@ -35,8 +25,13 @@ const ExclusiveDeals = () => {
     const fetchOffers = async () => {
       try {
         const response = await fetch("/api/offers");
-        const data = await response.json();
-        setOffers(data);
+
+        if (response.ok) {
+          const data = await response.json();
+          setOffers(data);
+        } else {
+          console.error("Failed to fetch offers:", response.statusText);
+        }
       } catch (error) {
         console.error("Failed to fetch offers:", error);
       } finally {
@@ -53,29 +48,46 @@ const ExclusiveDeals = () => {
 
   return (
     <div className="my-28 text-left">
-      <h1 className="text-4xl font-bold text-accent w-fit ml-48">
-        Exclusive Deals <span className="text-black">You Can’t Miss!</span>
+      <h1 className="text-4xl font-bold text-accent w-fit ml-48 mb-12">
+        Exclusive Deals <span className="text-black">You Can't Miss!</span>
       </h1>
-      <div className="flex w-4/5 mx-auto justify-between my-8 gap-8">
+      <div className="flex w-4/5 mx-auto justify-between gap-8">
         {offers.map((offer) => (
           <motion.div
             key={offer.id}
-            className="bg-gradient-to-bl shadow-md from-[#988AE6] to-accent flex flex-1 justify-evenly text-white p-10 rounded-lg relative"
+            className="bg-gradient-to-bl shadow-md from-[#988AE6] to-accent flex flex-1 justify-between text-white p-6 rounded-lg relative overflow-hidden"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={slideFromLeft}
             transition={{ duration: 1 }}
           >
-            <div>
-              <div className="text-sm mb-2">
-                <Image src={offer.image} alt={offer.title} className="h-auto" />
+            {/* Contenu à gauche */}
+            <div className="flex flex-col justify-center w-3/5 pr-4">
+              {/* Bouton amélioré avec une forme coupante plus propre */}
+              <div className="mb-3">
+                <div className="inline-block relative">
+                  <div className="bg-primary text-white text-sm font-medium py-1.5 pl-4 pr-6">
+                    {offer.buttonLabel || "Free Delivery"}
+                  </div>
+                  <div className="absolute top-0 right-0 h-full w-6 bg-primary transform translate-x-1/2 skew-x-[30deg] origin-top-left"></div>
+                </div>
               </div>
-              <div className="mt-7">
-                <h2 className="text-left text-3xl font-bold">{offer.title}</h2>
-                <p className="text-4xl font-bold text-center">
-                  {offer.description}
-                </p>
+
+              <h2 className="text-2xl font-bold mb-2">{offer.title}</h2>
+              <p className="text-3xl font-bold">{offer.description}</p>
+            </div>
+
+            {/* Image à droite avec taille fixe stricte */}
+            <div className="flex-shrink-0 flex items-center justify-center w-2/5">
+              <div className="w-[200px] h-[150px] relative">
+                <Image
+                  src={offer.image}
+                  alt={offer.title}
+                  fill
+                  style={{ objectFit: "contain" }}
+                  sizes="200px"
+                />
               </div>
             </div>
           </motion.div>
