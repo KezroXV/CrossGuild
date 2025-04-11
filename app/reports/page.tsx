@@ -102,6 +102,13 @@ export default function ReportsPage() {
   const [categoryData, setCategoryData] = useState(sampleCategoryData);
   const [productData, setProductData] = useState(sampleProductData);
   const [isLoading, setIsLoading] = useState(false);
+  const [customerMetrics, setCustomerMetrics] = useState({
+    avgOrderValue: 0,
+    customerLifetimeValue: 0,
+    repeatCustomerPercentage: 0,
+    newVsReturningRatio: "0% / 0%",
+    percentChange: 0,
+  });
 
   // Fetch data based on selected timeframe
   useEffect(() => {
@@ -113,6 +120,15 @@ export default function ReportsPage() {
         // const data = await response.json();
         // setSalesData(data.salesData);
         // setCategoryData(data.categoryData);
+
+        // Fetch customer metrics data from your API
+        const metricsResponse = await fetch(
+          `/api/reports/customer-metrics?timeframe=${timeframe}&from=${dateRange.from}&to=${dateRange.to}`
+        );
+        if (metricsResponse.ok) {
+          const metricsData = await metricsResponse.json();
+          setCustomerMetrics(metricsData);
+        }
 
         // For this example, we're just simulating a load
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -559,46 +575,65 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Customer Value Metrics */}
+            {/* Customer Value Metrics - Updated to be dynamic */}
             <Card>
               <CardHeader>
                 <CardTitle>Customer Value Metrics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="font-medium text-blue-700">
-                      Avg. Order Value
-                    </p>
-                    <p className="text-2xl font-bold">$85.45</p>
-                    <p className="text-sm text-blue-600">+12% vs last period</p>
+                {isLoading ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <p>Loading customer metrics...</p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="font-medium text-green-700">
-                      Customer Lifetime Value
-                    </p>
-                    <p className="text-2xl font-bold">$485.20</p>
-                    <p className="text-sm text-green-600">
-                      Based on repeat purchases
-                    </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="font-medium text-blue-700">
+                        Avg. Order Value
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ${customerMetrics.avgOrderValue.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-blue-600">
+                        {customerMetrics.percentChange > 0
+                          ? `+${customerMetrics.percentChange.toFixed(1)}%`
+                          : `${customerMetrics.percentChange.toFixed(1)}%`}{" "}
+                        vs last period
+                      </p>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <p className="font-medium text-green-700">
+                        Customer Lifetime Value
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ${customerMetrics.customerLifetimeValue.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-green-600">
+                        Based on repeat purchases
+                      </p>
+                    </div>
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <p className="font-medium text-yellow-700">
+                        Repeat Customers
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {customerMetrics.repeatCustomerPercentage.toFixed(0)}%
+                      </p>
+                      <p className="text-sm text-yellow-600">
+                        Of total customer base
+                      </p>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <p className="font-medium text-purple-700">
+                        New vs Returning
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {customerMetrics.newVsReturningRatio}
+                      </p>
+                      <p className="text-sm text-purple-600">Customer ratio</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-yellow-50 rounded-lg">
-                    <p className="font-medium text-yellow-700">
-                      Repeat Customers
-                    </p>
-                    <p className="text-2xl font-bold">32%</p>
-                    <p className="text-sm text-yellow-600">
-                      Of total customer base
-                    </p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="font-medium text-purple-700">
-                      New vs Returning
-                    </p>
-                    <p className="text-2xl font-bold">68% / 32%</p>
-                    <p className="text-sm text-purple-600">Customer ratio</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>

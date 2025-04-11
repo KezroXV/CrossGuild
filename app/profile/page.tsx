@@ -62,6 +62,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Home } from "lucide-react"; // Import Home icon
+import Link from "next/link";
 
 // Form schemas
 const personalInfoSchema = z.object({
@@ -403,7 +405,15 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">My Profile</h1>
+        <Link href="/">
+          <Button variant="outline" className="flex gap-2 items-center">
+            <Home size={18} />
+            <span>Home</span>
+          </Button>
+        </Link>
+      </div>
 
       <Tabs defaultValue="personal-info" className="space-y-6">
         <TabsList>

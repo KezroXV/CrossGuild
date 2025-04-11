@@ -5,16 +5,22 @@ import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import ItemsCategories from "./itemsCategories";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
+import ClientSideCategoryPage from "./components/ClientSideCategoryPage";
 
 // Modifié pour être compatible avec les attentes de type de Next.js
 type PageParams = {
   params: {
     slug: string;
   };
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: {
+    inStock?: string;
+    outOfStock?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    brand?: string;
+    rating?: string;
+    sort?: string;
+  };
 };
 
 interface Category {
@@ -24,12 +30,17 @@ interface Category {
     id: string;
     name: string;
     price: number;
+    quantity: number;
     images: Array<{ url: string }>;
     brand?: {
       name: string;
     };
+    brandId?: string;
     isPublished: boolean;
     slug: string;
+    averageRating: number;
+    topSelling: number;
+    createdAt: Date;
   }>;
 }
 
@@ -66,6 +77,7 @@ async function getCategory(categorySlug: string) {
           brand: {
             select: {
               name: true,
+              id: true,
             },
           },
         },
@@ -87,8 +99,12 @@ async function getCategory(categorySlug: string) {
       quantity: item.quantity,
       images: item.images,
       brand: item.brand || undefined,
+      brandId: item.brand?.id,
       slug: item.slug,
       isPublished: item.isPublished,
+      averageRating: item.averageRating,
+      topSelling: item.topSelling,
+      createdAt: item.createdAt,
     })),
   };
 
@@ -109,7 +125,7 @@ const CategoryPage = async ({ params }: PageParams) => {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-8">
+        <main className="flex-grow container mx-auto px-4 py-8 mt-20">
           <div className="text-center">
             <p>No items found in this category.</p>
           </div>
@@ -119,43 +135,37 @@ const CategoryPage = async ({ params }: PageParams) => {
     );
   }
 
+  // Calculate price range for the slider
+  const lowestPrice = Math.min(...category.items.map((item) => item.price));
+  const highestPrice = Math.max(...category.items.map((item) => item.price));
+
+  // Get unique brands in this category
+  const uniqueBrands = Array.from(
+    new Set(
+      category.items
+        .map((item) => item.brand?.name)
+        .filter((brand) => brand !== undefined)
+    )
+  ) as string[];
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 py-8 pt-28">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">{category.name}</h1>
           {category.description && (
             <p className="text-gray-600 mt-2">{category.description}</p>
           )}
         </div>
-        <div className="flex flex-col md:flex-row gap-8">
-          <aside className="w-full md:w-1/4">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold">Availability</h2>
-              <div className="flex items-center mt-2">
-                <Checkbox id="available" />
-                <label htmlFor="available" className="ml-2">
-                  Available
-                </label>
-              </div>
-              <div className="flex items-center mt-2">
-                <Checkbox id="out-of-stock" />
-                <label htmlFor="out-of-stock" className="ml-2">
-                  Out of stock
-                </label>
-              </div>
-            </div>
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold">Price</h2>
-              <Slider min={0} max={1000} step={10} />
-              <Button className="mt-2">Filter</Button>
-            </div>
-          </aside>
-          <section className="w-full md:w-3/4">
-            <ItemsCategories items={category.items} />
-          </section>
-        </div>
+
+        <ClientSideCategoryPage
+          items={category.items}
+          categoryName={category.name}
+          uniqueBrands={uniqueBrands}
+          lowestPrice={lowestPrice}
+          highestPrice={highestPrice}
+        />
       </main>
       <FooterSection />
     </div>

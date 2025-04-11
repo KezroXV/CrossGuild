@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "./prisma";
+import prisma from "./prisma";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";

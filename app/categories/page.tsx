@@ -13,7 +13,6 @@ const page = () => {
       <CategoriesSection />
       <Brands />
       <TopSellingGamingGear />
-
       <FooterSection />
     </div>
   );
