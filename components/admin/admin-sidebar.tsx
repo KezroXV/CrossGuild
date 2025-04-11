@@ -62,6 +62,11 @@ const adminNavItems = [
     icon: <Users />,
   },
   {
+    title: "Roles",
+    href: "/admin/roles",
+    icon: <Users />,
+  },
+  {
     title: "Reviews",
     href: "/admin/reviews",
     icon: <MessageSquare />,
@@ -71,11 +76,7 @@ const adminNavItems = [
     href: "/admin/reports",
     icon: <BarChart3 />,
   },
-  {
-    title: "Settings",
-    href: "/admin/settings",
-    icon: <Settings />,
-  },
+
   {
     title: "Content Management",
     href: "/admin/content-management",

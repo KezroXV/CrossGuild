@@ -353,7 +353,6 @@ export default function ContentManagementPage() {
       >
         <TabsList className="mb-8">
           <TabsTrigger value="hero-sections">Hero Sections</TabsTrigger>
-          <TabsTrigger value="faqs">FAQs</TabsTrigger>
           <TabsTrigger value="offers">Offers</TabsTrigger>
         </TabsList>
 
@@ -660,20 +659,6 @@ export default function ContentManagementPage() {
               </AccordionItem>
             </Accordion>
           </div>
-        </TabsContent>
-
-        <TabsContent value="faqs">
-          <Card>
-            <CardHeader>
-              <CardTitle>FAQs Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                This section will be implemented later. You can currently manage
-                FAQs from the Reviews section.
-              </p>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="offers">
