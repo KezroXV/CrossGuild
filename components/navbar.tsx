@@ -19,6 +19,7 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [wishlistItemCount, setWishlistItemCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,32 +31,43 @@ export const Navbar = () => {
     };
   }, []);
 
-  // Effect to fetch cart items count
+  // Effect to fetch cart and wishlist items count
   useEffect(() => {
-    const fetchCartCount = async () => {
+    const fetchCounts = async () => {
       if (session?.user) {
         try {
-          // Use the dedicated cart count API endpoint
-          const response = await fetch("/api/cart/count");
-          if (response.ok) {
-            const data = await response.json();
-            setCartItemCount(data.count);
+          // Fetch cart count
+          const cartResponse = await fetch("/api/cart/count");
+          if (cartResponse.ok) {
+            const cartData = await cartResponse.json();
+            setCartItemCount(cartData.count);
           } else {
             setCartItemCount(0);
           }
+
+          // Fetch wishlist count
+          const wishlistResponse = await fetch("/api/wishlist/count");
+          if (wishlistResponse.ok) {
+            const wishlistData = await wishlistResponse.json();
+            setWishlistItemCount(wishlistData.count);
+          } else {
+            setWishlistItemCount(0);
+          }
         } catch (error) {
-          console.error("Failed to fetch cart count:", error);
+          console.error("Failed to fetch counts:", error);
           setCartItemCount(0);
+          setWishlistItemCount(0);
         }
       } else {
         setCartItemCount(0);
+        setWishlistItemCount(0);
       }
     };
 
-    fetchCartCount();
+    fetchCounts();
 
-    // Set up interval to refresh cart count when changes might happen
-    const intervalId = setInterval(fetchCartCount, 30000);
+    // Set up interval to refresh counts when changes might happen
+    const intervalId = setInterval(fetchCounts, 30000);
 
     return () => clearInterval(intervalId);
   }, [session]);
@@ -137,6 +149,14 @@ export const Navbar = () => {
                   </span>
                 )}
               </Link>
+              <Link href="/wishlist" className="relative">
+                <Heart className="w-6 h-6 text-gray-700" />
+                {wishlistItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {wishlistItemCount > 99 ? "99+" : wishlistItemCount}
+                  </span>
+                )}
+              </Link>
               <button
                 onClick={toggleMobileMenu}
                 className="text-gray-700 focus:outline-none"
@@ -156,8 +176,13 @@ export const Navbar = () => {
               <div className="hidden md:block w-full max-w-md mt-1">
                 <SearchBar />
               </div>
-              <Link href="/wishlist" className="group">
+              <Link href="/wishlist" className="group relative">
                 <Heart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
+                {wishlistItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {wishlistItemCount > 99 ? "99+" : wishlistItemCount}
+                  </span>
+                )}
               </Link>
               <Link href="/cart" className="group relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
@@ -260,7 +285,14 @@ export const Navbar = () => {
                 className="flex items-center space-x-2"
                 onClick={toggleMobileMenu}
               >
-                <Heart className="w-5 h-5 text-gray-700" />
+                <div className="relative">
+                  <Heart className="w-5 h-5 text-gray-700" />
+                  {wishlistItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                      {wishlistItemCount > 9 ? "9+" : wishlistItemCount}
+                    </span>
+                  )}
+                </div>
                 <span className="text-gray-800 font-medium">Wishlist</span>
               </Link>
 

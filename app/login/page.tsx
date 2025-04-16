@@ -481,7 +481,7 @@ function LoginContent() {
 // Main login page component with Suspense boundary
 export default function LoginPage() {
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+    <div className=" flex h-screen w-screen flex-col items-center justify-center">
       <Suspense
         fallback={<div className="text-center">Loading login form...</div>}
       >

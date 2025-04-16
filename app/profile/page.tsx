@@ -70,6 +70,7 @@ const personalInfoSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email"),
   phone: z.string().optional(),
+  city: z.string().optional(), // Add city field
 });
 
 const passwordChangeSchema = z
@@ -92,6 +93,7 @@ type Order = {
   orderNumber: string;
   createdAt: string;
   totalAmount: number;
+  city?: string; // Add city field
   status:
     | "PENDING"
     | "PROCESSING"
@@ -132,6 +134,7 @@ export default function ProfilePage() {
       name: "",
       email: "",
       phone: "",
+      city: "", // Add city field to the form
     },
   });
 
@@ -159,6 +162,7 @@ export default function ProfilePage() {
         name: session.user.name || "",
         email: session.user.email || "",
         phone: "", // Removed session.user?.phone as it does not exist on the type
+        city: session.user.city || "", // Reset city field
       });
 
       fetchOrders(1);
@@ -197,6 +201,7 @@ export default function ProfilePage() {
           name: values.name,
           email: values.email,
           phone: values.phone || "",
+          city: values.city || "", // Reset city field
         });
 
         // Update session data to reflect changes immediately
@@ -207,8 +212,14 @@ export default function ProfilePage() {
             name: values.name,
             email: values.email,
             phone: values.phone,
+            city: values.city, // Include city
           },
         });
+
+        // Store city in sessionStorage for use in cart
+        if (values.city) {
+          sessionStorage.setItem("userCity", values.city);
+        }
       }
 
       // If an image is selected, upload it
@@ -518,9 +529,23 @@ export default function ProfilePage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number (optional)</FormLabel>
+                        <FormLabel>Phone Number</FormLabel>
                         <FormControl>
                           <Input placeholder="Your phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={personalInfoForm.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City (optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your city" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -759,6 +784,12 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">
                     Status: {getStatusBadge(selectedOrder.status || "")}
                   </p>
+                  {selectedOrder.city && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Shipping City:{" "}
+                      <span className="font-medium">{selectedOrder.city}</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="font-medium">

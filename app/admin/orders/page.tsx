@@ -22,6 +22,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MapPin } from "lucide-react";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -32,6 +40,8 @@ const OrdersPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState("10");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -50,6 +60,16 @@ const OrdersPage = () => {
       setError("Failed to fetch orders");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrderDetails = async (orderId: string) => {
+    try {
+      const response = await axios.get(`/api/admin/orders/${orderId}`);
+      setSelectedOrder(response.data);
+      setIsOrderDetailsOpen(true);
+    } catch (error) {
+      setError("Failed to fetch order details");
     }
   };
 
@@ -141,6 +161,7 @@ const OrdersPage = () => {
             <TableRow className="border-b-2">
               <TableHead className="py-4 px-4">Order ID</TableHead>
               <TableHead className="py-4 px-4">Customer</TableHead>
+              <TableHead className="py-4 px-4">City</TableHead>
               <TableHead className="py-4 px-4">Items</TableHead>
               <TableHead className="py-4 px-4">Total</TableHead>
               <TableHead className="py-4 px-4">Status</TableHead>
@@ -154,9 +175,24 @@ const OrdersPage = () => {
                 <TableCell className="py-3 px-4">{order.id}</TableCell>
                 <TableCell className="py-3 px-4">{order.user?.name}</TableCell>
                 <TableCell className="py-3 px-4">
+                  {order.city || order.user?.city || (
+                    <span className="text-gray-400 italic">Not specified</span>
+                  )}
+                </TableCell>
+                <TableCell className="py-3 px-4">
                   {order.items.map((item: any) => (
                     <div key={item.id} className="py-1">
                       {item.name}
+                      {item.options && item.options.length > 0 && (
+                        <span className="text-xs text-gray-500 block">
+                          {item.options
+                            .map(
+                              (opt: any) =>
+                                `${opt.name}: ${opt.values.join(", ")}`
+                            )
+                            .join(" | ")}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </TableCell>
@@ -184,19 +220,127 @@ const OrdersPage = () => {
                   {format(new Date(order.createdAt), "Pp", { locale: fr })}
                 </TableCell>
                 <TableCell className="py-3 px-4">
-                  <Button
-                    onClick={() => handleStatusUpdate(order.id, "delivered")}
-                    className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white"
-                    size="sm"
-                  >
-                    Validate
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={() => handleStatusUpdate(order.id, "delivered")}
+                      className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white"
+                      size="sm"
+                    >
+                      Validate
+                    </Button>
+                    <Button
+                      onClick={() => fetchOrderDetails(order.id)}
+                      className="px-4 py-1 bg-primary hover:bg-accent/90 text-white"
+                      size="sm"
+                    >
+                      Details
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {/* Order Details Dialog */}
+      <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Order #{selectedOrder?.id?.slice(-8)?.toUpperCase() || ""}
+            </DialogTitle>
+            <DialogDescription>
+              Placed on{" "}
+              {selectedOrder?.createdAt &&
+                format(new Date(selectedOrder.createdAt), "PPP", {
+                  locale: fr,
+                })}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-medium text-lg">Customer</h3>
+                  <p>{selectedOrder.user?.name}</p>
+                  <p>{selectedOrder.user?.email}</p>
+                  <p>{selectedOrder.user?.phone}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-lg">Shipping</h3>
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>
+                      {selectedOrder.city ||
+                        selectedOrder.user?.city ||
+                        "No city specified"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-lg mb-2">Order Items</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Options</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedOrder.items.map((item: any) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div className="font-medium">{item.name}</div>
+                        </TableCell>
+                        <TableCell>
+                          {item.options && item.options.length > 0 ? (
+                            <ul className="text-sm">
+                              {item.options.map((opt: any, idx: number) => (
+                                <li key={idx}>
+                                  <span className="font-semibold">
+                                    {opt.name}:
+                                  </span>{" "}
+                                  {opt.values.join(", ")}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-400">None</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {item.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {item.price}€
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {(item.price * item.quantity).toFixed(2)}€
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-right font-bold">
+                        Order Total
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {selectedOrder.total}€
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-8 py-4">

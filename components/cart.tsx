@@ -19,9 +19,18 @@ interface CartItem {
   price: number;
   quantity: number;
   images: { url: string }[];
+  options?: Array<{
+    name: string;
+    values: string[];
+  }>;
+  city?: string; // Add city field
 }
 
-const Cart = () => {
+interface CartProps {
+  userCity?: string;
+}
+
+const Cart = ({ userCity = "" }: CartProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +69,9 @@ const Cart = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          city: userCity, // Include city in the order creation
+        }),
       });
 
       const data = await response.json();
@@ -151,7 +163,12 @@ const Cart = () => {
               <TableRow>
                 <TableHead className="text-accent font-bold">Product</TableHead>
                 <TableHead className="text-accent font-bold">Price</TableHead>
-                <TableHead className="text-accent font-bold">
+                <TableHead className="text-accent font-bold">Details</TableHead>
+                <TableHead
+                  className="text-accent f
+                  ont-bold
+                "
+                >
                   Quantity
                 </TableHead>
                 <TableHead className="text-accent font-bold">Total</TableHead>
@@ -172,6 +189,28 @@ const Cart = () => {
                     </div>
                   </TableCell>
                   <TableCell>{item.price.toFixed(2)}€</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {(item.city || userCity) && (
+                        <div className="mb-1">
+                          <span className="font-semibold">City:</span>{" "}
+                          {item.city || userCity}
+                        </div>
+                      )}
+                      {item.options && item.options.length > 0 && (
+                        <div>
+                          <span className="font-semibold">Options:</span>
+                          <ul className="list-disc ml-4">
+                            {item.options.map((option, index) => (
+                              <li key={index}>
+                                {option.name}: {option.values.join(", ")}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Button

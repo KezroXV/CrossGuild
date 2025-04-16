@@ -3,7 +3,13 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect, useTransition } from "react";
-import { Star, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import {
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingCart,
+  Heart,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"; // Import de Sonner pour les notifications
 import { useRouter } from "next/navigation";
@@ -63,6 +69,8 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
     Record<string, string>
   >({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   useEffect(() => {
     if (product.options && product.options.length > 0) {
@@ -74,7 +82,23 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
       });
       setSelectedOptions(defaultOptions);
     }
-  }, [product.options]);
+
+    const checkWishlistStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/wishlist/check?itemId=${product.id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setIsInWishlist(data.inWishlist);
+        }
+      } catch (error) {
+        console.error("Error checking wishlist status:", error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [product.options, product.id]);
 
   const handleOptionSelect = (optionId: string, value: string) => {
     setSelectedOptions((prev) => ({
@@ -155,7 +179,6 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
 
       toast.success(`${product.name} a été ajouté à votre panier`);
 
-      // Utiliser startTransition pour la mise à jour de l'UI
       startTransition(() => {
         router.refresh();
       });
@@ -166,6 +189,60 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
       );
     } finally {
       setIsAddingToCart(false);
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    try {
+      setIsAddingToWishlist(true);
+
+      const method = isInWishlist ? "DELETE" : "POST";
+      const url = isInWishlist
+        ? `/api/wishlist?itemId=${product.id}`
+        : "/api/wishlist";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body:
+          method === "POST"
+            ? JSON.stringify({ itemId: product.id })
+            : undefined,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`
+        );
+      }
+
+      setIsInWishlist(!isInWishlist);
+      toast.success(
+        isInWishlist
+          ? `${product.name} removed from your wishlist`
+          : `${product.name} added to your wishlist`
+      );
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error(
+        `Error ${isInWishlist ? "removing from" : "adding to"} wishlist:`,
+        error
+      );
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`
+      );
+    } finally {
+      setIsAddingToWishlist(false);
     }
   };
 
@@ -181,6 +258,29 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
               onMouseEnter={() => setScale(1.15)}
               onMouseLeave={() => setScale(1)}
             >
+              <button
+                onClick={handleAddToWishlist}
+                disabled={isAddingToWishlist}
+                className="absolute top-2 right-2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                aria-label={
+                  isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+                }
+                title={
+                  isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+                }
+              >
+                <Heart
+                  className={`h-5 w-5 ${
+                    isAddingToWishlist
+                      ? "animate-pulse text-accent"
+                      : isInWishlist
+                      ? "text-accent fill-accent"
+                      : "text-gray-400 hover:text-accent"
+                  }`}
+                  fill={isInWishlist ? "currentColor" : "none"}
+                />
+              </button>
+
               {product.images[selectedImageIndex] && (
                 <div className="relative w-full h-full">
                   <Image
@@ -348,8 +448,77 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             </button>
           </div>
           <div className="mt-8 flex gap-4">
-            <Button className="w-full md:w-auto bg-accent text-white">
-              Acheter maintenant
+            <Button
+              className="w-full md:w-auto bg-accent text-white"
+              disabled={product.quantity === 0 || isAddingToCart || isPending}
+              onClick={async () => {
+                try {
+                  setIsAddingToCart(true);
+                  // First add to cart
+                  const response = await fetch("/api/cart", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      itemId: product.id,
+                      quantity: quantity,
+                      options: Object.entries(selectedOptions).map(
+                        ([optionId, value]) => ({
+                          optionId,
+                          value,
+                        })
+                      ),
+                    }),
+                    cache: "no-store",
+                  });
+
+                  if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || "Échec de l'ajout au panier");
+                  }
+
+                  // Then redirect to orders page
+                  router.push("/cart");
+                } catch (error) {
+                  console.error("Erreur lors de l'achat rapide:", error);
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : "Échec de l'achat rapide"
+                  );
+                } finally {
+                  setIsAddingToCart(false);
+                }
+              }}
+            >
+              {isAddingToCart || isPending ? (
+                <span className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Achat en cours...
+                </span>
+              ) : (
+                "Buy Now"
+              )}
             </Button>
             <Button
               className="w-full shadow-md md:w-auto bg-white text-black border-2 border-primary font-bold hover:text-white hover:bg-primary"
@@ -382,7 +551,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
                 </span>
               ) : (
                 <>
-                  Ajouter au panier
+                  Add to Cart
                   <ShoppingCart className="ml-2" />
                 </>
               )}

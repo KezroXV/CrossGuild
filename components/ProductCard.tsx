@@ -10,7 +10,9 @@ import {
   CardFooter,
 } from "./ui/card";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Heart } from "lucide-react";
+import { toast } from "sonner";
 
 const slideFromBottom = {
   hidden: { opacity: 0, y: 20 },
@@ -33,7 +35,26 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const [error, setError] = useState("");
+
+  // Check if item is already in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      try {
+        const response = await fetch(`/api/wishlist/check?itemId=${item.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsInWishlist(data.inWishlist);
+        }
+      } catch (error) {
+        console.error("Error checking wishlist status:", error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [item.id]);
 
   const handleBuyNow = async () => {
     setIsLoading(true);
@@ -79,6 +100,52 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
     }
   };
 
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    setIsAddingToWishlist(true);
+    try {
+      const method = isInWishlist ? "DELETE" : "POST";
+      const url = isInWishlist
+        ? `/api/wishlist?itemId=${item.id}`
+        : "/api/wishlist";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body:
+          method === "POST" ? JSON.stringify({ itemId: item.id }) : undefined,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsInWishlist(!isInWishlist);
+        toast.success(
+          isInWishlist ? "Removed from wishlist" : "Added to wishlist"
+        );
+      } else {
+        toast.error(
+          data.error ||
+            `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isInWishlist ? "removing from" : "adding to"} wishlist:`,
+        error
+      );
+      toast.error(
+        `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`
+      );
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
+
   return (
     <motion.div
       key={item.id}
@@ -88,7 +155,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
       variants={slideFromBottom}
       transition={{ duration: 0.5 }}
     >
-      <Card className="text-center border-4 shadow-md">
+      <Card className="text-center border-4 shadow-md relative">
+        {/* Wishlist button - positioned absolute in the top right corner */}
+        <button
+          onClick={handleAddToWishlist}
+          disabled={isAddingToWishlist}
+          className="absolute top-2 right-2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart
+            className={`h-5 w-5 ${
+              isAddingToWishlist
+                ? "animate-pulse text-accent"
+                : isInWishlist
+                ? "text-accent fill-accent"
+                : "text-gray-400 hover:text-accent"
+            }`}
+            fill={isInWishlist ? "currentColor" : "none"}
+          />
+        </button>
+
         <CardHeader className="pb-0">
           <div className="relative w-full h-[200px] flex items-center justify-center p-4">
             <Image
