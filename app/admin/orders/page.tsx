@@ -136,7 +136,7 @@ const OrdersPage = () => {
         <Button
           onClick={handleExportOrders}
           variant="default"
-          className="bg-blue-500 hover:bg-blue-600"
+          className="bg-accent hover:bg-accent/90"
         >
           Export Orders
         </Button>

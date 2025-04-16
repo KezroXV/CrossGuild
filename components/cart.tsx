@@ -12,6 +12,7 @@ import {
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus, Minus } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface CartItem {
   id: string;
@@ -23,19 +24,16 @@ interface CartItem {
     name: string;
     values: string[];
   }>;
-  city?: string; // Add city field
+  city?: string;
 }
 
-interface CartProps {
-  userCity?: string;
-}
-
-const Cart = ({ userCity = "" }: CartProps) => {
+const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState<string | null>(null);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const fetchCart = async () => {
     try {
@@ -64,13 +62,15 @@ const Cart = ({ userCity = "" }: CartProps) => {
   const handleCreateOrder = async () => {
     setIsLoading(true);
     try {
+      const city = session?.user?.city || "";
+
       const response = await fetch("/api/orders/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          city: userCity, // Include city in the order creation
+          city,
         }),
       });
 
@@ -164,11 +164,8 @@ const Cart = ({ userCity = "" }: CartProps) => {
                 <TableHead className="text-accent font-bold">Product</TableHead>
                 <TableHead className="text-accent font-bold">Price</TableHead>
                 <TableHead className="text-accent font-bold">Details</TableHead>
-                <TableHead
-                  className="text-accent f
-                  ont-bold
-                "
-                >
+                <TableHead className="text-accent font-bold">City</TableHead>
+                <TableHead className="text-accent font-bold">
                   Quantity
                 </TableHead>
                 <TableHead className="text-accent font-bold">Total</TableHead>
@@ -191,12 +188,6 @@ const Cart = ({ userCity = "" }: CartProps) => {
                   <TableCell>{item.price.toFixed(2)}€</TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {(item.city || userCity) && (
-                        <div className="mb-1">
-                          <span className="font-semibold">City:</span>{" "}
-                          {item.city || userCity}
-                        </div>
-                      )}
                       {item.options && item.options.length > 0 && (
                         <div>
                           <span className="font-semibold">Options:</span>
@@ -210,6 +201,18 @@ const Cart = ({ userCity = "" }: CartProps) => {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {item.city && item.city.trim() !== "" ? (
+                      item.city
+                    ) : session?.user?.city &&
+                      session.user.city.trim() !== "" ? (
+                      session.user.city
+                    ) : (
+                      <span className="text-gray-400 italic">
+                        Not specified
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">

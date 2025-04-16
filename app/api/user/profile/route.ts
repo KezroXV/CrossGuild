@@ -53,7 +53,7 @@ export async function PUT(req: Request) {
     const body = await req.json();
 
     // Validate input
-    const { name, email, phone } = body;
+    const { name, email, phone, city } = body;
 
     if (!name || !email) {
       return NextResponse.json(
@@ -83,6 +83,7 @@ export async function PUT(req: Request) {
         name,
         email,
         phone,
+        city, // <-- Assure-toi que ce champ est bien là
       },
       select: {
         id: true,
@@ -99,6 +100,6 @@ export async function PUT(req: Request) {
     return NextResponse.json(
       { error: "Failed to update user profile" },
       { status: 500 }
-    ); // Correction ici - il y avait une accolade en trop
+    );
   }
 }

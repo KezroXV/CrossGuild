@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -112,6 +112,9 @@ type Order = {
 export default function ProfilePage() {
   const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const defaultTab =
+    searchParams?.get("tab") === "orders" ? "orders" : "personal-info";
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,7 +165,7 @@ export default function ProfilePage() {
         name: session.user.name || "",
         email: session.user.email || "",
         phone: "", // Removed session.user?.phone as it does not exist on the type
-        city: session.user.city || "", // Reset city field
+        city: session.user.city || "", // Reset city fieldue c'est bien là
       });
 
       fetchOrders(1);
@@ -426,7 +429,7 @@ export default function ProfilePage() {
         </Link>
       </div>
 
-      <Tabs defaultValue="personal-info" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="personal-info">Personal Information</TabsTrigger>
           <TabsTrigger value="orders">My Orders</TabsTrigger>
@@ -659,6 +662,7 @@ export default function ProfilePage() {
                         <TableHead>Date</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>City</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -678,6 +682,18 @@ export default function ProfilePage() {
                           </TableCell>
                           <TableCell>
                             {getStatusBadge(order.status || "")}
+                          </TableCell>
+                          <TableCell>
+                            {order.city && order.city.trim() !== "" ? (
+                              order.city
+                            ) : session?.user?.city &&
+                              session.user.city.trim() !== "" ? (
+                              session.user.city
+                            ) : (
+                              <span className="text-gray-400 italic">
+                                Not specified
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
@@ -784,12 +800,16 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">
                     Status: {getStatusBadge(selectedOrder.status || "")}
                   </p>
-                  {selectedOrder.city && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Shipping City:{" "}
-                      <span className="font-medium">{selectedOrder.city}</span>
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Shipping City:{" "}
+                    <span className="font-medium">
+                      {selectedOrder.city && selectedOrder.city.trim() !== ""
+                        ? selectedOrder.city
+                        : session?.user?.city && session.user.city.trim() !== ""
+                        ? session.user.city
+                        : "Not specified"}
+                    </span>
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium">

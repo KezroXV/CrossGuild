@@ -48,7 +48,7 @@ function OrderConfirmationContent() {
               <Link href="/">Return to Home</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/profile">View My Orders</Link>
+              <Link href="/profile?tab=orders">View My Orders</Link>
             </Button>
           </div>
         </CardContent>
