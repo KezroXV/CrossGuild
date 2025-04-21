@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-
+// import { sendEmail } from "@/lib/email";
 // Validation schema
 const userSchema = z.object({
   name: z
