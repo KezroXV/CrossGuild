@@ -33,7 +33,8 @@ export const TopSellingGamingGear = () => {
         const data = await response.json();
         const sortedProducts = data
           .filter((product: Product) => product.topSelling > 0)
-          .sort((a: Product, b: Product) => b.topSelling - a.topSelling);
+          .sort((a: Product, b: Product) => b.topSelling - a.topSelling)
+          .slice(0, 4); // Limit to only 4 products
         setProducts(sortedProducts);
       } catch (error) {
         console.error("Error fetching top-selling products:", error);

@@ -229,7 +229,7 @@ export const Navbar = () => {
                 <Link href="/login">
                   <Button
                     variant="secondary"
-                    className="bg-accent hover:bg-purple-700 text-white"
+                    className="bg-accent hover:bg-accent/90 text-white"
                   >
                     Login
                   </Button>
