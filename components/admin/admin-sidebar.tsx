@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const adminNavItems = [
   {
@@ -115,7 +116,7 @@ export function AdminSidebar() {
         )}
       >
         <SidebarHeader className="border-b">
-          <div className="flex items-center px-2 py-4">
+          <div className="flex items-center px-2 py-4 justify-between">
             <h2
               className={cn(
                 "text-lg font-semibold tracking-tight transition-all",
@@ -124,6 +125,8 @@ export function AdminSidebar() {
             >
               Admin Panel
             </h2>
+
+            {open && <ModeToggle />}
           </div>
         </SidebarHeader>
         <SidebarContent className="px-2">

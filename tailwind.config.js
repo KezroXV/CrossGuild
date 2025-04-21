@@ -62,6 +62,10 @@ module.exports = {
           to: { transform: "translateY(calc(-50% - var(--gap)/2))" },
         },
       },
+      fontFamily: {
+        sans: ["var(--font-jetbrains-mono)", "monospace"],
+        mono: ["var(--font-jetbrains-mono)", "monospace"],
+      },
     },
   },
   plugins: [],

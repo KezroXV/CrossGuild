@@ -13,6 +13,7 @@ import {
   NavbarCenter,
   NavbarRight,
 } from "@/components/ui/navbar";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 export const Navbar = () => {
   const { data: session } = useSession();
@@ -157,6 +158,7 @@ export const Navbar = () => {
                   </span>
                 )}
               </Link>
+              <ModeToggle />
               <button
                 onClick={toggleMobileMenu}
                 className="text-gray-700 focus:outline-none"
@@ -177,7 +179,7 @@ export const Navbar = () => {
                 <SearchBar />
               </div>
               <Link href="/wishlist" className="group relative">
-                <Heart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
+                <Heart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors dark:text-gray-300" />
                 {wishlistItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlistItemCount > 99 ? "99+" : wishlistItemCount}
@@ -192,6 +194,7 @@ export const Navbar = () => {
                   </span>
                 )}
               </Link>
+              <ModeToggle />
               {session?.user ? (
                 <div className="relative group">
                   <Image
@@ -280,21 +283,21 @@ export const Navbar = () => {
             </nav>
 
             <div className="flex items-center justify-between py-4">
-              <Link
-                href="/wishlist"
-                className="flex items-center space-x-2"
-                onClick={toggleMobileMenu}
-              >
-                <div className="relative">
-                  <Heart className="w-5 h-5 text-gray-700" />
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/wishlist"
+                  className="relative"
+                  onClick={toggleMobileMenu}
+                >
+                  <Heart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
                   {wishlistItemCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
                       {wishlistItemCount > 9 ? "9+" : wishlistItemCount}
                     </span>
                   )}
-                </div>
-                <span className="text-gray-800 font-medium">Wishlist</span>
-              </Link>
+                </Link>
+                <ModeToggle />
+              </div>
 
               {session?.user ? (
                 <div className="flex items-center space-x-3">
