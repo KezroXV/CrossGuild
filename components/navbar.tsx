@@ -6,7 +6,9 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import logo from "@/public/CrossGuild.svg";
+import logoDark from "@/public/CrossGuild-dark.svg";
 import {
   Navbar as NavbarUI,
   NavbarLeft,
@@ -21,6 +23,7 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
   const [wishlistItemCount, setWishlistItemCount] = useState(0);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,8 +90,8 @@ export const Navbar = () => {
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm"
-          : "bg-white/60 backdrop-blur-sm"
+          ? "bg-background/80 backdrop-blur-md shadow-sm"
+          : "bg-background/60 backdrop-blur-sm"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,25 +101,25 @@ export const Navbar = () => {
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/"
-                className="text-gray-800 hover:text-accent font-medium transition-colors"
+                className="text-foreground hover:text-accent font-medium transition-colors"
               >
                 Home
               </Link>
               <Link
                 href="/categories"
-                className="text-gray-800 hover:text-accent font-medium transition-colors"
+                className="text-foreground hover:text-accent font-medium transition-colors"
               >
                 Categories
               </Link>
               <Link
                 href="/about"
-                className="text-gray-800 hover:text-accent font-medium transition-colors"
+                className="text-foreground hover:text-accent font-medium transition-colors"
               >
                 About
               </Link>
               <Link
                 href="/contact"
-                className="text-gray-800 hover:text-accent font-medium transition-colors"
+                className="text-foreground hover:text-accent font-medium transition-colors"
               >
                 Contact
               </Link>
@@ -124,10 +127,10 @@ export const Navbar = () => {
           </NavbarLeft>
 
           {/* Center Section with Logo on both Mobile and Desktop */}
-          <NavbarCenter className="flex  items-center md:w-1/3">
+          <NavbarCenter className="flex items-center md:w-1/3">
             <Link href="/" className="flex items-center justify-center">
               <Image
-                src={logo}
+                src={theme === "dark" ? logoDark : logo}
                 alt="Logo"
                 className="cursor-pointer h-14 md:h-16 w-auto"
                 priority
@@ -143,17 +146,17 @@ export const Navbar = () => {
 
             <div className="md:hidden flex items-center space-x-3">
               <Link href="/cart" className="relative">
-                <ShoppingCart className="w-6 h-6 text-gray-700" />
+                <ShoppingCart className="w-6 h-6 text-foreground" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartItemCount > 99 ? "99+" : cartItemCount}
                   </span>
                 )}
               </Link>
               <Link href="/wishlist" className="relative">
-                <Heart className="w-6 h-6 text-gray-700" />
+                <Heart className="w-6 h-6 text-foreground" />
                 {wishlistItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlistItemCount > 99 ? "99+" : wishlistItemCount}
                   </span>
                 )}
@@ -161,7 +164,7 @@ export const Navbar = () => {
               <ModeToggle />
               <button
                 onClick={toggleMobileMenu}
-                className="text-gray-700 focus:outline-none"
+                className="text-foreground focus:outline-none"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
@@ -179,17 +182,17 @@ export const Navbar = () => {
                 <SearchBar />
               </div>
               <Link href="/wishlist" className="group relative">
-                <Heart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors dark:text-gray-300" />
+                <Heart className="w-6 h-6 text-foreground group-hover:text-accent transition-colors" />
                 {wishlistItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlistItemCount > 99 ? "99+" : wishlistItemCount}
                   </span>
                 )}
               </Link>
               <Link href="/cart" className="group relative">
-                <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
+                <ShoppingCart className="w-6 h-6 text-foreground group-hover:text-accent transition-colors" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartItemCount > 99 ? "99+" : cartItemCount}
                   </span>
                 )}
@@ -204,17 +207,17 @@ export const Navbar = () => {
                     height={60}
                     className="rounded-full cursor-pointer border-2 border-transparent group-hover:border-accent transition-colors"
                   />
-                  <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="absolute right-0 w-48 mt-2 py-2 bg-background rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <Link
                       href="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       Profile
                     </Link>
                     {session?.user?.isAdmin && (
                       <Link
                         href="/admin"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                       >
                         Admin
                       </Link>
@@ -222,7 +225,7 @@ export const Navbar = () => {
 
                     <button
                       onClick={() => signOut()}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       Sign out
                     </button>
@@ -232,7 +235,7 @@ export const Navbar = () => {
                 <Link href="/login">
                   <Button
                     variant="secondary"
-                    className="bg-accent hover:bg-accent/90 text-white"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                   >
                     Login
                   </Button>
@@ -245,7 +248,7 @@ export const Navbar = () => {
 
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-white z-40 pt-20 pb-6 px-6 overflow-y-auto">
+        <div className="md:hidden fixed inset-0 bg-background z-40 pt-20 pb-6 px-6 overflow-y-auto">
           <div className="flex flex-col space-y-6">
             <div className="pt-2 pb-4">
               <SearchBar />
@@ -254,28 +257,28 @@ export const Navbar = () => {
             <nav className="flex flex-col space-y-4">
               <Link
                 href="/"
-                className="text-lg font-medium text-gray-800 hover:text-accent py-2 border-b border-gray-100"
+                className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
                 onClick={toggleMobileMenu}
               >
                 Home
               </Link>
               <Link
                 href="/categories"
-                className="text-lg font-medium text-gray-800 hover:text-accent py-2 border-b border-gray-100"
+                className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
                 onClick={toggleMobileMenu}
               >
                 Categories
               </Link>
               <Link
                 href="/about"
-                className="text-lg font-medium text-gray-800 hover:text-accent py-2 border-b border-gray-100"
+                className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
                 onClick={toggleMobileMenu}
               >
                 About
               </Link>
               <Link
                 href="/contact"
-                className="text-lg font-medium text-gray-800 hover:text-accent py-2 border-b border-gray-100"
+                className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
                 onClick={toggleMobileMenu}
               >
                 Contact
@@ -289,9 +292,9 @@ export const Navbar = () => {
                   className="relative"
                   onClick={toggleMobileMenu}
                 >
-                  <Heart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                  <Heart className="w-6 h-6 text-foreground" />
                   {wishlistItemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
                       {wishlistItemCount > 9 ? "9+" : wishlistItemCount}
                     </span>
                   )}
@@ -309,7 +312,7 @@ export const Navbar = () => {
                     className="rounded-full"
                   />
                   <div className="flex flex-col">
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-foreground">
                       {session.user.name}
                     </span>
                     <button
@@ -327,7 +330,7 @@ export const Navbar = () => {
                 <Link href="/login" onClick={toggleMobileMenu}>
                   <Button
                     variant="secondary"
-                    className="bg-accent hover:bg-purple-700 text-white"
+                    className="bg-accent hover:bg-purple-700 text-accent-foreground"
                   >
                     Login
                   </Button>

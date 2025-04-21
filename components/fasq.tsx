@@ -122,10 +122,10 @@ const Faqs = () => {
         variants={fadeInVariant}
         transition={{ duration: 0.8, ease: "easeInOut" }}
       >
-        <h1 className="bg-gradient-to-r from-black to-black text-3xl sm:text-4xl md:text-5xl font-bold inline-block bg-clip-text text-transparent">
+        <h1 className="bg-gradient-to-r from-foreground to-foreground text-3xl sm:text-4xl md:text-5xl font-bold inline-block bg-clip-text text-transparent">
           FAQ&apos;s
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-gray-500 mt-2">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2">
           Providing answers to your questions
         </p>
       </motion.div>
@@ -133,7 +133,9 @@ const Faqs = () => {
       {/* Accordion Section */}
       <Accordion type="single" collapsible className="space-y-4">
         {loading ? (
-          <p className="text-center py-4">Loading FAQs...</p>
+          <p className="text-center py-4 text-muted-foreground">
+            Loading FAQs...
+          </p>
         ) : (
           displayFaqs.map((faq, index) => (
             <motion.div
@@ -149,7 +151,7 @@ const Faqs = () => {
                 className="border-2 border-accent rounded-md overflow-hidden"
               >
                 <AccordionTrigger
-                  className="w-full flex justify-between items-center text-left text-base sm:text-lg font-medium p-4 transition-all bg-white hover:bg-gray-100"
+                  className="w-full flex justify-between items-center text-left text-base sm:text-lg font-medium p-4 transition-all bg-background hover:bg-muted"
                   onClick={() => handleToggle(faq.id)}
                 >
                   {typeof faq.question === "string"
@@ -163,7 +165,7 @@ const Faqs = () => {
                     }`}
                   />
                 </AccordionTrigger>
-                <AccordionContent className="p-4 text-sm sm:text-base md:text-lg text-gray-700 bg-gray-50">
+                <AccordionContent className="p-4 text-sm sm:text-base md:text-lg text-foreground bg-muted">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -182,14 +184,14 @@ const Faqs = () => {
         transition={{ duration: 0.8, delay: 0.6 }}
       >
         <textarea
-          className="w-full resize-none h-24 sm:h-28 md:h-32 p-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full resize-none h-24 sm:h-28 md:h-32 p-4 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
           placeholder="Still have questions? Write to us!"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         ></textarea>
         <div className="flex flex-col sm:flex-row justify-between mt-4">
           <div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               We will answer your question via email within 48 hours.
             </p>
             {messageSent && (
@@ -201,7 +203,7 @@ const Faqs = () => {
 
           <button
             onClick={handleSend}
-            className="mt-2 sm:mt-0 px-6 py-2 bg-accent text-white font-medium rounded-md transition-all hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-secondary"
+            className="mt-2 sm:mt-0 px-6 py-2 bg-accent text-accent-foreground font-medium rounded-md transition-all hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-secondary"
           >
             Send
           </button>

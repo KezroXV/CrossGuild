@@ -126,16 +126,18 @@ export default function CategoryFilters({
   }, [lowestPrice, highestPrice]);
 
   return (
-    <aside className="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-sm">
+    <aside className="w-full md:w-1/4 bg-background p-6 rounded-lg shadow-sm">
       <div className="mb-6 border-b pb-4">
-        <h2 className="text-lg font-semibold mb-3">Availability</h2>
+        <h2 className="text-lg font-semibold mb-3 text-foreground">
+          Availability
+        </h2>
         <div className="flex items-center mt-2">
           <Checkbox
             id="available"
             checked={inStock}
             onCheckedChange={(checked) => setInStock(!!checked)}
           />
-          <label htmlFor="available" className="ml-2 text-sm">
+          <label htmlFor="available" className="ml-2 text-sm text-foreground">
             In stock
           </label>
         </div>
@@ -145,17 +147,24 @@ export default function CategoryFilters({
             checked={outOfStock}
             onCheckedChange={(checked) => setOutOfStock(!!checked)}
           />
-          <label htmlFor="out-of-stock" className="ml-2 text-sm">
+          <label
+            htmlFor="out-of-stock"
+            className="ml-2 text-sm text-foreground"
+          >
             Out of stock
           </label>
         </div>
       </div>
 
       <div className="mb-6 border-b pb-4">
-        <h2 className="text-lg font-semibold mb-3">Price</h2>
+        <h2 className="text-lg font-semibold mb-3 text-foreground">Price</h2>
         <div className="flex justify-between mb-2">
-          <span className="text-sm">${priceRange[0]}</span>
-          <span className="text-sm">${priceRange[1]}</span>
+          <span className="text-sm text-muted-foreground">
+            ${priceRange[0]}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            ${priceRange[1]}
+          </span>
         </div>
         <div className="px-1">
           <Slider
@@ -170,7 +179,7 @@ export default function CategoryFilters({
 
       {uniqueBrands.length > 0 && (
         <div className="mb-6 border-b pb-4">
-          <h2 className="text-lg font-semibold mb-3">Brands</h2>
+          <h2 className="text-lg font-semibold mb-3 text-foreground">Brands</h2>
           <Select value={selectedBrand} onValueChange={setSelectedBrand}>
             <SelectTrigger>
               <SelectValue placeholder="All brands" />
@@ -188,7 +197,7 @@ export default function CategoryFilters({
       )}
 
       <div className="mb-6 border-b pb-4">
-        <h2 className="text-lg font-semibold mb-3">Rating</h2>
+        <h2 className="text-lg font-semibold mb-3 text-foreground">Rating</h2>
         {[5, 4, 3, 2, 1].map((rating) => (
           <div key={rating} className="flex items-center mt-2">
             <Checkbox
@@ -204,7 +213,7 @@ export default function CategoryFilters({
             />
             <label
               htmlFor={`rating-${rating}`}
-              className="ml-2 flex items-center"
+              className="ml-2 flex items-center text-foreground"
             >
               {Array(rating)
                 .fill(0)
@@ -217,7 +226,7 @@ export default function CategoryFilters({
               {Array(5 - rating)
                 .fill(0)
                 .map((_, i) => (
-                  <StarIcon key={i} className="h-4 w-4 text-gray-300" />
+                  <StarIcon key={i} className="h-4 w-4 text-muted-foreground" />
                 ))}
               <span className="ml-1 text-sm">& Up</span>
             </label>
@@ -226,7 +235,7 @@ export default function CategoryFilters({
       </div>
 
       <div className="mb-6 border-b pb-4">
-        <h2 className="text-lg font-semibold mb-3">Sort by</h2>
+        <h2 className="text-lg font-semibold mb-3 text-foreground">Sort by</h2>
         <Select value={sortOption} onValueChange={setSortOption}>
           <SelectTrigger>
             <SelectValue placeholder="Sort by" />

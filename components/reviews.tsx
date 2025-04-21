@@ -29,7 +29,7 @@ const ReviewCard = ({
   item: { name: string; averageRating: number };
 }) => {
   return (
-    <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white">
+    <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-background">
       <div className="absolute inset-0 rounded-xl border-gradient1"></div>
       <div className="relative flex flex-row items-center gap-2">
         <div className="w-8 h-8 rounded-full overflow-hidden relative flex-shrink-0">
@@ -47,21 +47,21 @@ const ReviewCard = ({
           />
         </div>
         <div className="flex flex-col">
-          <figcaption className="text-sm font-medium dark:text-black">
+          <figcaption className="text-sm font-medium text-foreground">
             {user.name || "Anonymous User"}
           </figcaption>
-          <p className="text-xs font-medium dark:text-black/40">
+          <p className="text-xs font-medium text-muted-foreground">
             Verified Purchase
           </p>
         </div>
       </div>
-      <div className="mt-2 text-sm line-clamp-3">{content}</div>
+      <div className="mt-2 text-sm line-clamp-3 text-foreground">{content}</div>
       <div className="mt-2 flex justify-between items-center">
         <div className="text-sm text-yellow-500">
           {"★".repeat(rating)}
           {"☆".repeat(5 - rating)}
         </div>
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           Average: {item.averageRating.toFixed(1)}/5
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function Reviews() {
   if (isLoading) {
     return (
       <div className="my-28 max-w-5/6 mx-auto text-center">
-        <h2 className="text-4xl text-black font-bold w-fit mx-auto">
+        <h2 className="text-4xl text-foreground font-bold w-fit mx-auto">
           Loading <span className="text-accent">Reviews</span>...
         </h2>
       </div>
@@ -131,7 +131,7 @@ export default function Reviews() {
 
   return (
     <div className="my-28 mt-28 max-w-5/6 mx-auto">
-      <h2 className="text-4xl text-black font-bold ml-48 w-fit text-left">
+      <h2 className="text-4xl text-foreground font-bold ml-48 w-fit text-left">
         What Our <span className="text-accent">Customers Say</span>
       </h2>
       <div className="relative flex flex-col gap-4 py-4">
@@ -179,7 +179,7 @@ export default function Reviews() {
         )}
 
         {reviews.length === 0 && !isLoading && (
-          <p className="text-center py-10">No reviews found.</p>
+          <p className="text-center py-10 text-foreground">No reviews found.</p>
         )}
       </div>
     </div>

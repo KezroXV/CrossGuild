@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Footer,
   FooterColumn,
@@ -5,6 +7,7 @@ import {
   FooterContent,
 } from "@/components/ui/footer";
 import crossguild from "@/public/CrossGuild.svg";
+import crossguildDark from "@/public/CrossGuild-dark.svg";
 import paye from "@/public/paye.svg";
 import {
   DiscordLogoIcon,
@@ -15,7 +18,11 @@ import Image from "next/image";
 import { FaYoutube } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useTheme } from "next-themes";
+
 export default function FooterSection() {
+  const { theme } = useTheme();
+
   return (
     <footer className=" w-4/5 mx-auto px-4">
       <div className="max-w-container mx-auto">
@@ -23,7 +30,11 @@ export default function FooterSection() {
           <FooterContent className="sm:grid-cols-2 md:grid-cols-3">
             <FooterColumn className="col-span-2 flex-row items-center justify-between gap-8 border-b pb-8 md:col-span-1 md:flex-col md:items-start md:justify-start md:border-b-0">
               <div className="flex items-center gap-2">
-                <Image src={crossguild} alt="CrossGuild" width={40} />
+                <Image
+                  src={theme === "dark" ? crossguildDark : crossguild}
+                  alt="CrossGuild"
+                  width={40}
+                />
                 <h3 className="text-xl font-bold">CroosGuild</h3>
               </div>
               <div className="ml-2.5 flex gap-4 sm:ml-0"></div>

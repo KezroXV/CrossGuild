@@ -72,16 +72,16 @@ const SearchBar = () => {
             onFocus={() => setIsFocused(true)}
             placeholder="Search products..."
             className="w-full px-4 py-2 pl-12 text-sm
-                       bg-white text-black
-                       placeholder-gray-400 rounded-full
-                       border border-gray-700
+                       bg-background text-foreground
+                       placeholder-muted-foreground rounded-full
+                       border border-input
                        focus:border-accent focus:ring-2
-                       focus:ring-purple-500/20 focus:outline-none
+                       focus:ring-accent/20 focus:outline-none
                        transition-all duration-300"
           />
           <Search
             className="absolute left-3 top-1/2 transform -translate-y-1/2 
-                        w-5 h-5 text-gray-400"
+                        w-5 h-5 text-muted-foreground"
           />
         </div>
       </div>
@@ -89,8 +89,8 @@ const SearchBar = () => {
       {/* Dropdown Results */}
       <div
         className={cn(
-          "absolute w-full mt-2 py-2 bg-white backdrop-blur-sm",
-          "rounded-lg border border-gray-700 shadow-lg",
+          "absolute w-full mt-2 py-2 bg-background backdrop-blur-sm",
+          "rounded-lg border border-input shadow-lg",
           "transition-all duration-200 z-50",
           "overflow-hidden",
           isFocused && query.length >= 2
@@ -99,7 +99,7 @@ const SearchBar = () => {
         )}
       >
         {products.length === 0 && query.length >= 2 ? (
-          <div className="px-4 py-2 text-sm text-gray-400">
+          <div className="px-4 py-2 text-sm text-muted-foreground">
             No results found
           </div>
         ) : (
@@ -108,7 +108,7 @@ const SearchBar = () => {
               <div
                 key={product.id}
                 onClick={() => handleSelect(product)}
-                className="flex items-center gap-4 p-3 hover:bg-gray-800/50 
+                className="flex items-center gap-4 p-3 hover:bg-muted 
                           cursor-pointer transition-colors"
               >
                 {product.images[0] && (
@@ -122,10 +122,10 @@ const SearchBar = () => {
                   </div>
                 )}
                 <div className="flex flex-col min-w-0">
-                  <span className="text-black font-medium truncate">
+                  <span className="text-foreground font-medium truncate">
                     {product.name}
                   </span>
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     ${product.price.toFixed(2)}
                   </span>
                 </div>
