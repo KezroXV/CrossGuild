@@ -41,41 +41,38 @@ export async function GET(request: Request) {
         totalPages: Math.ceil(count / pageSize),
       });
     } else {
-      const page = parseInt(url.searchParams.get("page") || "1");
-      const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
-      const search = url.searchParams.get("search") || "";
-
-      const skip = (page - 1) * pageSize;
-
-      const where = search
-        ? {
-            OR: [
-              { content: { contains: search, mode: "insensitive" } },
-              { user: { name: { contains: search, mode: "insensitive" } } },
-              { item: { name: { contains: search, mode: "insensitive" } } },
-            ],
-          }
-        : {};
-
-      const [reviews, count] = await Promise.all([
-        prisma.review.findMany({
-          where,
-          include: {
-            item: true,
-            user: true,
+      const reviews = await prisma.review.findMany({
+        select: {
+          id: true,
+          content: true,
+          rating: true,
+          user: {
+            select: {
+              name: true,
+              image: true, // This is the correct field name from User model
+            },
           },
-          skip,
-          take: pageSize,
-          orderBy: { createdAt: "desc" },
-        }),
-        prisma.review.count({ where }),
-      ]);
-
-      return NextResponse.json({
-        reviews: reviews || [],
-        totalCount: count,
-        totalPages: Math.ceil(count / pageSize),
+          item: {
+            select: {
+              name: true,
+              averageRating: true,
+            },
+          },
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 10, // Limit to 10 recent reviews for performance
       });
+
+      return NextResponse.json(
+        {
+          reviews,
+          success: true,
+        },
+        { status: 200 }
+      );
     }
   } catch (error) {
     console.error(`Error retrieving ${type}:`, error);
