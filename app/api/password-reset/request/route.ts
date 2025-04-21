@@ -2,31 +2,25 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import nodemailer from "nodemailer";
+import { sendEmail, generatePasswordResetEmail } from "@/lib/email";
 
 // Schema validation
 const requestSchema = z.object({
   email: z.string().email("Invalid email format"),
 });
 
-// Configure email transporter - replace with your SMTP settings in production
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST || "smtp.example.com",
-  port: parseInt(process.env.EMAIL_SERVER_PORT || "587"),
-  secure: process.env.EMAIL_SERVER_SECURE === "true",
-  auth: {
-    user: process.env.EMAIL_SERVER_USER || "user@example.com",
-    pass: process.env.EMAIL_SERVER_PASSWORD || "password",
-  },
-});
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log("Password reset request received for email:", body.email);
 
     // Validate request
     const result = requestSchema.safeParse(body);
     if (!result.success) {
+      console.error(
+        "Invalid data in password reset request:",
+        result.error.format()
+      );
       return NextResponse.json(
         { error: "Invalid data", details: result.error.format() },
         { status: 400 }
@@ -41,6 +35,7 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
+      console.log(`Password reset requested for non-existent email: ${email}`);
       // Don't reveal that email doesn't exist for security reasons
       return NextResponse.json(
         {
@@ -50,6 +45,8 @@ export async function POST(req: Request) {
         { status: 200 }
       );
     }
+
+    console.log(`Valid password reset request for user: ${user.id}`);
 
     // Generate unique token
     const token = uuidv4();
@@ -64,7 +61,7 @@ export async function POST(req: Request) {
     });
 
     // Create new token in database
-    await prisma.passwordResetToken.create({
+    const resetToken = await prisma.passwordResetToken.create({
       data: {
         email,
         token,
@@ -72,34 +69,61 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(`Created password reset token: ${resetToken.id}`);
+
     // Construct reset URL
     const resetUrl = `${process.env.NEXTAUTH_URL}/password-reset/${token}`;
+    console.log(`Reset URL: ${resetUrl}`);
 
-    // Send email with reset link
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "noreply@example.com",
-      to: email,
-      subject: "Password Reset Request",
-      text: `Please use the following link to reset your password: ${resetUrl}. This link is valid for 24 hours.`,
-      html: `
-        <div>
-          <h1>Password Reset</h1>
-          <p>Please use the following link to reset your password:</p>
-          <a href="${resetUrl}" target="_blank">Reset Password</a>
-          <p>This link is valid for 24 hours.</p>
-        </div>
-      `,
-    });
+    // Generate email content
+    const { html, text } = generatePasswordResetEmail(
+      user.name || "User",
+      resetUrl
+    );
 
+    // IMPORTANT: In development/testing with Resend's free tier
+    // You can only send emails to your own verified email
+    const allowedTestingEmail =
+      process.env.ALLOWED_TEST_EMAIL || "kezro10@gmail.com";
+
+    try {
+      // Try to send email with reset link
+      const emailResult = await sendEmail({
+        to: process.env.NODE_ENV === "production" ? email : allowedTestingEmail,
+        subject: "Password Reset Request - CrossGuild",
+        text: `${text}\n\nNOTE: In development mode, this email was meant for: ${email}`,
+        html: `${html}<div style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #6c757d;">
+          <p><strong>Development Note:</strong> This email was originally intended for ${email}</p>
+          <p>In development mode, all emails are redirected to ${allowedTestingEmail}</p>
+        </div>`,
+      });
+
+      if (!emailResult.success) {
+        console.error(
+          "Failed to send password reset email:",
+          emailResult.error
+        );
+        // Even if email sending fails, we can still return success because the token is created
+      } else {
+        console.log("Password reset email sent successfully");
+      }
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      // Continue with success response even if email fails
+    }
+
+    // Always return success to prevent enumeration attacks
     return NextResponse.json(
       {
         message:
           "If your email is registered, you will receive a password reset link",
+        // In development, include the token for testing purposes
+        ...(process.env.NODE_ENV !== "production" && { token, resetUrl }),
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error requesting password reset:", error);
+    console.error("Error in password reset request:", error);
     return NextResponse.json(
       { error: "An error occurred while processing your request" },
       { status: 500 }
