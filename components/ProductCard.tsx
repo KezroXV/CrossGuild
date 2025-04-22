@@ -24,11 +24,11 @@ interface ProductCardProps {
     id: string;
     name: string;
     images: { url: string }[];
-    rating: number;
+    averageRating: number; // Modifié de rating à averageRating pour correspondre au schema
     brand: { name: string };
     price: number;
     quantity: number;
-    slug: string; // Ajouter le slug ici
+    slug: string;
   };
 }
 
@@ -169,8 +169,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
               isAddingToWishlist
                 ? "animate-pulse text-accent"
                 : isInWishlist
-                ? "text-accent fill-accent"
-                : "text-gray-400 hover:text-accent"
+                  ? "text-accent fill-accent"
+                  : "text-gray-400 hover:text-accent"
             }`}
             fill={isInWishlist ? "currentColor" : "none"}
           />
@@ -196,12 +196,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
               <span
                 key={i}
                 className={`text-xl ${
-                  i < (item.rating || 0) ? "text-secondary" : "text-gray-300"
+                  i < Math.round(item.averageRating || 0)
+                    ? "text-secondary"
+                    : "text-gray-300"
                 }`}
               >
                 ★
               </span>
             ))}
+            <span className="ml-1 text-xs text-muted-foreground">
+              ({item.averageRating?.toFixed(1) || "0.0"})
+            </span>
           </div>
           <p className="text-gray-600">{item.brand?.name}</p>
           <p className="text-lg font-bold">{item.price}€</p>
