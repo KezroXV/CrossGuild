@@ -54,6 +54,8 @@ const Cart = () => {
     try {
       const response = await fetch("/api/cart");
       const data = await response.json();
+
+      // Les items contiennent déjà le champ city depuis l'API
       setCartItems(data.items || []);
       calculateSubtotal(data.items || []);
     } catch (error) {
@@ -65,9 +67,10 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    fetchCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (session) {
+      fetchCart();
+    }
+  }, [session]);
 
   const calculateSubtotal = (items: CartItem[]) => {
     const total = items.reduce(
@@ -80,7 +83,20 @@ const Cart = () => {
   const handleCreateOrder = async () => {
     setIsLoading(true);
     try {
-      const city = session?.user?.city || "";
+      const city = cartItems[0]?.city || session?.user?.city || "";
+
+      // Vérifier si la ville est définie
+      const hasCity =
+        cartItems.some((item) => item.city) || !!session?.user?.city;
+
+      if (!hasCity) {
+        toast.warning(
+          "Please update your profile with your city before checkout"
+        );
+        router.push("/profile");
+        setIsLoading(false);
+        return;
+      }
 
       const response = await fetch("/api/orders/create", {
         method: "POST",
@@ -89,6 +105,11 @@ const Cart = () => {
         },
         body: JSON.stringify({
           city,
+          items: cartItems.map((item) => ({
+            itemId: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          })),
         }),
       });
 
@@ -118,7 +139,7 @@ const Cart = () => {
       const data = await response.json();
 
       if (data.success) {
-        fetchCart(); // Refresh cart after removal
+        fetchCart();
         toast.success("Item removed from cart");
       } else {
         toast.error(data.error || "Failed to remove item");
@@ -150,7 +171,7 @@ const Cart = () => {
       const data = await response.json();
 
       if (data.success) {
-        fetchCart(); // Refresh cart after update
+        fetchCart();
         toast.success("Quantity updated");
       } else {
         toast.error(data.error || "Failed to update quantity");
@@ -295,7 +316,15 @@ const Cart = () => {
                         ))}
                       </TableCell>
                       <TableCell>
-                        <p className="text-sm">{item.city || "N/A"}</p>
+                        <p className="text-sm">
+                          {/* Afficher la ville s'il y en a une, sinon afficher un avertissement */}
+                          {item.city || "City not set"}
+                          {!item.city && (
+                            <span className="text-xs text-red-500 block mt-1">
+                              Please update your profile
+                            </span>
+                          )}
+                        </p>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -361,6 +390,14 @@ const Cart = () => {
                   <p className="text-sm text-muted-foreground">
                     Taxes and shipping calculated at checkout
                   </p>
+                  {/* Vérifier correctement si la ville est définie */}
+                  {!cartItems.some((item) => item.city) &&
+                    !session?.user?.city && (
+                      <p className="text-xs text-red-500 mt-2">
+                        Your shipping city is not set. Please update your
+                        profile before checkout.
+                      </p>
+                    )}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row justify-between mt-6 gap-4">
@@ -371,19 +408,37 @@ const Cart = () => {
                 >
                   Continue Shopping
                 </Button>
-                <Button
-                  onClick={handleCreateOrder}
-                  disabled={isLoading || cartItems.length === 0}
-                  className="bg-accent hover:bg-accent/90 transition-colors w-full sm:w-auto dark:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>Processing...</>
-                  ) : (
-                    <>
-                      Checkout <ArrowRight size={16} />
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Afficher le bouton "Update Profile" uniquement si nécessaire */}
+                  {!cartItems.some((item) => item.city) &&
+                    !session?.user?.city && (
+                      <Button
+                        variant="outline"
+                        className="border border-accent hover:bg-accent/10 transition-colors w-full sm:w-auto text-accent"
+                        onClick={() => router.push("/profile")}
+                      >
+                        Update Profile
+                      </Button>
+                    )}
+                  <Button
+                    onClick={handleCreateOrder}
+                    disabled={
+                      isLoading ||
+                      cartItems.length === 0 ||
+                      (!cartItems.some((item) => item.city) &&
+                        !session?.user?.city)
+                    }
+                    className="bg-accent hover:bg-accent/90 transition-colors w-full sm:w-auto dark:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>Processing...</>
+                    ) : (
+                      <>
+                        Checkout <ArrowRight size={16} />
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
