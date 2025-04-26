@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -64,6 +65,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Home } from "lucide-react"; // Import Home icon
 import Link from "next/link";
+import { Navbar } from "@/components/navbar";
 
 // Form schemas
 const personalInfoSchema = z.object({
@@ -418,489 +420,381 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <Link href="/">
-          <Button variant="outline" className="flex gap-2 items-center">
-            <Home size={18} />
-            <span>Home</span>
-          </Button>
-        </Link>
-      </div>
+    <div className="pt-px min-h-screen flex flex-col">
+      <main className="flex-1 flex flex-col gap-8">
+        <div className="container mx-auto py-10">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">My Profile</h1>
+            <Link href="/">
+              <Button variant="outline" className="flex gap-2 items-center">
+                <Home size={18} />
+                <span>Home</span>
+              </Button>
+            </Link>
+          </div>
 
-      <Tabs defaultValue={defaultTab} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="personal-info">Personal Information</TabsTrigger>
-          <TabsTrigger value="orders">My Orders</TabsTrigger>
-        </TabsList>
+          <Tabs defaultValue={defaultTab} className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="personal-info">
+                Personal Information
+              </TabsTrigger>
+              <TabsTrigger value="orders">My Orders</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="personal-info" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
-                Update your profile information and photo here.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...personalInfoForm}>
-                <form
-                  onSubmit={personalInfoForm.handleSubmit(onPersonalInfoSubmit)}
-                  className="space-y-6"
-                >
-                  {/* Profile Photo */}
-                  <div className="flex flex-col items-center space-y-4 mb-6">
-                    <div className="relative h-24 w-24 rounded-full overflow-hidden border">
-                      <img
-                        src={
-                          imagePreview ||
-                          session?.user?.image ||
-                          "/placeholder-avatar.png"
-                        }
-                        alt="Avatar"
-                        className="h-full w-full object-cover"
+            <TabsContent value="personal-info" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                  <CardDescription>
+                    Update your profile information and photo here.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...personalInfoForm}>
+                    <form
+                      onSubmit={personalInfoForm.handleSubmit(
+                        onPersonalInfoSubmit
+                      )}
+                      className="space-y-6"
+                    >
+                      {/* Profile Photo */}
+                      <div className="flex flex-col items-center space-y-4 mb-6">
+                        <div className="relative h-24 w-24 rounded-full overflow-hidden border">
+                          <img
+                            src={
+                              imagePreview ||
+                              session?.user?.image ||
+                              "/placeholder-avatar.png"
+                            }
+                            alt="Avatar"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="flex flex-col items-center space-y-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleButtonClick}
+                          >
+                            Choose Image
+                          </Button>
+                          <input
+                            ref={fileInputRef}
+                            id="profile-image"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageChange}
+                            disabled={isUploading}
+                          />
+                          {image && (
+                            <p className="text-sm text-green-600">
+                              New image selected
+                            </p>
+                          )}
+                          {isUploading && (
+                            <p className="text-sm text-muted-foreground">
+                              Uploading...
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Max size: 5MB. Supported formats: JPG, PNG, GIF,
+                            WEBP
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Personal info fields */}
+                      <FormField
+                        control={personalInfoForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your full name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                    <div className="flex flex-col items-center space-y-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleButtonClick}
-                      >
-                        Choose Image
+
+                      <FormField
+                        control={personalInfoForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="your@email.com" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Changing your email might require verification.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={personalInfoForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Your phone number"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={personalInfoForm.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>City (optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your city" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button type="submit" disabled={isUploading}>
+                        {isUploading ? "Updating..." : "Update Profile"}
                       </Button>
-                      <input
-                        ref={fileInputRef}
-                        id="profile-image"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageChange}
-                        disabled={isUploading}
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>
+                    Make sure to use a secure password.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...passwordChangeForm}>
+                    <form
+                      onSubmit={passwordChangeForm.handleSubmit(
+                        onPasswordChangeSubmit
+                      )}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={passwordChangeForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Current Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Your current password"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {image && (
-                        <p className="text-sm text-green-600">
-                          New image selected
-                        </p>
-                      )}
-                      {isUploading && (
-                        <p className="text-sm text-muted-foreground">
-                          Uploading...
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Max size: 5MB. Supported formats: JPG, PNG, GIF, WEBP
-                      </p>
+
+                      <FormField
+                        control={passwordChangeForm.control}
+                        name="newPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>New Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Your new password"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={passwordChangeForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Confirm your new password"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button type="submit">Change Password</Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="orders">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order History</CardTitle>
+                  <CardDescription>View all your past orders.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="text-center py-6">Loading orders...</div>
+                  ) : orders.length === 0 ? (
+                    <div className="text-center py-6">
+                      You don&apos;t have any orders yet. yet.
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <Table>
+                        <TableCaption>List of your orders</TableCaption>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>City</TableHead>
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {orders.map((order) => (
+                            <TableRow key={order.id}>
+                              <TableCell className="font-medium">
+                                {order.orderNumber || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {order.createdAt
+                                  ? new Date(
+                                      order.createdAt
+                                    ).toLocaleDateString()
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {safelyFormatNumber(order.totalAmount)} €
+                              </TableCell>
+                              <TableCell>
+                                {getStatusBadge(order.status || "")}
+                              </TableCell>
+                              <TableCell>
+                                {order.city && order.city.trim() !== "" ? (
+                                  order.city
+                                ) : session?.user?.city &&
+                                  session.user.city.trim() !== "" ? (
+                                  session.user.city
+                                ) : (
+                                  <span className="text-gray-400 italic">
+                                    Not specified
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openOrderDetails(order)}
+                                  >
+                                    View
+                                  </Button>
 
-                  {/* Personal info fields */}
-                  <FormField
-                    control={personalInfoForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your full name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                                  {/* Only show cancel button for PENDING or PROCESSING orders */}
+                                  {(order.status.toUpperCase() === "PENDING" ||
+                                    order.status.toUpperCase() ===
+                                      "PROCESSING") && (
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => openCancelDialog(order)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
 
-                  <FormField
-                    control={personalInfoForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Changing your email might require verification.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={personalInfoForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your phone number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={personalInfoForm.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City (optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your city" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button type="submit" disabled={isUploading}>
-                    {isUploading ? "Updating..." : "Update Profile"}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Make sure to use a secure password.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...passwordChangeForm}>
-                <form
-                  onSubmit={passwordChangeForm.handleSubmit(
-                    onPasswordChangeSubmit
-                  )}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={passwordChangeForm.control}
-                    name="currentPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Current Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Your current password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={passwordChangeForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Your new password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={passwordChangeForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Confirm your new password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button type="submit">Change Password</Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="orders">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order History</CardTitle>
-              <CardDescription>View all your past orders.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-6">Loading orders...</div>
-              ) : orders.length === 0 ? (
-                <div className="text-center py-6">
-                  You don&apos;t have any orders yet. yet.
-                </div>
-              ) : (
-                <>
-                  <Table>
-                    <TableCaption>List of your orders</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {orders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            {order.orderNumber || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {order.createdAt
-                              ? new Date(order.createdAt).toLocaleDateString()
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {safelyFormatNumber(order.totalAmount)} €
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(order.status || "")}
-                          </TableCell>
-                          <TableCell>
-                            {order.city && order.city.trim() !== "" ? (
-                              order.city
-                            ) : session?.user?.city &&
-                              session.user.city.trim() !== "" ? (
-                              session.user.city
-                            ) : (
-                              <span className="text-gray-400 italic">
-                                Not specified
-                              </span>
+                      {totalPages > 1 && (
+                        <Pagination className="mt-4">
+                          <PaginationContent>
+                            {currentPage > 1 && (
+                              <PaginationItem>
+                                <PaginationPrevious
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    fetchOrders(currentPage - 1);
+                                  }}
+                                />
+                              </PaginationItem>
                             )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openOrderDetails(order)}
-                              >
-                                View
-                              </Button>
 
-                              {/* Only show cancel button for PENDING or PROCESSING orders */}
-                              {(order.status.toUpperCase() === "PENDING" ||
-                                order.status.toUpperCase() ===
-                                  "PROCESSING") && (
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => openCancelDialog(order)}
+                            {Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={page === currentPage}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    fetchOrders(page);
+                                  }}
                                 >
-                                  Cancel
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
 
-                  {totalPages > 1 && (
-                    <Pagination className="mt-4">
-                      <PaginationContent>
-                        {currentPage > 1 && (
-                          <PaginationItem>
-                            <PaginationPrevious
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                fetchOrders(currentPage - 1);
-                              }}
-                            />
-                          </PaginationItem>
-                        )}
-
-                        {Array.from(
-                          { length: totalPages },
-                          (_, i) => i + 1
-                        ).map((page) => (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              href="#"
-                              isActive={page === currentPage}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                fetchOrders(page);
-                              }}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-
-                        {currentPage < totalPages && (
-                          <PaginationItem>
-                            <PaginationNext
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                fetchOrders(currentPage + 1);
-                              }}
-                            />
-                          </PaginationItem>
-                        )}
-                      </PaginationContent>
-                    </Pagination>
+                            {currentPage < totalPages && (
+                              <PaginationItem>
+                                <PaginationNext
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    fetchOrders(currentPage + 1);
+                                  }}
+                                />
+                              </PaginationItem>
+                            )}
+                          </PaginationContent>
+                        </Pagination>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Order Details Dialog */}
-      <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>
-              Order Details {selectedOrder?.orderNumber || "N/A"}
-            </DialogTitle>
-            <DialogDescription>
-              Order placed on{" "}
-              {selectedOrder?.createdAt
-                ? new Date(selectedOrder.createdAt).toLocaleDateString()
-                : "N/A"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedOrder && (
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Status: {getStatusBadge(selectedOrder.status || "")}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Shipping City:{" "}
-                    <span className="font-medium">
-                      {selectedOrder.city && selectedOrder.city.trim() !== ""
-                        ? selectedOrder.city
-                        : session?.user?.city && session.user.city.trim() !== ""
-                        ? session.user.city
-                        : "Not specified"}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium">
-                    Total: {safelyFormatNumber(selectedOrder.totalAmount)} €
-                  </p>
-                </div>
-              </div>
-
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead className="text-right">Quantity</TableHead>
-                      <TableHead className="text-right">Price</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                      selectedOrder.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item?.name || "N/A"}</TableCell>
-                          <TableCell className="text-right">
-                            {item?.quantity || 0}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {safelyFormatNumber(item?.price)} €
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {safelyFormatNumber(
-                              item?.price && item?.quantity
-                                ? item.price * item.quantity
-                                : 0
-                            )}{" "}
-                            €
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center">
-                          No products found
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Add cancel button in the details view too */}
-              {selectedOrder.status.toUpperCase() === "PENDING" ||
-              selectedOrder.status.toUpperCase() === "PROCESSING" ? (
-                <div className="flex justify-end">
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setIsOrderDetailsOpen(false);
-                      openCancelDialog(selectedOrder);
-                    }}
-                  >
-                    Cancel Order
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Cancel Order Confirmation Dialog */}
-      <AlertDialog
-        open={isCancelDialogOpen}
-        onOpenChange={setIsCancelDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Order</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel this order? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, keep order</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCancelOrder}>
-              Yes, cancel order
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
     </div>
   );
 }

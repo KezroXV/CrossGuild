@@ -13,6 +13,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Laptop, Smartphone, Lock, Globe, X } from "lucide-react";
 import Link from "next/link";
+import { Navbar } from "@/components/navbar";
+import FooterSection from "@/components/footer";
 
 type Session = {
   id: string;
@@ -85,87 +87,95 @@ export default function SecuritySettings() {
   };
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Security Settings</h1>
+    <div className="pt-px min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 flex flex-col gap-8">
+        <div className="container py-10">
+          <h1 className="text-3xl font-bold mb-6">Security Settings</h1>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Active Sessions</CardTitle>
-          <CardDescription>
-            These are the devices currently logged in to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {loading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeSessions.length === 0 ? (
-                <p className="text-center text-muted-foreground">
-                  No active sessions found
-                </p>
-              ) : (
-                activeSessions.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center justify-between p-4 border rounded-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      {getDeviceIcon(s.userAgent)}
-                      <div>
-                        <p className="font-medium">
-                          {s.userAgent?.split("/")[0] || "Unknown Device"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Last active:{" "}
-                          {new Date(s.lastActive || s.expires).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {s.ip || "Unknown location"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRevokeSession(s.id)}
-                      aria-label="Revoke session"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Active Sessions</CardTitle>
+              <CardDescription>
+                These are the devices currently logged in to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Password
-          </CardTitle>
-          <CardDescription>
-            Change your password or enable two-factor authentication
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild>
-            <Link href="/password-reset">Change Password</Link>
-          </Button>
-        </CardContent>
-      </Card>
+              {loading ? (
+                <div className="flex justify-center">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeSessions.length === 0 ? (
+                    <p className="text-center text-muted-foreground">
+                      No active sessions found
+                    </p>
+                  ) : (
+                    activeSessions.map((s) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between p-4 border rounded-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          {getDeviceIcon(s.userAgent)}
+                          <div>
+                            <p className="font-medium">
+                              {s.userAgent?.split("/")[0] || "Unknown Device"}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Last active:{" "}
+                              {new Date(
+                                s.lastActive || s.expires
+                              ).toLocaleString()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {s.ip || "Unknown location"}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRevokeSession(s.id)}
+                          aria-label="Revoke session"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Password
+              </CardTitle>
+              <CardDescription>
+                Change your password or enable two-factor authentication
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href="/password-reset">Change Password</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      <FooterSection />
     </div>
   );
 }
