@@ -90,34 +90,63 @@ export async function POST(request: Request) {
       images,
       brandId,
       options,
-      cost, // Nouveau champ
+      cost,
     } = data;
+
+    // Debug log
+    console.log("Received product data:", data);
+
+    // Validation stricte
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+    if (price === undefined || isNaN(Number(price))) {
+      return NextResponse.json(
+        { error: "Price is required and must be a number" },
+        { status: 400 }
+      );
+    }
+    if (quantity === undefined || isNaN(Number(quantity))) {
+      return NextResponse.json(
+        { error: "Quantity is required and must be a number" },
+        { status: 400 }
+      );
+    }
+
+    const priceValue = parseFloat(price);
+    const costValue = parseFloat(cost || "0");
+    const quantityValue = parseInt(quantity);
+
+    // Calcul automatique de la marge et du profit
+    const profitValue = priceValue - costValue;
+    const marginValue = priceValue > 0 ? (profitValue / priceValue) * 100 : 0;
+
+    // Génération du slug unique
+    let slug = name.toLowerCase().replace(/\s+/g, "-");
+    // Vérifier l'unicité du slug
+    let slugExists = await prisma.item.findUnique({ where: { slug } });
+    let slugSuffix = 1;
+    while (slugExists) {
+      slug = `${name.toLowerCase().replace(/\s+/g, "-")}-${slugSuffix++}`;
+      slugExists = await prisma.item.findUnique({ where: { slug } });
+    }
 
     // Filtre les options qui ont un nom et au moins une valeur
     const validOptions =
       options?.filter(
         (opt: { name: string; values: string[] }) =>
-          opt.name.trim() !== "" && opt.values.length > 0
+          typeof opt.name === "string" &&
+          opt.name.trim() !== "" &&
+          Array.isArray(opt.values) &&
+          opt.values.length > 0
       ) || [];
 
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    const priceValue = parseFloat(price);
-    const costValue = parseFloat(cost || "0");
-
-    // Calcul automatique de la marge et du profit
-    const profitValue = priceValue - costValue;
-    const marginValue = costValue > 0 ? (profitValue / priceValue) * 100 : 0;
-
-    const slug = name.toLowerCase().replace(/\s+/g, "-");
-
+    // Création du produit
     const product = await prisma.item.create({
       data: {
         name,
         price: priceValue,
-        quantity: parseInt(quantity),
+        quantity: quantityValue,
         description,
         slug,
         categoryId: categoryId || undefined,
@@ -125,9 +154,11 @@ export async function POST(request: Request) {
         cost: costValue,
         profit: profitValue,
         margin: marginValue,
-        totalProfit: 0, // Initialement à zéro, sera mis à jour lors des ventes
+        totalProfit: 0,
         images: {
-          create: images?.map((url: string) => ({ url })),
+          create: Array.isArray(images)
+            ? images.map((url: string) => ({ url }))
+            : [],
         },
         options: {
           create: validOptions.map(
@@ -147,10 +178,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ product });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating product:", error);
     return NextResponse.json(
-      { error: "Failed to create product" },
+      { error: "Failed to create product", details: error?.message || error },
       { status: 500 }
     );
   }
