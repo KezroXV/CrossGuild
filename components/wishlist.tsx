@@ -355,14 +355,14 @@ const Wishlist = () => {
                               {item.quantity > 0 ? (
                                 <Badge
                                   variant="outline"
-                                  className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                                  className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-900 dark:hover:bg-green-900/50"
                                 >
                                   In Stock ({item.quantity})
                                 </Badge>
                               ) : (
                                 <Badge
                                   variant="outline"
-                                  className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                                  className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-900 dark:hover:bg-red-900/50"
                                 >
                                   Out of Stock
                                 </Badge>
@@ -373,7 +373,14 @@ const Wishlist = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="flex items-center border-accent hover:bg-accent hover:text-white transition-all dark:text-accent dark:hover:text-accent-foreground"
+                                  className={`
+                                    flex items-center
+                                    border-accent
+                                    text-accent
+                                    hover:bg-accent hover:text-accent-foreground
+                                    dark:border-accent dark:text-accent dark:hover:bg-accent dark:hover:text-accent-foreground
+                                    transition-all
+                                  `}
                                   onClick={() => handleAddToCart(item.id)}
                                   disabled={
                                     actionLoading === item.id ||
@@ -390,7 +397,12 @@ const Wishlist = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="text-red-500 hover:text-white hover:bg-red-500 transition-colors dark:text-red-400 dark:hover:bg-red-900"
+                                  className={`
+                                    text-red-500
+                                    hover:text-white hover:bg-red-500
+                                    dark:text-red-400 dark:hover:bg-red-900
+                                    transition-colors
+                                  `}
                                   onClick={() => handleRemoveItem(item.id)}
                                   disabled={actionLoading === item.id}
                                 >
@@ -493,7 +505,13 @@ const Wishlist = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
             <Button
               variant="outline"
-              className="border-2 border-primary hover:bg-primary/10 transition-colors w-full sm:w-auto dark:border-primary dark:text-primary-foreground dark:hover:bg-primary/20"
+              className={`
+                border-2 border-primary
+                text-primary
+                hover:bg-primary/10
+                dark:border-primary dark:text-primary dark:hover:bg-primary/20
+                transition-colors w-full sm:w-auto
+              `}
               onClick={() => router.push("/")}
             >
               Continue Shopping
@@ -502,7 +520,13 @@ const Wishlist = () => {
             {filteredItems.length > 0 && (
               <Button
                 variant="default"
-                className="bg-accent hover:bg-accent/90 transition-colors w-full sm:w-auto dark:text-accent-foreground"
+                className={`
+                  bg-accent
+                  text-accent-foreground
+                  hover:bg-accent/90
+                  transition-colors w-full sm:w-auto
+                  dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/90
+                `}
                 onClick={() => {
                   toast.success("All items have been added to your cart");
                 }}

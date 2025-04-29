@@ -331,7 +331,14 @@ const Cart = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8"
+                            className={`
+                              h-8 w-8
+                              border-accent
+                              text-accent
+                              hover:bg-accent hover:text-accent-foreground
+                              dark:border-accent dark:text-accent dark:hover:bg-accent dark:hover:text-accent-foreground
+                              transition-all
+                            `}
                             onClick={() =>
                               updateItemQuantity(
                                 item.id,
@@ -348,7 +355,14 @@ const Cart = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8"
+                            className={`
+                              h-8 w-8
+                              border-accent
+                              text-accent
+                              hover:bg-accent hover:text-accent-foreground
+                              dark:border-accent dark:text-accent dark:hover:bg-accent dark:hover:text-accent-foreground
+                              transition-all
+                            `}
                             onClick={() =>
                               updateItemQuantity(item.id, item.quantity + 1)
                             }
@@ -365,7 +379,12 @@ const Cart = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-white hover:bg-red-500 transition-colors dark:text-red-400 dark:hover:bg-red-900"
+                          className={`
+                            text-red-500
+                            hover:text-white hover:bg-red-500
+                            dark:text-red-400 dark:hover:bg-red-900
+                            transition-colors
+                          `}
                           onClick={() => handleRemoveItem(item.id)}
                           disabled={updateLoading === item.id}
                         >
@@ -403,7 +422,13 @@ const Cart = () => {
               <div className="flex flex-col sm:flex-row justify-between mt-6 gap-4">
                 <Button
                   variant="outline"
-                  className="border-2 border-primary hover:bg-primary/10 transition-colors w-full sm:w-auto dark:border-primary dark:text-primary-foreground dark:hover:bg-primary/20"
+                  className={`
+                    border-2 border-primary
+                    text-primary
+                    hover:bg-primary/10
+                    dark:border-primary dark:text-primary dark:hover:bg-primary/20
+                    transition-colors w-full sm:w-auto
+                  `}
                   onClick={() => router.push("/")}
                 >
                   Continue Shopping
@@ -414,7 +439,13 @@ const Cart = () => {
                     !session?.user?.city && (
                       <Button
                         variant="outline"
-                        className="border border-accent hover:bg-accent/10 transition-colors w-full sm:w-auto text-accent"
+                        className={`
+                          border border-accent
+                          text-accent
+                          hover:bg-accent/10
+                          dark:border-accent dark:text-accent dark:hover:bg-accent/20
+                          transition-colors w-full sm:w-auto
+                        `}
                         onClick={() => router.push("/profile")}
                       >
                         Update Profile
@@ -428,7 +459,14 @@ const Cart = () => {
                       (!cartItems.some((item) => item.city) &&
                         !session?.user?.city)
                     }
-                    className="bg-accent hover:bg-accent/90 transition-colors w-full sm:w-auto dark:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className={`
+                      bg-accent
+                      text-accent-foreground
+                      hover:bg-accent/90
+                      transition-colors w-full sm:w-auto
+                      dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/90
+                      disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2
+                    `}
                   >
                     {isLoading ? (
                       <>Processing...</>
