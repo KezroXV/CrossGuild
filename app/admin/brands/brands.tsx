@@ -32,7 +32,6 @@ interface Brand {
 
 export function Brands() {
   const [isOpen, setIsOpen] = useState(false);
-  const [] = useState<Brand | null>(null);
   const queryClient = useQueryClient();
 
   const { data: brands } = useQuery({
