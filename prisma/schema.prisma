@@ -266,3 +266,15 @@ model Offer {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model ContactMessage {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  subject    String
+  message    String   @db.Text
+  department String
+  isResolved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

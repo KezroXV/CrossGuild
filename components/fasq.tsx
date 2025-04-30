@@ -37,15 +37,16 @@ const Faqs = () => {
         params: { type: "faqs" },
       });
 
-      if (response.data.faqs) {
+      // Defensive programming - ensure we have an array of FAQs
+      if (response.data && response.data.faqs) {
         // Filter only published FAQs with answers for the public view
         const publishedFaqs = response.data.faqs.filter(
           (faq: FAQ) => faq.isPublished && faq.answer
         );
         setFaqs(publishedFaqs);
       } else {
-        setFaqs([]);
         console.error("No FAQs found in response:", response.data);
+        setFaqs([]); // Initialize with empty array if no data
       }
     } catch (error) {
       console.error("Failed to fetch FAQs", error);
@@ -86,30 +87,33 @@ const Faqs = () => {
     visible: { opacity: 1, y: 0 },
   };
 
-  // If we have no FAQs yet, show some default ones
+  // Define default FAQs as a fallback
   const defaultFaqs = [
     {
       id: "default-1",
       question: "WHAT MAKES YOUR STORE DIFFERENT FROM OTHERS?",
       answer:
         "Our AI leverages advanced algorithms to ensure relevance and creativity.",
+      isPublished: true,
     },
     {
       id: "default-2",
       question: "HOW LONG DOES SHIPPING TAKE?",
       answer:
         "Shipping takes 3 to 7 business days for standard delivery and 1 to 3 business days for express shipping, with a tracking number provided upon dispatch.",
+      isPublished: true,
     },
     {
       id: "default-3",
       question: "WHAT'S YOUR RETURN POLICY?",
       answer:
         "You can return an unused item in its original packaging within 14 days of receipt, with potential return shipping fees depending on the reason; contact our support team with your order number to initiate a return.",
+      isPublished: true,
     },
   ];
 
-  // Use default FAQs if no FAQs fetched from server
-  const displayFaqs = faqs.length > 0 ? faqs : defaultFaqs;
+  // Always ensure we have an array to work with
+  const displayFaqs = faqs && faqs.length > 0 ? faqs : defaultFaqs;
 
   return (
     <div className="my-28 max-w-4xl mx-auto mt-10 p-4 sm:p-6 md:mt-20 rounded-lg">
