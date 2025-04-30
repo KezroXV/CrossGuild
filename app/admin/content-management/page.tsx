@@ -27,6 +27,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Import new contact management components
+import ContactInfoEditor from "./components/contact-info-editor";
+import SocialLinksEditor from "./components/social-links-editor";
+
 interface HeroContent {
   id: string;
   tagline: string;
@@ -354,6 +358,7 @@ export default function ContentManagementPage() {
         <TabsList className="mb-8">
           <TabsTrigger value="hero-sections">Hero Sections</TabsTrigger>
           <TabsTrigger value="offers">Offers</TabsTrigger>
+          <TabsTrigger value="contact-info">Contact Info</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hero-sections">
@@ -899,6 +904,30 @@ export default function ContentManagementPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="contact-info">
+          <div className="grid gap-8">
+            <Accordion type="single" collapsible defaultValue="location-info">
+              <AccordionItem value="location-info">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Location & Contact Information
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ContactInfoEditor />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="social-media">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Social Media Links
+                </AccordionTrigger>
+                <AccordionContent>
+                  <SocialLinksEditor />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
         </TabsContent>
       </Tabs>
 
