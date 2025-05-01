@@ -130,7 +130,7 @@ const AddToCompareButton: React.FC<AddToCompareButtonProps> = ({
   };
 
   return (
-    <div className={className}>
+    <div className={className || "flex flex-col items-center"}>
       <Button
         variant="outline"
         size="sm"

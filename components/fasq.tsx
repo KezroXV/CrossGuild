@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, motion as m } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -169,9 +169,22 @@ const Faqs = () => {
                     }`}
                   />
                 </AccordionTrigger>
-                <AccordionContent className="p-4 text-sm sm:text-base md:text-lg text-foreground bg-muted">
-                  {faq.answer}
-                </AccordionContent>
+                <AnimatePresence initial={false} mode="wait">
+                  {openItem === faq.id && (
+                    <m.div
+                      key={faq.id + "-content"}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <AccordionContent className="p-4 text-sm sm:text-base md:text-lg text-foreground bg-muted">
+                        {faq.answer}
+                      </AccordionContent>
+                    </m.div>
+                  )}
+                </AnimatePresence>
               </AccordionItem>
             </motion.div>
           ))

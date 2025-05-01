@@ -15,11 +15,12 @@ export default function ContactPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <div className="relative h-[300px] w-full">
+      <div className="relative mt-20 h-[300px] w-full">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/images/contact-hero.jpg')",
+            backgroundImage:
+              "url('/pngtree-background-of-monitor-computer-with-online-game-streaming-desktop-image_15734081.jpg')",
             backgroundPosition: "center",
           }}
         >
@@ -38,7 +39,10 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <main className="flex-grow container mx-auto px-4 py-12 pt-16">
+      <main
+        className="flex-grow container mx-auto px-4 py-12 pt-16"
+        style={{ paddingTop: "6rem" }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Contact Info */}
           <div className="lg:col-span-1">
