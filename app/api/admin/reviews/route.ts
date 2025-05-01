@@ -530,3 +530,5 @@ export async function PATCH(request: Request) {
     await prisma.$disconnect();
   }
 }
+
+// ROUTE ADMIN : Reviews produits, FAQ, contacts (GET/POST/PUT/DELETE/PATCH) - à utiliser côté admin

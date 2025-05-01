@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
+import AddToCompareButton from "@/components/AddToCompareButton";
 
 const slideFromBottom = {
   hidden: { opacity: 0, y: 20 },
@@ -232,6 +233,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
                 Learn More
               </Button>
             </Link>
+          </div>
+          <div className="mt-2 w-full">
+            <AddToCompareButton product={item} />
           </div>
         </CardFooter>
       </Card>
