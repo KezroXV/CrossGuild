@@ -298,6 +298,12 @@ const OrdersPage = () => {
                       <TableRow key={item.id}>
                         <TableCell>
                           <div className="font-medium">{item.name}</div>
+                          {/* Afficher la ville de livraison dans le détail */}
+                          {item.city && (
+                            <div className="text-xs text-muted-foreground">
+                              Ville: {item.city}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           {item.options && item.options.length > 0 ? (

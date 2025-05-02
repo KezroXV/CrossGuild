@@ -70,6 +70,7 @@ model Order {
   id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id])
+  city        String      @default("") // Ajoute une valeur par défaut ici
   orderItems  OrderItem[]
   total       Float
   status      String      @default("pending")

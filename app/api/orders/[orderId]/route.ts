@@ -43,6 +43,7 @@ export async function GET(
     // Format de réponse adapté pour la migration
     const formattedOrder = {
       ...order,
+      city: order.city, // <-- Ajoute explicitement la ville ici si besoin
       items: order.orderItems.map((orderItem) => ({
         ...orderItem.item,
         quantity: orderItem.quantity,

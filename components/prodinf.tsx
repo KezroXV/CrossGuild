@@ -86,7 +86,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
           <p className="text-gray-600">{item.brand?.name}</p>
           <div className="flex items-center">
-            <p className="text-lg font-bold">{item.price}€</p>
+            <p className="text-lg font-bold">{item.price} DA</p>
           </div>
           <p className="text-sm text-gray-500">
             {item.quantity > 0 ? `In Stock: ${item.quantity}` : "Out of Stock"}

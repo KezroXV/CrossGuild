@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const session = await auth();
 
@@ -10,6 +10,16 @@ export async function POST() {
       return NextResponse.json(
         { error: "Non autorisé", success: false },
         { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { city } = body;
+
+    if (!city) {
+      return NextResponse.json(
+        { error: "La ville est requise", success: false },
+        { status: 400 }
       );
     }
 
@@ -42,6 +52,7 @@ export async function POST() {
     const order = await prisma.order.create({
       data: {
         userId: session.user.id,
+        city, // Ajout de la ville ici
         total,
         status: "pending",
         orderItems: {
@@ -105,7 +116,7 @@ export async function POST() {
 
     return NextResponse.json({ order: formattedOrder, success: true });
   } catch (error) {
-    console.error("[ORDER_CREATE]", error);
+    console.error("[ORDER_CREATE]", error ?? "Unknown error");
     return NextResponse.json(
       { error: "Échec de la création de la commande", success: false },
       { status: 500 }

@@ -377,7 +377,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             {product.brand && (
               <p className="text-gray-600 mt-2">Type: {product.brand.name}</p>
             )}
-            <p className="text-2xl font-bold mt-4">${product.price}</p>
+            <p className="text-2xl font-bold mt-4">{product.price} DA</p>
             <div className="mt-6">
               <p className="mt-2 text-gray-700">{product.description}</p>
             </div>

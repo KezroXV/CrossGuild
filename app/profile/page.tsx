@@ -181,7 +181,12 @@ export default function ProfilePage() {
       const response = await axios.get(
         `/api/user/orders?page=${page}&pageSize=5`
       );
-      setOrders(response.data.orders);
+      // Ajout: s'assurer que chaque order a bien la propriété city
+      const ordersWithCity = response.data.orders.map((order: any) => ({
+        ...order,
+        city: order.city ?? order.city ?? order.user?.city ?? "",
+      }));
+      setOrders(ordersWithCity);
       setCurrentPage(response.data.currentPage);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -700,6 +705,7 @@ export default function ProfilePage() {
                                 {getStatusBadge(order.status || "")}
                               </TableCell>
                               <TableCell>
+                                {/* Affiche la ville de livraison de la commande */}
                                 {order.city && order.city.trim() !== "" ? (
                                   order.city
                                 ) : session?.user?.city &&
@@ -720,8 +726,6 @@ export default function ProfilePage() {
                                   >
                                     View
                                   </Button>
-
-                                  {/* Only show cancel button for PENDING or PROCESSING orders */}
                                   {(order.status.toUpperCase() === "PENDING" ||
                                     order.status.toUpperCase() ===
                                       "PROCESSING") && (

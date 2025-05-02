@@ -349,7 +349,7 @@ const Wishlist = () => {
                               </div>
                             </TableCell>
                             <TableCell className="text-lg font-medium">
-                              {item.price.toFixed(2)}€
+                              {item.price.toFixed(2)} DA
                             </TableCell>
                             <TableCell>
                               {item.quantity > 0 ? (

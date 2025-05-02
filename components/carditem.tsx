@@ -52,7 +52,7 @@ const CardItem = ({
         {product.brand?.name && (
           <p className="text-sm text-gray-500">{product.brand.name}</p>
         )}
-        <p className="text-lg font-bold mt-2">{product.price}€</p>
+        <p className="text-lg font-bold mt-2">{product.price} DA</p>
       </CardContent>
       <CardFooter className="mt-auto">
         <Button className="w-full">View Details</Button>

@@ -25,6 +25,69 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
 import { LoadingState } from "./ui/loading-state";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "./ui/select";
+
+// Liste des 58 wilayas d'Algérie
+const WILAYAS = [
+  { code: "01", name: "Adrar" },
+  { code: "02", name: "Chlef" },
+  { code: "03", name: "Laghouat" },
+  { code: "04", name: "Oum El Bouaghi" },
+  { code: "05", name: "Batna" },
+  { code: "06", name: "Béjaïa" },
+  { code: "07", name: "Biskra" },
+  { code: "08", name: "Béchar" },
+  { code: "09", name: "Blida" },
+  { code: "10", name: "Bouira" },
+  { code: "11", name: "Tamanrasset" },
+  { code: "12", name: "Tébessa" },
+  { code: "13", name: "Tlemcen" },
+  { code: "14", name: "Tiaret" },
+  { code: "15", name: "Tizi Ouzou" },
+  { code: "16", name: "Alger" },
+  { code: "17", name: "Djelfa" },
+  { code: "18", name: "Jijel" },
+  { code: "19", name: "Sétif" },
+  { code: "20", name: "Saïda" },
+  { code: "21", name: "Skikda" },
+  { code: "22", name: "Sidi Bel Abbès" },
+  { code: "23", name: "Annaba" },
+  { code: "24", name: "Guelma" },
+  { code: "25", name: "Constantine" },
+  { code: "26", name: "Médéa" },
+  { code: "27", name: "Mostaganem" },
+  { code: "28", name: "M'Sila" },
+  { code: "29", name: "Mascara" },
+  { code: "30", name: "Ouargla" },
+  { code: "31", name: "Oran" },
+  { code: "32", name: "El Bayadh" },
+  { code: "33", name: "Illizi" },
+  { code: "34", name: "Bordj Bou Arreridj" },
+  { code: "35", name: "Boumerdès" },
+  { code: "36", name: "El Tarf" },
+  { code: "37", name: "Tindouf" },
+  { code: "38", name: "Tissemsilt" },
+  { code: "39", name: "El Oued" },
+  { code: "40", name: "Khenchela" },
+  { code: "41", name: "Souk Ahras" },
+  { code: "42", name: "Tipaza" },
+  { code: "43", name: "Mila" },
+  { code: "44", name: "Aïn Defla" },
+  { code: "45", name: "Naâma" },
+  { code: "46", name: "Aïn Témouchent" },
+  { code: "47", name: "Ghardaïa" },
+  { code: "48", name: "Relizane" },
+  { code: "49", name: "Timimoun" },
+  { code: "50", name: "Bordj Badji Mokhtar" },
+  { code: "51", name: "Ouled Djellal" },
+  { code: "52", name: "Béni Abbès" },
+  { code: "53", name: "In Salah" },
+  { code: "54", name: "In Guezzam" },
+  { code: "55", name: "Touggourt" },
+  { code: "56", name: "Djanet" },
+  { code: "57", name: "El M'Ghair" },
+  { code: "58", name: "El Meniaa" },
+];
 
 interface CartItem {
   id: string;
@@ -45,6 +108,7 @@ const Cart = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState<string | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const { theme, resolvedTheme } = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
@@ -55,7 +119,6 @@ const Cart = () => {
       const response = await fetch("/api/cart");
       const data = await response.json();
 
-      // Les items contiennent déjà le champ city depuis l'API
       setCartItems(data.items || []);
       calculateSubtotal(data.items || []);
     } catch (error) {
@@ -72,6 +135,12 @@ const Cart = () => {
     }
   }, [session]);
 
+  useEffect(() => {
+    if (!selectedCity && (session?.user?.city || cartItems[0]?.city)) {
+      setSelectedCity(session?.user?.city || cartItems[0]?.city || "");
+    }
+  }, [session, cartItems, selectedCity]);
+
   const calculateSubtotal = (items: CartItem[]) => {
     const total = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -83,17 +152,12 @@ const Cart = () => {
   const handleCreateOrder = async () => {
     setIsLoading(true);
     try {
-      const city = cartItems[0]?.city || session?.user?.city || "";
+      const city = selectedCity;
 
-      // Vérifier si la ville est définie
-      const hasCity =
-        cartItems.some((item) => item.city) || !!session?.user?.city;
-
-      if (!hasCity) {
+      if (!city) {
         toast.warning(
-          "Please update your profile with your city before checkout"
+          "Veuillez sélectionner une ville de livraison avant de valider la commande"
         );
-        router.push("/profile");
         setIsLoading(false);
         return;
       }
@@ -301,7 +365,7 @@ const Cart = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{item.price.toFixed(2)}€</TableCell>
+                      <TableCell>{item.price.toFixed(2)} DA</TableCell>
                       <TableCell>
                         {item.options?.map((option, idx) => (
                           <p
@@ -317,7 +381,6 @@ const Cart = () => {
                       </TableCell>
                       <TableCell>
                         <p className="text-sm">
-                          {/* Afficher la ville s'il y en a une, sinon afficher un avertissement */}
                           {item.city || "City not set"}
                           {!item.city && (
                             <span className="text-xs text-red-500 block mt-1">
@@ -373,7 +436,7 @@ const Cart = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {(item.price * item.quantity).toFixed(2)}€
+                        {(item.price * item.quantity).toFixed(2)} DA
                       </TableCell>
                       <TableCell>
                         <Button
@@ -404,12 +467,34 @@ const Cart = () => {
               <div className="flex justify-end text-right mb-6">
                 <div>
                   <p className="text-lg font-bold">
-                    Subtotal: {subtotal.toFixed(2)}€
+                    Subtotal: {subtotal.toFixed(2)} DA
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Taxes and shipping calculated at checkout
                   </p>
-                  {/* Vérifier correctement si la ville est définie */}
+                  <div className="mt-4 flex flex-col items-start">
+                    <label htmlFor="city" className="mb-1 font-medium">
+                      Ville de livraison
+                    </label>
+                    <Select
+                      value={selectedCity}
+                      onValueChange={setSelectedCity}
+                    >
+                      <SelectTrigger className="w-64" id="city">
+                        {selectedCity
+                          ? WILAYAS.find((w) => w.name === selectedCity)
+                              ?.name || selectedCity
+                          : "Choisir une ville"}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WILAYAS.map((wilaya) => (
+                          <SelectItem key={wilaya.code} value={wilaya.name}>
+                            {wilaya.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {!cartItems.some((item) => item.city) &&
                     !session?.user?.city && (
                       <p className="text-xs text-red-500 mt-2">
@@ -434,7 +519,6 @@ const Cart = () => {
                   Continue Shopping
                 </Button>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  {/* Afficher le bouton "Update Profile" uniquement si nécessaire */}
                   {!cartItems.some((item) => item.city) &&
                     !session?.user?.city && (
                       <Button

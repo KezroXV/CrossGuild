@@ -59,7 +59,10 @@ export const TopSellingGamingGear = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {Array.isArray(products) && products.length > 0 ? (
             products.map((product) => (
-              <ProductCard key={product.id} item={product} />
+              <ProductCard
+                key={product.id}
+                item={{ ...product, price: `${product.price} DA` }}
+              />
             ))
           ) : (
             <p></p>

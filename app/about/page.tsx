@@ -135,9 +135,9 @@ export default function AboutPage() {
           to competitive pros. We know what it takes to level up your gaming
           experience, and we’re here to make sure you have the tools to do it.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 border-2 border-accent rounded-2xl overflow-hidden max-w-5xl mx-auto divide-y-2 md:divide-y-0 md:divide-x-2 divide-accent bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 border-2 border-accent rounded-2xl overflow-hidden max-w-5xl mx-auto divide-y-2 md:divide-y-0 md:divide-x-2 divide-accent bg-white dark:bg-background">
           {/* By Gamers, For Gamers */}
-          <Item className="flex flex-col items-center justify-center text-center h-full p-8">
+          <Item className="flex flex-col items-center justify-center text-center h-full p-8 bg-white dark:bg-background text-foreground">
             <div className="flex items-center justify-center mb-3 gap-3">
               <Sparkles className="w-7 h-7 text-accent" />
               <span className="text-xl font-bold text-foreground">
@@ -152,7 +152,7 @@ export default function AboutPage() {
             </div>
           </Item>
           {/* Innovation & Performance */}
-          <Item className="flex flex-col items-center justify-center text-center h-full p-8">
+          <Item className="flex flex-col items-center justify-center text-center h-full p-8 bg-white dark:bg-background text-foreground">
             <div className="flex items-center justify-center mb-3 gap-3">
               <GaugeCircle className="w-7 h-7 text-accent" />
               <span className="text-xl font-bold text-foreground">
@@ -167,7 +167,7 @@ export default function AboutPage() {
             </div>
           </Item>
           {/* Community Focus */}
-          <Item className="flex flex-col items-center justify-center text-center h-full p-8">
+          <Item className="flex flex-col items-center justify-center text-center h-full p-8 bg-white dark:bg-background text-foreground">
             <div className="flex items-center justify-center mb-3 gap-3">
               <UsersRound className="w-7 h-7 text-accent" />
               <span className="text-xl font-bold text-foreground">
@@ -181,7 +181,7 @@ export default function AboutPage() {
             </div>
           </Item>
           {/* Commitment to Gamers */}
-          <Item className="flex flex-col items-center justify-center text-center h-full p-8">
+          <Item className="flex flex-col items-center justify-center text-center h-full p-8 bg-white dark:bg-background text-foreground">
             <div className="flex items-center justify-center mb-3 gap-3">
               <HeartHandshake className="w-7 h-7 text-accent" />
               <span className="text-xl font-bold text-foreground">
