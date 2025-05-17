@@ -32,6 +32,8 @@ interface Brand {
 
 export function Brands() {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: brands } = useQuery({
@@ -58,6 +60,28 @@ export function Brands() {
     },
   });
 
+  const updateBrandMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const id = formData.get("id") as string;
+      const response = await fetch(`/api/brands/${id}`, {
+        method: "PUT",
+        body: formData,
+      });
+      if (!response.ok) throw new Error("Failed to update brand");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brands"] });
+      toast.success("Brand updated successfully");
+      setIsOpen(false);
+      setCurrentBrand(null);
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast.error("Failed to update brand");
+    },
+  });
+
   const deleteBrandMutation = useMutation({
     mutationFn: (id: string) =>
       fetch(`/api/brands/${id}`, {
@@ -81,7 +105,30 @@ export function Brands() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    createBrandMutation.mutate(formData);
+
+    if (isEditing) {
+      updateBrandMutation.mutate(formData);
+    } else {
+      createBrandMutation.mutate(formData);
+    }
+  };
+
+  const handleEdit = (brand: Brand) => {
+    setCurrentBrand(brand);
+    setIsEditing(true);
+    setIsOpen(true);
+  };
+
+  const handleOpenDialog = () => {
+    setCurrentBrand(null);
+    setIsEditing(false);
+    setIsOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsOpen(false);
+    setCurrentBrand(null);
+    setIsEditing(false);
   };
 
   return (
@@ -89,26 +136,46 @@ export function Brands() {
       <div className="flex justify-end">
         <Dialog open={isOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsOpen(true)}>Add Brand</Button>
+            <Button onClick={handleOpenDialog}>Add Brand</Button>
           </DialogTrigger>
           <DialogContent
             className="sm:max-w-[425px]"
-            onPointerDownOutside={() => setIsOpen(false)}
+            onPointerDownOutside={handleCloseDialog}
           >
             <DialogHeader>
-              <DialogTitle>Add New Brand</DialogTitle>
+              <DialogTitle>{isEditing ? "Edit" : "Add New"} Brand</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isEditing && (
+                <input type="hidden" name="id" value={currentBrand?.id} />
+              )}
               <div className="space-y-2">
                 <label>Name</label>
-                <Input name="name" required />
+                <Input
+                  name="name"
+                  required
+                  defaultValue={currentBrand?.name || ""}
+                />
               </div>
               <div className="space-y-2">
                 <label>Description</label>
-                <Textarea name="description" />
+                <Textarea
+                  name="description"
+                  defaultValue={currentBrand?.description || ""}
+                />
               </div>
               <div className="space-y-2">
                 <label>Logo</label>
+                {isEditing && currentBrand?.logo && (
+                  <div className="mb-2">
+                    <p className="text-sm mb-1">Current logo:</p>
+                    <img
+                      src={currentBrand.logo}
+                      alt={currentBrand.name}
+                      className="h-12 w-12 object-contain"
+                    />
+                  </div>
+                )}
                 <Input
                   name="logo"
                   type="file"
@@ -120,11 +187,13 @@ export function Brands() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleCloseDialog}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Save Brand</Button>
+                <Button type="submit">
+                  {isEditing ? "Update" : "Save"} Brand
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -156,7 +225,11 @@ export function Brands() {
                 )}
               </TableCell>
               <TableCell className="space-x-2">
-                <Button variant="outline" size="icon">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleEdit(brand)}
+                >
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
