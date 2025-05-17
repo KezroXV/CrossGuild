@@ -453,10 +453,10 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
                 +
               </button>
             </div>
-            <div className="mb-4">
+            <div className="my-4">
               <AddToCompareButton product={product} className="mb-2" />
             </div>
-            <div className="mt-8 flex gap-4">
+            <div className="mt-4 flex gap-4">
               <Button
                 className="w-full md:w-auto bg-accent text-white"
                 disabled={product.quantity === 0 || isAddingToCart || isPending}
