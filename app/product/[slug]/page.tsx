@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import ProductDetails from "@/components/ProductDetails";
+import { Navbar } from "@/components/navbar";
 
 // Modifié pour être compatible avec les attentes de type de Next.js
 type PageParams = {
@@ -129,7 +130,8 @@ const ProductPage = async ({ params }: PageParams) => {
 
     return (
       <div className="min-h-screen flex flex-col">
-        <main className="flex-grow container mx-auto px-4 py-8">
+        <Navbar />
+        <main className="flex-grow container mx-auto px-4 py-8 mt-20">
           <ProductDetails product={formattedProduct} />
         </main>
         <FooterSection />

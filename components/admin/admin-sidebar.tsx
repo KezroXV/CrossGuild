@@ -63,11 +63,6 @@ const adminNavItems = [
     icon: <Users />,
   },
   {
-    title: "Roles",
-    href: "/admin/roles",
-    icon: <Users />,
-  },
-  {
     title: "Reviews",
     href: "/admin/reviews",
     icon: <MessageSquare />,
