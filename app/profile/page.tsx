@@ -95,7 +95,6 @@ type Order = {
   orderNumber: string;
   createdAt: string;
   totalAmount: number;
-  city?: string; // Add city field
   status:
     | "PENDING"
     | "PROCESSING"
@@ -181,12 +180,7 @@ export default function ProfilePage() {
       const response = await axios.get(
         `/api/user/orders?page=${page}&pageSize=5`
       );
-      // Ajout: s'assurer que chaque order a bien la propriété city
-      const ordersWithCity = response.data.orders.map((order: any) => ({
-        ...order,
-        city: order.city ?? order.city ?? order.user?.city ?? "",
-      }));
-      setOrders(ordersWithCity);
+      setOrders(response.data.orders);
       setCurrentPage(response.data.currentPage);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -679,7 +673,6 @@ export default function ProfilePage() {
                             <TableHead>Date</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>City</TableHead>
                             <TableHead className="text-right">
                               Actions
                             </TableHead>
@@ -703,19 +696,6 @@ export default function ProfilePage() {
                               </TableCell>
                               <TableCell>
                                 {getStatusBadge(order.status || "")}
-                              </TableCell>
-                              <TableCell>
-                                {/* Affiche la ville de livraison de la commande */}
-                                {order.city && order.city.trim() !== "" ? (
-                                  order.city
-                                ) : session?.user?.city &&
-                                  session.user.city.trim() !== "" ? (
-                                  session.user.city
-                                ) : (
-                                  <span className="text-gray-400 italic">
-                                    Not specified
-                                  </span>
-                                )}
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
@@ -798,6 +778,131 @@ export default function ProfilePage() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Add Dialog for Order Details */}
+        <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Order Details</DialogTitle>
+              <DialogDescription>
+                Order #{selectedOrder?.orderNumber || "N/A"} -{" "}
+                {selectedOrder?.createdAt
+                  ? new Date(selectedOrder.createdAt).toLocaleDateString()
+                  : "N/A"}
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedOrder && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <div className="mt-1">
+                      {getStatusBadge(selectedOrder.status)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Total Amount
+                    </p>
+                    <p className="font-medium">
+                      {safelyFormatNumber(selectedOrder.totalAmount)} €
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                        selectedOrder.items.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">
+                              {item.product?.name ||
+                                item.name ||
+                                "Unknown Product"}
+                            </TableCell>
+                            <TableCell>{item.quantity || 1}</TableCell>
+                            <TableCell>
+                              {safelyFormatNumber(
+                                item.price || item.unitPrice || 0
+                              )}{" "}
+                              €
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {safelyFormatNumber(
+                                (item.price || item.unitPrice || 0) *
+                                  (item.quantity || 1)
+                              )}{" "}
+                              €
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-4">
+                            No items found in this order
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  {(selectedOrder.status.toUpperCase() === "PENDING" ||
+                    selectedOrder.status.toUpperCase() === "PROCESSING") && (
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setIsOrderDetailsOpen(false);
+                        openCancelDialog(selectedOrder);
+                      }}
+                    >
+                      Cancel Order
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsOrderDetailsOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Cancel Order Dialog */}
+        <AlertDialog
+          open={isCancelDialogOpen}
+          onOpenChange={setIsCancelDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel Order</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel this order? This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>No, keep order</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCancelOrder}>
+                Yes, cancel order
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
