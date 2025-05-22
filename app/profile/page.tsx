@@ -692,7 +692,7 @@ export default function ProfilePage() {
                                   : "N/A"}
                               </TableCell>
                               <TableCell>
-                                {safelyFormatNumber(order.totalAmount)} €
+                                {safelyFormatNumber(order.totalAmount)} DA
                               </TableCell>
                               <TableCell>
                                 {getStatusBadge(order.status || "")}
@@ -806,7 +806,7 @@ export default function ProfilePage() {
                       Total Amount
                     </p>
                     <p className="font-medium">
-                      {safelyFormatNumber(selectedOrder.totalAmount)} €
+                      {safelyFormatNumber(selectedOrder.totalAmount)} DA
                     </p>
                   </div>
                 </div>
@@ -835,14 +835,14 @@ export default function ProfilePage() {
                               {safelyFormatNumber(
                                 item.price || item.unitPrice || 0
                               )}{" "}
-                              €
+                              DA
                             </TableCell>
                             <TableCell className="text-right">
                               {safelyFormatNumber(
                                 (item.price || item.unitPrice || 0) *
                                   (item.quantity || 1)
                               )}{" "}
-                              €
+                              DA
                             </TableCell>
                           </TableRow>
                         ))
