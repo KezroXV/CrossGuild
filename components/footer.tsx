@@ -19,6 +19,7 @@ import { FaYoutube } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 
 export default function FooterSection() {
   const { theme } = useTheme();
@@ -41,67 +42,67 @@ export default function FooterSection() {
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md  pt-1 font-semibold">Navigation</h3>
-              <a
-                href="#"
+              <Link
+                href="/categories"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Categories
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/products"
                 className=" hover:text-primary text-muted-foreground text-sm"
               >
                 Products
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/about"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 About
-              </a>
+              </Link>
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Quick Links</h3>
-              <a
-                href="#"
+              <Link
+                href="/about"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 About
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/profile"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Profile
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/contact"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Blog
-              </a>
+              </Link>
             </FooterColumn>
 
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Navigation</h3>
-              <a
+              <Link
                 href="#"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Privacy Policy
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Terms of Service
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="text-muted-foreground hover:text-primary text-sm"
               >
                 Cookie Policy
-              </a>
+              </Link>
             </FooterColumn>
             <FooterColumn>
               <h3 className="text-md pt-1 font-semibold">Contact</h3>
@@ -127,10 +128,12 @@ export default function FooterSection() {
           <FooterBottom className="border-0">
             <div>© 2025 CrossGuild. All rights reserved.</div>
             <div className="flex items-center gap-4">
-              <p className="cursor-pointer hover:text-primary">
+              <Link href="#" className="cursor-pointer hover:text-primary">
                 Privacy Policy
-              </p>
-              <p className="cursor-pointer hover:text-primary">Legal Notice</p>
+              </Link>
+              <Link href="#" className="cursor-pointer hover:text-primary">
+                Legal Notice
+              </Link>
             </div>
           </FooterBottom>
         </Footer>
