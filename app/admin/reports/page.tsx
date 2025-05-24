@@ -818,36 +818,6 @@ export default function ReportsPage() {
                   </p>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart
-                  data={[
-                    { period: "Jan", sales: 780, profit: 340 },
-                    { period: "Feb", sales: 820, profit: 420 },
-                    { period: "Mar", sales: 950, profit: 550 },
-                    { period: "Apr", sales: 1100, profit: 620 },
-                    { period: "May", sales: 1250, profit: 680 },
-                    { period: "Jun", sales: 1380, profit: 720 },
-                  ]}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#8884d8"
-                    name="Sales"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="profit"
-                    stroke="#82ca9d"
-                    name="Profit"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
 
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -952,20 +922,6 @@ export default function ReportsPage() {
                 <CardTitle>Inventory Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-500">Healthy Stock</p>
-                    <p className="text-xl font-bold">85 products</p>
-                  </div>
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-500">Low Stock</p>
-                    <p className="text-xl font-bold">12 products</p>
-                  </div>
-                  <div className="bg-red-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-500">Out of Stock</p>
-                    <p className="text-xl font-bold">5 products</p>
-                  </div>
-                </div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={productData.slice(0, 5)}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -995,67 +951,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="customers" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Demographics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={customerData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="country" type="category" width={100} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="customers" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Value Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="font-medium text-blue-700">
-                      Avg. Order Value
-                    </p>
-                    <p className="text-2xl font-bold">$85.45</p>
-                    <p className="text-sm text-blue-600">+12% vs last period</p>
-                  </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="font-medium text-green-700">
-                      Customer Lifetime Value
-                    </p>
-                    <p className="text-2xl font-bold">$485.20</p>
-                    <p className="text-sm text-green-600">
-                      Based on repeat purchases
-                    </p>
-                  </div>
-                  <div className="p-4 bg-yellow-50 rounded-lg">
-                    <p className="font-medium text-yellow-700">
-                      Repeat Customers
-                    </p>
-                    <p className="text-2xl font-bold">32%</p>
-                    <p className="text-sm text-yellow-600">
-                      Of total customer base
-                    </p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="font-medium text-purple-700">
-                      New vs Returning
-                    </p>
-                    <p className="text-2xl font-bold">68% / 32%</p>
-                    <p className="text-sm text-purple-600">Customer ratio</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
           <Card>
             <CardHeader>
@@ -1183,39 +1079,6 @@ export default function ReportsPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Delivery Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-700">
-                    Avg. Processing Time
-                  </p>
-                  <p className="text-2xl font-bold">1.2 days</p>
-                  <p className="text-sm text-blue-600">Order to shipment</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="font-medium text-green-700">
-                    Avg. Delivery Time
-                  </p>
-                  <p className="text-2xl font-bold">3.5 days</p>
-                  <p className="text-sm text-green-600">Shipment to delivery</p>
-                </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <p className="font-medium text-yellow-700">
-                    On-Time Delivery
-                  </p>
-                  <p className="text-2xl font-bold">94.5%</p>
-                  <p className="text-sm text-yellow-600">
-                    Within promised time
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
