@@ -60,11 +60,12 @@ const ProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Pagination state
+  // Pagination state  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState("10");
   const [searchTerm, setSearchTerm] = useState("");
+  const [optionInputValues, setOptionInputValues] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -81,17 +82,18 @@ const ProductsPage = () => {
       },
     ],
   });
-
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     fetchBrands();
-  }, [currentPage, pageSize]);
+  }, []); // Load initial data
 
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage, pageSize]); // Refetch when pagination changes
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Log what we're sending to the API for debugging
       console.log("Fetching products with params:", {
         page: currentPage,
         pageSize: parseInt(pageSize),
@@ -101,34 +103,25 @@ const ProductsPage = () => {
         params: {
           page: currentPage,
           pageSize: parseInt(pageSize),
-          // Also include limit as some APIs use this instead
-          limit: parseInt(pageSize),
         },
       });
 
-      // Log the response for debugging
       console.log("Products API response:", response.data);
 
       setProducts(response.data.products || []);
-
-      // Calculate total pages
+      
+      // Mettre à jour les informations de pagination depuis la réponse de l'API
       if (response.data.totalPages !== undefined) {
         setTotalPages(response.data.totalPages);
-      } else if (response.data.total !== undefined) {
-        setTotalPages(
-          Math.max(1, Math.ceil(response.data.total / parseInt(pageSize)))
-        );
       } else {
-        // If server doesn't provide pagination info, make an educated guess
-        const receivedCount = response.data.products?.length || 0;
-        const isFullPage = receivedCount >= parseInt(pageSize);
-        // If we got a full page, there might be more
-        setTotalPages(currentPage + (isFullPage ? 1 : 0));
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to fetch products");
       setError("Failed to fetch products");
+      setProducts([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -153,7 +146,6 @@ const ProductsPage = () => {
       setError("Failed to fetch brands");
     }
   };
-
   const closeAddDialog = () => {
     setFormData({
       name: "",
@@ -171,9 +163,9 @@ const ProductsPage = () => {
         },
       ],
     });
+    setOptionInputValues([""]);
     setIsOpen(false);
   };
-
   const closeEditDialog = () => {
     setFormData({
       name: "",
@@ -191,14 +183,17 @@ const ProductsPage = () => {
         },
       ],
     });
+    setOptionInputValues([""]);
     setEditingProduct(null);
     setIsEditOpen(false);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("/api/admin/products", formData);
+      await axios.post("/api/admin/products", {
+        ...formData,
+        isPublished: true, // Publier automatiquement le produit
+      });
       toast.success("Product created successfully");
       closeAddDialog();
       fetchProducts();
@@ -227,9 +222,16 @@ const ProductsPage = () => {
             }))
           : [{ name: "", values: [] }],
     });
+
+    // Initialiser les valeurs d'input pour l'édition
+    const inputValues =
+      product.options && product.options.length > 0
+        ? product.options.map((opt) => opt.values.join(", "))
+        : [""];
+    setOptionInputValues(inputValues);
+
     setIsEditOpen(true);
   };
-
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -239,6 +241,7 @@ const ProductsPage = () => {
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         cost: parseFloat(formData.cost),
+        isPublished: true, // Maintenir le produit publié lors de la modification
       });
       toast.success("Product updated successfully");
       closeEditDialog();
@@ -289,7 +292,6 @@ const ProductsPage = () => {
       images: prev.images.filter((_, index) => index !== indexToRemove),
     }));
   };
-
   const handleOptionChange = (index: number, field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -299,11 +301,21 @@ const ProductsPage = () => {
     }));
   };
 
+  const handleOptionValuesChange = (index: number, valueString: string) => {
+    const values = valueString
+      .split(",")
+      .map((v) => v.trim())
+      .filter((v) => v !== "");
+
+    handleOptionChange(index, "values", values);
+  };
   const addOption = () => {
     setFormData((prev) => ({
       ...prev,
       options: [...prev.options, { name: "", values: [] }],
     }));
+    // Ajouter une chaîne vide pour le nouvel input
+    setOptionInputValues((prev) => [...prev, ""]);
   };
 
   const removeOption = (index: number) => {
@@ -311,15 +323,36 @@ const ProductsPage = () => {
       ...prev,
       options: prev.options.filter((_, i) => i !== index),
     }));
+    // Retirer la valeur d'input correspondante
+    setOptionInputValues((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateOptionInputValue = (index: number, value: string) => {
+    setOptionInputValues((prev) => {
+      const newValues = [...prev];
+      newValues[index] = value;
+      return newValues;
+    });
+
+    // Mettre à jour les vraies valeurs si il y a une virgule
+    if (value.includes(",")) {
+      const values = value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => v !== "");
+
+      handleOptionChange(index, "values", values);
+    }
   };
 
   const handlePageSizeChange = (value: string) => {
     setPageSize(value);
     setCurrentPage(1); // Reset to first page
   };
-
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && (newPage <= totalPages || totalPages === 0)) {
+    console.log(`Changing page from ${currentPage} to ${newPage}, totalPages: ${totalPages}`);
+    
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage && !loading) {
       setCurrentPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -495,20 +528,27 @@ const ProductsPage = () => {
                       onChange={(e) =>
                         handleOptionChange(index, "name", e.target.value)
                       }
-                    />
-                    <Input
+                    />                    <Input
                       placeholder="Values (comma separated)"
-                      value={option.values.join(", ")}
-                      onChange={(e) =>
-                        handleOptionChange(
-                          index,
-                          "values",
-                          e.target.value
+                      value={optionInputValues[index] || ""}
+                      onChange={(e) => updateOptionInputValue(index, e.target.value)}
+                      onBlur={(e) => {
+                        // Mettre à jour les valeurs finales quand on quitte le champ
+                        const values = e.target.value
+                          .split(",")
+                          .map((v) => v.trim())
+                          .filter((v) => v !== "");
+                        handleOptionChange(index, "values", values);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
+                          const values = e.currentTarget.value
                             .split(",")
                             .map((v) => v.trim())
-                            .filter((v) => v !== "")
-                        )
-                      }
+                            .filter((v) => v !== "");
+                          handleOptionChange(index, "values", values);
+                        }
+                      }}
                     />
                     {option.values.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
@@ -662,20 +702,27 @@ const ProductsPage = () => {
                     onChange={(e) =>
                       handleOptionChange(index, "name", e.target.value)
                     }
-                  />
-                  <Input
+                  />                  <Input
                     placeholder="Values (comma separated)"
-                    value={option.values.join(", ")}
-                    onChange={(e) =>
-                      handleOptionChange(
-                        index,
-                        "values",
-                        e.target.value
+                    value={optionInputValues[index] || ""}
+                    onChange={(e) => updateOptionInputValue(index, e.target.value)}
+                    onBlur={(e) => {
+                      // Mettre à jour les valeurs finales quand on quitte le champ
+                      const values = e.target.value
+                        .split(",")
+                        .map((v) => v.trim())
+                        .filter((v) => v !== "");
+                      handleOptionChange(index, "values", values);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === 'Tab') {
+                        const values = e.currentTarget.value
                           .split(",")
                           .map((v) => v.trim())
-                          .filter((v) => v !== "")
-                      )
-                    }
+                          .filter((v) => v !== "");
+                        handleOptionChange(index, "values", values);
+                      }
+                    }}
                   />
                   {option.values.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -813,8 +860,7 @@ const ProductsPage = () => {
               <SelectItem value="50">50 per page</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="flex gap-2 items-center">
+        </div>        <div className="flex gap-2 items-center">
           <Button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1 || loading}
@@ -828,7 +874,7 @@ const ProductsPage = () => {
           </span>
           <Button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={(totalPages > 0 && currentPage >= totalPages) || loading}
+            disabled={currentPage >= totalPages || loading || totalPages <= 1}
             variant="outline"
             size="sm"
           >

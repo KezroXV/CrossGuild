@@ -20,10 +20,8 @@ export async function GET(req: Request) {
     const order = searchParams.get("order") || "desc";
     const category = searchParams.get("category") || undefined;
     const search = searchParams.get("search") || undefined;
-    const limit = parseInt(searchParams.get("limit") || "0");
-
-    // Construct the where clause for filtering
-    const where: any = { isPublished: true };
+    const limit = parseInt(searchParams.get("limit") || "0"); // Construct the where clause for filtering
+    const where: any = {};
 
     if (category) {
       where.categoryId = category;
@@ -91,6 +89,7 @@ export async function POST(request: Request) {
       brandId,
       options,
       cost,
+      isPublished,
     } = data;
 
     // Debug log
@@ -139,9 +138,7 @@ export async function POST(request: Request) {
           opt.name.trim() !== "" &&
           Array.isArray(opt.values) &&
           opt.values.length > 0
-      ) || [];
-
-    // Création du produit
+      ) || []; // Création du produit
     const product = await prisma.item.create({
       data: {
         name,
@@ -155,6 +152,7 @@ export async function POST(request: Request) {
         profit: profitValue,
         margin: marginValue,
         totalProfit: 0,
+        isPublished: isPublished !== undefined ? isPublished : false,
         images: {
           create: Array.isArray(images)
             ? images.map((url: string) => ({ url }))
@@ -221,7 +219,6 @@ export async function PUT(request: Request) {
     await prisma.itemOption.deleteMany({
       where: { itemId: id },
     });
-
     const updatedProduct = await prisma.item.update({
       where: { id },
       data: {
@@ -234,6 +231,7 @@ export async function PUT(request: Request) {
         cost: costValue,
         profit: profitValue,
         margin: marginValue,
+        isPublished: data.isPublished !== undefined ? data.isPublished : true,
         images: {
           deleteMany: {},
           create: data.images?.map((url: string) => ({ url })),
