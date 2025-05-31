@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Marquee } from "./magicui/marquee";
-import Image from "next/image";
 
 interface Review {
   id: string;
@@ -17,6 +16,8 @@ interface Review {
   };
 }
 
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
 const ReviewCard = ({
   user,
   content,
@@ -28,24 +29,30 @@ const ReviewCard = ({
   rating: number;
   item: { name: string; averageRating: number };
 }) => {
+  // Get initials from user name for avatar fallback
+  const getInitials = (name: string) => {
+    if (!name || name === "Anonymous" || name === "Anonymous User") return "?";
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <figure className="relative w-64 cursor-pointer overflow-hidden rounded-xl shadow-md border-accent border-2 p-4 transition-transform transform hover:scale-105 hover:shadow-2xl bg-background">
       <div className="absolute inset-0 rounded-xl border-gradient1"></div>
       <div className="relative flex flex-row items-center gap-2">
-        <div className="w-8 h-8 rounded-full overflow-hidden relative flex-shrink-0">
-          <Image
-            className="rounded-full object-cover"
-            width={32}
-            height={32}
-            alt={`${user.name || "User"}'s profile`}
-            src={user.image || "/default-avatar.png"}
-            unoptimized
-            onError={(e) => {
-              // Fallback to default avatar if image fails to load
-              (e.target as HTMLImageElement).src = "/default-avatar.png";
-            }}
-          />
-        </div>
+        <Avatar className="w-8 h-8">
+          {user.image && (
+            <AvatarImage
+              src={user.image}
+              alt={`${user.name || "User"}'s profile`}
+            />
+          )}
+          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+        </Avatar>
         <div className="flex flex-col">
           <figcaption className="text-sm font-medium text-foreground">
             {user.name || "Anonymous User"}
@@ -82,22 +89,35 @@ export default function Reviews() {
 
         // Log the raw data to help with debugging
         console.log("Raw review data:", data);
-
         if (data.reviews && Array.isArray(data.reviews)) {
           // Make sure we're mapping the correct field names
-          const formattedReviews = data.reviews.map((review: any) => ({
-            id: review.id,
-            content: review.content,
-            rating: review.rating,
-            user: {
-              name: review.user?.name || "Anonymous",
-              image: review.user?.image || "/default-avatar.png", // Using "image" field from User model
-            },
-            item: {
-              name: review.item?.name || "Unknown Product",
-              averageRating: review.item?.averageRating || 0,
-            },
-          }));
+          const formattedReviews = data.reviews.map(
+            (review: {
+              id: string;
+              content: string;
+              rating: number;
+              user?: {
+                name?: string;
+                image?: string;
+              };
+              item?: {
+                name?: string;
+                averageRating?: number;
+              };
+            }) => ({
+              id: review.id,
+              content: review.content,
+              rating: review.rating,
+              user: {
+                name: review.user?.name || "Anonymous",
+                image: review.user?.image || null, // No default image path, will use AvatarFallback instead
+              },
+              item: {
+                name: review.item?.name || "Unknown Product",
+                averageRating: review.item?.averageRating || 0,
+              },
+            })
+          );
 
           setReviews(formattedReviews);
           console.log("Formatted reviews:", formattedReviews);
@@ -113,11 +133,10 @@ export default function Reviews() {
 
     fetchReviews();
   }, []);
-
   // If loading or no reviews, show placeholder content or skeleton
   if (isLoading) {
     return (
-      <div className="my-28 max-w-5/6 mx-auto text-center">
+      <div className="my-28 w-full px-4 text-center">
         <h2 className="text-4xl text-foreground font-bold w-fit mx-auto">
           Loading <span className="text-accent">Reviews</span>...
         </h2>
@@ -128,10 +147,9 @@ export default function Reviews() {
   // Process reviews when available
   const firstRow = reviews.slice(0, Math.ceil(reviews.length / 2));
   const secondRow = reviews.slice(Math.ceil(reviews.length / 2));
-
   return (
-    <div className="my-28 mt-28 max-w-5/6 mx-auto">
-      <h2 className="text-4xl text-foreground font-bold ml-48 w-fit text-left">
+    <div className="my-28 mt-28 w-full px-4">
+      <h2 className="text-4xl text-foreground font-bold mb-8 md:ml-12 lg:ml-24 xl:ml-32 w-fit">
         What Our <span className="text-accent">Customers Say</span>
       </h2>
       <div className="relative flex flex-col gap-4 py-4">
@@ -146,7 +164,7 @@ export default function Reviews() {
                 key={`first-${review.id}`}
                 user={{
                   name: review.user.name,
-                  image: review.user.image || "/default-avatar.png",
+                  image: review.user.image,
                 }}
                 content={review.content}
                 rating={review.rating}
@@ -165,10 +183,9 @@ export default function Reviews() {
           >
             {secondRow.map((review) => (
               <ReviewCard
-                key={`second-${review.id}`}
-                user={{
+                key={`second-${review.id}`}                user={{
                   name: review.user.name,
-                  image: review.user.image || "/default-avatar.png",
+                  image: review.user.image
                 }}
                 content={review.content}
                 rating={review.rating}
