@@ -183,9 +183,10 @@ export default function Reviews() {
           >
             {secondRow.map((review) => (
               <ReviewCard
-                key={`second-${review.id}`}                user={{
+                key={`second-${review.id}`}
+                user={{
                   name: review.user.name,
-                  image: review.user.image
+                  image: review.user.image,
                 }}
                 content={review.content}
                 rating={review.rating}

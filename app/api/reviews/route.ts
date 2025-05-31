@@ -95,10 +95,6 @@ export async function POST(request: Request) {
         itemId,
         rating,
         content: comment, // Using content field instead of comment
-        isVerifiedPurchase: await hasUserPurchasedItem(
-          session.user.id as string,
-          itemId
-        ),
       },
       include: {
         user: {
