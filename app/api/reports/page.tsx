@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
@@ -37,16 +36,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-// Empty state component
-const EmptyState = ({ message = "No data available" }) => (
-  <div className="flex flex-col items-center justify-center h-64 border rounded-md">
-    <p className="text-muted-foreground">{message}</p>
-    <Button variant="outline" className="mt-4">
-      Refresh Data
-    </Button>
-  </div>
-);
 
 // Sample data - will be replaced with actual API data
 const sampleSalesData = [
@@ -99,9 +88,7 @@ export default function ReportsPage() {
     from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     to: new Date(),
   });
-  const [salesData, setSalesData] = useState(sampleSalesData);
-  const [categoryData, setCategoryData] = useState(sampleCategoryData);
-  const [productData, setProductData] = useState(sampleProductData);
+
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch data based on selected timeframe
@@ -130,12 +117,14 @@ export default function ReportsPage() {
   }, [timeframe, dateRange]);
 
   // Handle date selection for custom ranges
-  const handleDateSelect = (range) => {
+  const handleDateSelect = (
+    range: SetStateAction<{ from: Date; to: Date }>
+  ) => {
     setDateRange(range);
   };
 
   // Export reports as CSV
-  const handleExportCSV = (reportType) => {
+  const handleExportCSV = (reportType: string) => {
     let csvData;
     let fileName;
 
@@ -457,7 +446,7 @@ export default function ReportsPage() {
                         <span className="text-gray-500">
                           {product.sales} units
                         </span>
-                        <span className="font-medium">${product.revenue}</span>
+                        <span className="font-medium">€{product.revenue}</span>
                       </div>
                     </div>
                   ))}
@@ -517,29 +506,30 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
+                    {" "}
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">Gaming Mouse X1</td>
-                      <td className="px-6 py-4">$15</td>
-                      <td className="px-6 py-4">$30</td>
-                      <td className="px-6 py-4">$15</td>
+                      <td className="px-6 py-4">€15</td>
+                      <td className="px-6 py-4">€30</td>
+                      <td className="px-6 py-4">€15</td>
                       <td className="px-6 py-4">50%</td>
-                      <td className="px-6 py-4">$1,800</td>
+                      <td className="px-6 py-4">€1,800</td>
                     </tr>
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">Mechanical Keyboard Pro</td>
-                      <td className="px-6 py-4">$45</td>
-                      <td className="px-6 py-4">$100</td>
-                      <td className="px-6 py-4">$55</td>
+                      <td className="px-6 py-4">€45</td>
+                      <td className="px-6 py-4">€100</td>
+                      <td className="px-6 py-4">€55</td>
                       <td className="px-6 py-4">55%</td>
-                      <td className="px-6 py-4">$5,225</td>
+                      <td className="px-6 py-4">€5,225</td>
                     </tr>
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">Ultra HD Monitor</td>
-                      <td className="px-6 py-4">$95</td>
-                      <td className="px-6 py-4">$150</td>
-                      <td className="px-6 py-4">$55</td>
+                      <td className="px-6 py-4">€95</td>
+                      <td className="px-6 py-4">€150</td>
+                      <td className="px-6 py-4">€55</td>
                       <td className="px-6 py-4">36.7%</td>
-                      <td className="px-6 py-4">$4,400</td>
+                      <td className="px-6 py-4">€4,400</td>
                     </tr>
                   </tbody>
                 </table>
@@ -577,18 +567,19 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 mb-6">
+                  {" "}
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <p className="font-medium text-blue-700">
                       Avg. Order Value
                     </p>
-                    <p className="text-2xl font-bold">$85.45</p>
+                    <p className="text-2xl font-bold">€85.45</p>
                     <p className="text-sm text-blue-600">+12% vs last period</p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg">
                     <p className="font-medium text-green-700">
                       Customer Lifetime Value
                     </p>
-                    <p className="text-2xl font-bold">$485.20</p>
+                    <p className="text-2xl font-bold">€485.20</p>
                     <p className="text-sm text-green-600">
                       Based on repeat purchases
                     </p>
@@ -838,28 +829,29 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
+                    {" "}
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">SUMMER25</td>
                       <td className="px-6 py-4">25%</td>
                       <td className="px-6 py-4">245</td>
-                      <td className="px-6 py-4">$15,625</td>
-                      <td className="px-6 py-4">$63.78</td>
+                      <td className="px-6 py-4">€15,625</td>
+                      <td className="px-6 py-4">€63.78</td>
                       <td className="px-6 py-4">8.5%</td>
                     </tr>
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">WELCOME10</td>
                       <td className="px-6 py-4">10%</td>
                       <td className="px-6 py-4">356</td>
-                      <td className="px-6 py-4">$20,420</td>
-                      <td className="px-6 py-4">$57.36</td>
+                      <td className="px-6 py-4">€20,420</td>
+                      <td className="px-6 py-4">€57.36</td>
                       <td className="px-6 py-4">12.4%</td>
                     </tr>
                     <tr className="bg-white border-b">
                       <td className="px-6 py-4">FLASH50</td>
                       <td className="px-6 py-4">50%</td>
                       <td className="px-6 py-4">124</td>
-                      <td className="px-6 py-4">$8,750</td>
-                      <td className="px-6 py-4">$70.56</td>
+                      <td className="px-6 py-4">€8,750</td>
+                      <td className="px-6 py-4">€70.56</td>
                       <td className="px-6 py-4">18.9%</td>
                     </tr>
                   </tbody>
@@ -874,20 +866,21 @@ export default function ReportsPage() {
               <CardTitle>Marketing Campaign Performance</CardTitle>
             </CardHeader>
             <CardContent>
+              {" "}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="font-medium text-blue-700">Black Friday</p>
-                  <p className="text-2xl font-bold">$58,240</p>
+                  <p className="text-2xl font-bold">€58,240</p>
                   <p className="text-sm text-blue-600">ROI: 425%</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="font-medium text-purple-700">Summer Sale</p>
-                  <p className="text-2xl font-bold">$32,180</p>
+                  <p className="text-2xl font-bold">€32,180</p>
                   <p className="text-sm text-purple-600">ROI: 280%</p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="font-medium text-green-700">New Year</p>
-                  <p className="text-2xl font-bold">$24,650</p>
+                  <p className="text-2xl font-bold">€24,650</p>
                   <p className="text-sm text-green-600">ROI: 195%</p>
                 </div>
               </div>

@@ -109,7 +109,7 @@ const ProductsPage = () => {
       console.log("Products API response:", response.data);
 
       setProducts(response.data.products || []);
-      
+
       // Mettre à jour les informations de pagination depuis la réponse de l'API
       if (response.data.totalPages !== undefined) {
         setTotalPages(response.data.totalPages);
@@ -350,9 +350,16 @@ const ProductsPage = () => {
     setCurrentPage(1); // Reset to first page
   };
   const handlePageChange = (newPage: number) => {
-    console.log(`Changing page from ${currentPage} to ${newPage}, totalPages: ${totalPages}`);
-    
-    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage && !loading) {
+    console.log(
+      `Changing page from ${currentPage} to ${newPage}, totalPages: ${totalPages}`
+    );
+
+    if (
+      newPage >= 1 &&
+      newPage <= totalPages &&
+      newPage !== currentPage &&
+      !loading
+    ) {
       setCurrentPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -528,10 +535,13 @@ const ProductsPage = () => {
                       onChange={(e) =>
                         handleOptionChange(index, "name", e.target.value)
                       }
-                    />                    <Input
+                    />{" "}
+                    <Input
                       placeholder="Values (comma separated)"
                       value={optionInputValues[index] || ""}
-                      onChange={(e) => updateOptionInputValue(index, e.target.value)}
+                      onChange={(e) =>
+                        updateOptionInputValue(index, e.target.value)
+                      }
                       onBlur={(e) => {
                         // Mettre à jour les valeurs finales quand on quitte le champ
                         const values = e.target.value
@@ -541,7 +551,7 @@ const ProductsPage = () => {
                         handleOptionChange(index, "values", values);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === 'Tab') {
+                        if (e.key === "Enter" || e.key === "Tab") {
                           const values = e.currentTarget.value
                             .split(",")
                             .map((v) => v.trim())
@@ -702,10 +712,13 @@ const ProductsPage = () => {
                     onChange={(e) =>
                       handleOptionChange(index, "name", e.target.value)
                     }
-                  />                  <Input
+                  />{" "}
+                  <Input
                     placeholder="Values (comma separated)"
                     value={optionInputValues[index] || ""}
-                    onChange={(e) => updateOptionInputValue(index, e.target.value)}
+                    onChange={(e) =>
+                      updateOptionInputValue(index, e.target.value)
+                    }
                     onBlur={(e) => {
                       // Mettre à jour les valeurs finales quand on quitte le champ
                       const values = e.target.value
@@ -715,7 +728,7 @@ const ProductsPage = () => {
                       handleOptionChange(index, "values", values);
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === 'Tab') {
+                      if (e.key === "Enter" || e.key === "Tab") {
                         const values = e.currentTarget.value
                           .split(",")
                           .map((v) => v.trim())
@@ -794,10 +807,10 @@ const ProductsPage = () => {
                       className="w-16 h-16 object-cover"
                     />
                   )}
-                </TableCell>
+                </TableCell>{" "}
                 <TableCell>{product.name}</TableCell>
-                <TableCell>${product.price}</TableCell>
-                <TableCell>${product.cost || "0"}</TableCell>
+                <TableCell>€{product.price}</TableCell>
+                <TableCell>€{product.cost || "0"}</TableCell>
                 <TableCell>
                   {product.margin ? `${product.margin.toFixed(1)}%` : "N/A"}
                 </TableCell>
@@ -860,7 +873,8 @@ const ProductsPage = () => {
               <SelectItem value="50">50 per page</SelectItem>
             </SelectContent>
           </Select>
-        </div>        <div className="flex gap-2 items-center">
+        </div>{" "}
+        <div className="flex gap-2 items-center">
           <Button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1 || loading}

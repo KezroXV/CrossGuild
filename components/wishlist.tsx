@@ -346,10 +346,10 @@ const Wishlist = () => {
                                     {item.description}
                                   </p>
                                 </div>
-                              </div>
+                              </div>{" "}
                             </TableCell>
                             <TableCell className="text-lg font-medium">
-                              {item.price.toFixed(2)} DA
+                              {item.price.toFixed(2)} €
                             </TableCell>
                             <TableCell>
                               {item.quantity > 0 ? (

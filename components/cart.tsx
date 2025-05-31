@@ -365,7 +365,7 @@ const Cart = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{item.price.toFixed(2)} DA</TableCell>
+                      <TableCell>{item.price.toFixed(2)} €</TableCell>
                       <TableCell>
                         {item.options?.map((option, idx) => (
                           <p
@@ -436,7 +436,7 @@ const Cart = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {(item.price * item.quantity).toFixed(2)} DA
+                        {(item.price * item.quantity).toFixed(2)} €
                       </TableCell>
                       <TableCell>
                         <Button
@@ -466,8 +466,9 @@ const Cart = () => {
             <div className="mt-6 border-t pt-4 dark:border-border">
               <div className="flex justify-end text-right mb-6">
                 <div>
+                  {" "}
                   <p className="text-lg font-bold">
-                    Subtotal: {subtotal.toFixed(2)} DA
+                    Subtotal: {subtotal.toFixed(2)} €
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Taxes and shipping calculated at checkout

@@ -201,30 +201,29 @@ export default function ProductsReports({ isLoading }: ProductsReportsProps) {
                     <th className="px-6 py-3">Total Profit</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr className="bg-white border-b">
+                <tbody>                  <tr className="bg-white border-b">
                     <td className="px-6 py-4">Gaming Mouse X1</td>
-                    <td className="px-6 py-4">$15</td>
-                    <td className="px-6 py-4">$30</td>
-                    <td className="px-6 py-4">$15</td>
+                    <td className="px-6 py-4">€15</td>
+                    <td className="px-6 py-4">€30</td>
+                    <td className="px-6 py-4">€15</td>
                     <td className="px-6 py-4">50%</td>
-                    <td className="px-6 py-4">$1,800</td>
+                    <td className="px-6 py-4">€1,800</td>
                   </tr>
                   <tr className="bg-white border-b">
                     <td className="px-6 py-4">Mechanical Keyboard Pro</td>
-                    <td className="px-6 py-4">$45</td>
-                    <td className="px-6 py-4">$100</td>
-                    <td className="px-6 py-4">$55</td>
+                    <td className="px-6 py-4">€45</td>
+                    <td className="px-6 py-4">€100</td>
+                    <td className="px-6 py-4">€55</td>
                     <td className="px-6 py-4">55%</td>
-                    <td className="px-6 py-4">$5,225</td>
+                    <td className="px-6 py-4">€5,225</td>
                   </tr>
                   <tr className="bg-white border-b">
                     <td className="px-6 py-4">Ultra HD Monitor</td>
-                    <td className="px-6 py-4">$95</td>
-                    <td className="px-6 py-4">$150</td>
-                    <td className="px-6 py-4">$55</td>
+                    <td className="px-6 py-4">€95</td>
+                    <td className="px-6 py-4">€150</td>
+                    <td className="px-6 py-4">€55</td>
                     <td className="px-6 py-4">36.7%</td>
-                    <td className="px-6 py-4">$4,400</td>
+                    <td className="px-6 py-4">€4,400</td>
                   </tr>
                 </tbody>
               </table>

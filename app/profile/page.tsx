@@ -689,10 +689,10 @@ export default function ProfilePage() {
                                   ? new Date(
                                       order.createdAt
                                     ).toLocaleDateString()
-                                  : "N/A"}
+                                  : "N/A"}{" "}
                               </TableCell>
                               <TableCell>
-                                {safelyFormatNumber(order.totalAmount)} DA
+                                {safelyFormatNumber(order.totalAmount)} €
                               </TableCell>
                               <TableCell>
                                 {getStatusBadge(order.status || "")}
@@ -803,10 +803,10 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Total Amount
+                      Total Amount{" "}
                     </p>
                     <p className="font-medium">
-                      {safelyFormatNumber(selectedOrder.totalAmount)} DA
+                      {safelyFormatNumber(selectedOrder.totalAmount)} €
                     </p>
                   </div>
                 </div>
@@ -830,19 +830,19 @@ export default function ProfilePage() {
                                 item.name ||
                                 "Unknown Product"}
                             </TableCell>
-                            <TableCell>{item.quantity || 1}</TableCell>
+                            <TableCell>{item.quantity || 1}</TableCell>{" "}
                             <TableCell>
                               {safelyFormatNumber(
                                 item.price || item.unitPrice || 0
                               )}{" "}
-                              DA
+                              €
                             </TableCell>
                             <TableCell className="text-right">
                               {safelyFormatNumber(
                                 (item.price || item.unitPrice || 0) *
                                   (item.quantity || 1)
                               )}{" "}
-                              DA
+                              €
                             </TableCell>
                           </TableRow>
                         ))

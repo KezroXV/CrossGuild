@@ -192,10 +192,10 @@ const ProductCompare = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-medium">Price</TableCell>
+              <TableCell className="font-medium">Price</TableCell>{" "}
               {products.map((product) => (
                 <TableCell key={`${product.id}-price`} className="text-center">
-                  <span className="font-semibold">{product.price} DA</span>
+                  <span className="font-semibold">{product.price} €</span>
                 </TableCell>
               ))}
             </TableRow>

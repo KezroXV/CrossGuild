@@ -478,9 +478,9 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             )}
             <div className="mb-6">
               <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-primary/20 rounded-2xl blur-lg"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-primary/20 rounded-2xl blur-lg"></div>{" "}
                 <p className="relative text-4xl font-black bg-gradient-to-r from-accent via-accent to-primary bg-clip-text text-transparent px-6 py-3">
-                  {product.price} DA
+                  {product.price} €
                 </p>
               </div>
             </div>

@@ -445,14 +445,15 @@ export default function ReportsPage() {
             </tr>
           </thead>
           <tbody>
+            {" "}
             {profitabilityData.map((product, index) => (
               <tr key={product.id} className="bg-white border-b">
                 <td className="px-6 py-4">{product.name}</td>
-                <td className="px-6 py-4">${product.cost}</td>
-                <td className="px-6 py-4">${product.price}</td>
-                <td className="px-6 py-4">${product.margin}</td>
+                <td className="px-6 py-4">€{product.cost}</td>
+                <td className="px-6 py-4">€{product.price}</td>
+                <td className="px-6 py-4">€{product.margin}</td>
                 <td className="px-6 py-4">{product.marginPercentage}%</td>
-                <td className="px-6 py-4">${product.totalProfit}</td>
+                <td className="px-6 py-4">€{product.totalProfit}</td>
               </tr>
             ))}
           </tbody>

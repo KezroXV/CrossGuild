@@ -84,28 +84,29 @@ export default function MarketingReports({ isLoading }: MarketingReportsProps) {
                   </tr>
                 </thead>
                 <tbody>
+                  {" "}
                   <tr className="bg-white border-b">
                     <td className="px-6 py-4">SUMMER25</td>
                     <td className="px-6 py-4">25%</td>
                     <td className="px-6 py-4">245</td>
-                    <td className="px-6 py-4">$15,625</td>
-                    <td className="px-6 py-4">$63.78</td>
+                    <td className="px-6 py-4">€15,625</td>
+                    <td className="px-6 py-4">€63.78</td>
                     <td className="px-6 py-4">8.5%</td>
                   </tr>
                   <tr className="bg-white border-b">
                     <td className="px-6 py-4">WELCOME10</td>
                     <td className="px-6 py-4">10%</td>
                     <td className="px-6 py-4">356</td>
-                    <td className="px-6 py-4">$20,420</td>
-                    <td className="px-6 py-4">$57.36</td>
+                    <td className="px-6 py-4">€20,420</td>
+                    <td className="px-6 py-4">€57.36</td>
                     <td className="px-6 py-4">12.4%</td>
                   </tr>
                   <tr className="bg-white border-b">
                     <td className="px-6 py-4">FLASH50</td>
                     <td className="px-6 py-4">50%</td>
                     <td className="px-6 py-4">124</td>
-                    <td className="px-6 py-4">$8,750</td>
-                    <td className="px-6 py-4">$70.56</td>
+                    <td className="px-6 py-4">€8,750</td>
+                    <td className="px-6 py-4">€70.56</td>
                     <td className="px-6 py-4">18.9%</td>
                   </tr>
                 </tbody>
@@ -132,20 +133,21 @@ export default function MarketingReports({ isLoading }: MarketingReportsProps) {
             </div>
           ) : (
             <>
+              {" "}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="font-medium text-blue-700">Black Friday</p>
-                  <p className="text-2xl font-bold">$58,240</p>
+                  <p className="text-2xl font-bold">€58,240</p>
                   <p className="text-sm text-blue-600">ROI: 425%</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="font-medium text-purple-700">Summer Sale</p>
-                  <p className="text-2xl font-bold">$32,180</p>
+                  <p className="text-2xl font-bold">€32,180</p>
                   <p className="text-sm text-purple-600">ROI: 280%</p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="font-medium text-green-700">New Year</p>
-                  <p className="text-2xl font-bold">$24,650</p>
+                  <p className="text-2xl font-bold">€24,650</p>
                   <p className="text-sm text-green-600">ROI: 195%</p>
                 </div>
               </div>

@@ -61,7 +61,7 @@ export const TopSellingGamingGear = () => {
             products.map((product) => (
               <ProductCard
                 key={product.id}
-                item={{ ...product, price: `${product.price} DA` }}
+                item={{ ...product, price: `${product.price} €` }}
               />
             ))
           ) : (

@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, ShoppingBag, Package, DollarSign, Star } from "lucide-react";
+import { Users, ShoppingBag, Package, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Euro } from "lucide-react";
 
 interface DashboardStats {
   totalUsers: number;
@@ -106,11 +107,11 @@ export default function AdminDashboard() {
 
         <Card className="p-4">
           <div className="flex items-center space-x-4">
-            <DollarSign className="h-10 w-10 text-purple-500" />
+            <Euro className="h-10 w-10 text-purple-500" />
             <div>
               <p className="text-sm text-muted-foreground">Total Revenue</p>
               <h3 className="text-2xl font-bold">
-                ${stats?.revenue.toFixed(2)}
+                €{stats?.revenue.toFixed(2)}
               </h3>
             </div>
           </div>
@@ -187,7 +188,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div>
-                <p className="font-medium">${order.total.toFixed(2)}</p>
+                <p className="font-medium">€{order.total.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground capitalize">
                   {order.status}
                 </p>
