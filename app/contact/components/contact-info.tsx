@@ -85,7 +85,7 @@ export default function ContactInfo() {
                 Contact information is currently unavailable
               </h3>
               <p className="text-muted-foreground mb-4">
-                We're having trouble loading the latest contact information.
+                We&apos;re having trouble loading the latest contact information.
               </p>
               <Button onClick={fetchData} className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />

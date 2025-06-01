@@ -78,10 +78,6 @@ export default function ContactForm() {
       console.error("Contact form error:", error);
 
       // Always show success to the user - this is acceptable for contact forms
-      toast({
-        title: "Message received!",
-        description: "We'll get back to you as soon as possible.",
-      });
       toast.success(
         "Message received! We'll get back to you as soon as possible."
       );
@@ -94,7 +90,7 @@ export default function ContactForm() {
       <CardHeader>
         <CardTitle>Send us a message</CardTitle>
         <CardDescription>
-          Fill out the form below and we'll respond as soon as possible.
+          Fill out the form below and we&apos;ll respond as soon as possible.
         </CardDescription>
       </CardHeader>
       <CardContent>

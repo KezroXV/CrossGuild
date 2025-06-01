@@ -101,7 +101,7 @@ export default function ProductsReports({ isLoading }: ProductsReportsProps) {
               size="icon"
               onClick={handleExportCSV}
               disabled={isLoading}
-            ></Button>
+            >
               <Download className="h-4 w-4" />
             </Button>
           </CardHeader>
@@ -201,7 +201,9 @@ export default function ProductsReports({ isLoading }: ProductsReportsProps) {
                     <th className="px-6 py-3">Total Profit</th>
                   </tr>
                 </thead>
-                <tbody>                  <tr className="bg-white border-b">
+                <tbody>
+                  {" "}
+                  <tr className="bg-white border-b">
                     <td className="px-6 py-4">Gaming Mouse X1</td>
                     <td className="px-6 py-4">€15</td>
                     <td className="px-6 py-4">€30</td>

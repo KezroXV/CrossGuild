@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import ReportHeader from "./components/ReportHeader";
 import SalesReports from "./components/SalesReports";
 import ProductsReports from "./components/ProductsReports";
@@ -38,7 +30,8 @@ export default function ReportsPage() {
   });
 
   // Handle date selection for custom ranges
-  const handleDateChange = (field, value) => {
+
+  const handleDateChange = (field: string, value: string): void => {
     setDateRange((prev) => ({
       ...prev,
       [field]: value,

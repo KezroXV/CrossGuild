@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const statsCardVariants = cva("p-4 rounded-lg", {
@@ -77,8 +76,8 @@ export function StatsCard({
               trend === "up"
                 ? "bg-green-100 text-green-800"
                 : trend === "down"
-                ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
             }`}
           >
             {trend === "up" ? "↑" : trend === "down" ? "↓" : "="} {trendValue}

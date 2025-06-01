@@ -32,7 +32,7 @@ export default function ContactPage() {
               Contact Us
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              We'd love to hear from you. Reach out to our team for any
+              We&apos;d love to hear from you. Reach out to our team for any
               questions or support.
             </p>
           </div>

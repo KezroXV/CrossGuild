@@ -13,7 +13,6 @@ function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams ? searchParams.get("orderId") : null;
   // Always treat order as successful
-  const success = true;
 
   return (
     <div className="container max-w-xl mx-auto py-12">
