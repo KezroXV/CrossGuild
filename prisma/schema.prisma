@@ -71,6 +71,12 @@ model Order {
   userId      String
   user        User        @relation(fields: [userId], references: [id])
   city        String      @default("") // Ajoute une valeur par défaut ici
+  firstName   String?     // Delivery information
+  lastName    String?
+  phone       String?
+  address     String?
+  postalCode  String?
+  country     String?
   orderItems  OrderItem[]
   total       Float
   status      String      @default("pending")

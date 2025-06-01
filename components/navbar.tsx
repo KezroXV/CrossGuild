@@ -104,7 +104,7 @@ export const Navbar = () => {
                 className="text-foreground hover:text-accent font-medium transition-colors"
               >
                 Home
-              </Link>
+              </Link>{" "}
               <Link
                 href="/categories"
                 className="text-foreground hover:text-accent font-medium transition-colors"
@@ -261,13 +261,20 @@ export const Navbar = () => {
                 onClick={toggleMobileMenu}
               >
                 Home
-              </Link>
+              </Link>{" "}
               <Link
                 href="/categories"
                 className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
                 onClick={toggleMobileMenu}
               >
                 Categories
+              </Link>
+              <Link
+                href="/products"
+                className="text-lg font-medium text-foreground hover:text-accent py-2 border-b border-border"
+                onClick={toggleMobileMenu}
+              >
+                Products
               </Link>
               <Link
                 href="/about"

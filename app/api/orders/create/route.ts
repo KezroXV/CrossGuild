@@ -12,15 +12,33 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-
     const body = await req.json();
-    const { city } = body;
+    const { deliveryInfo } = body;
 
-    if (!city) {
+    if (!deliveryInfo) {
       return NextResponse.json(
-        { error: "La ville est requise", success: false },
+        { error: "Delivery information is required", success: false },
         { status: 400 }
       );
+    }
+
+    // Validate delivery information
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "phone",
+      "address",
+      "city",
+      "postalCode",
+      "country",
+    ];
+    for (const field of requiredFields) {
+      if (!deliveryInfo[field]) {
+        return NextResponse.json(
+          { error: `${field} is required`, success: false },
+          { status: 400 }
+        );
+      }
     }
 
     // Get the user's cart with items
@@ -46,13 +64,17 @@ export async function POST(req: Request) {
     const total = cart.cartItems.reduce(
       (sum, cartItem) => sum + cartItem.item.price * cartItem.quantity,
       0
-    );
-
-    // Create a new order
+    ); // Create a new order
     const order = await prisma.order.create({
       data: {
         userId: session.user.id,
-        city, // Ajout de la ville ici
+        city: deliveryInfo.city,
+        firstName: deliveryInfo.firstName,
+        lastName: deliveryInfo.lastName,
+        phone: deliveryInfo.phone,
+        address: deliveryInfo.address,
+        postalCode: deliveryInfo.postalCode,
+        country: deliveryInfo.country,
         total,
         status: "pending",
         orderItems: {

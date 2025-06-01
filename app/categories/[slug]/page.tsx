@@ -5,7 +5,7 @@ import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import ItemsCategories from "./itemsCategories";
-import ClientSideCategoryPage from "./components/ClientSideCategoryPage";
+import NewClientSideCategoryPage from "./components/NewClientSideCategoryPage";
 
 // Modifié pour être compatible avec les attentes de type de Next.js
 type PageParams = {
@@ -157,9 +157,8 @@ const CategoryPage = async ({ params }: PageParams) => {
           {category.description && (
             <p className="text-gray-600 mt-2">{category.description}</p>
           )}
-        </div>
-
-        <ClientSideCategoryPage
+        </div>{" "}
+        <NewClientSideCategoryPage
           items={category.items}
           categoryName={category.name}
           uniqueBrands={uniqueBrands}

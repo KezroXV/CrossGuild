@@ -1,5 +1,5 @@
 "use client";
-import Cart from "@/components/cart";
+import Cart from "@/components/cart-new";
 import FooterSection from "@/components/footer";
 
 const CartPage = () => {

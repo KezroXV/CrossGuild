@@ -84,12 +84,14 @@ export const HeroSection = () => {
             {content.primaryButtonText}
           </Button>
         </Link>
-        <Button
-          variant="outline"
-          className="px-6 text-white py-3 bg-transparent text-lg hover:bg-primary hover:text-white border-2 border-primary"
-        >
-          {content.secondaryButtonText}
-        </Button>
+        <Link href={"/products"}>
+          <Button
+            variant="outline"
+            className="px-6 text-white py-3 bg-transparent text-lg hover:bg-primary hover:text-white border-2 border-primary"
+          >
+            {content.secondaryButtonText}
+          </Button>
+        </Link>
       </div>
     </section>
   );
