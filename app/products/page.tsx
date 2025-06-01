@@ -78,7 +78,15 @@ export const metadata: Metadata = {
 };
 
 const AllProductsPage = async () => {
-  const items = await getAllProducts();
+  const allItems = await getAllProducts();
+
+  // Filter out items with null categories and transform to match ProductItem interface
+  const items = allItems
+    .filter((item) => item.category !== null)
+    .map((item) => ({
+      ...item,
+      category: item.category!,
+    }));
 
   if (!items || items.length === 0) {
     return (

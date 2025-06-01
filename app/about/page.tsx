@@ -1,9 +1,4 @@
-import {
-  Item,
-  ItemIcon,
-  ItemTitle,
-  ItemDescription,
-} from "@/components/ui/item";
+import { Item } from "@/components/ui/item";
 import {
   Gamepad2,
   CheckCircle2,

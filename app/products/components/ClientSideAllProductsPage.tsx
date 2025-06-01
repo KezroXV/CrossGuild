@@ -1,21 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useCallback } from "react";
-import AllProductsItems from "../AllProductsItems";
 import AllProductsFilters from "./AllProductsFilters";
+import AllProductsItems from "../AllProductsItems";
+
+interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  images: Array<{ url: string }>;
+  brand?: { name: string };
+  category: { name: string };
+  averageRating: number;
+  topSelling: number;
+  createdAt: Date;
+  slug: string;
+}
 
 interface ClientSideAllProductsPageProps {
-  items: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    images: Array<{ url: string }>;
-    brand?: { name: string };
-    category: { name: string } | null;
-    averageRating: number;
-    slug: string;
-  }[];
+  items: ProductItem[];
   uniqueBrands: string[];
   uniqueCategories: string[];
   lowestPrice: number;
@@ -32,7 +37,7 @@ export default function ClientSideAllProductsPage({
   const [filteredItems, setFilteredItems] = useState(items);
   // This function will be called by the AllProductsFilters component
   // Using useCallback to prevent it from being recreated on each render
-  const handleFiltersChange = useCallback((newFilteredItems: typeof items) => {
+  const handleFiltersChange = useCallback((newFilteredItems: any[]) => {
     setFilteredItems(newFilteredItems);
   }, []);
 

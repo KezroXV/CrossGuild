@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -106,7 +108,7 @@ type Order = {
     | "shipped"
     | "delivered"
     | "cancelled";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   items: any[];
 };
 
@@ -166,7 +168,7 @@ export default function ProfilePage() {
         name: session.user.name || "",
         email: session.user.email || "",
         phone: "", // Removed session.user?.phone as it does not exist on the type
-        city: session.user.city || "", // Reset city fieldue c'est bien là
+        city: (session.user as any).city || "", // Reset city field
       });
 
       fetchOrders(1);

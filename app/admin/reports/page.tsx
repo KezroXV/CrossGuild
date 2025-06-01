@@ -11,9 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { CalendarIcon, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -102,23 +100,57 @@ export default function ReportsPage() {
   const [salesData, setSalesData] = useState(sampleSalesData);
   const [categoryData, setCategoryData] = useState(sampleCategoryData);
   const [productData, setProductData] = useState(sampleProductData);
-  const [profitabilityData, setProfitabilityData] = useState([]);
+  const [profitabilityData, setProfitabilityData] = useState<
+    ProfitabilityData[]
+  >([]);
+  interface CustomerCategoryData {
+    name: string;
+    percentage: number;
+    avgOrderValue: number;
+  }
+
   const [customerData, setCustomerData] = useState(sampleCustomerData);
   const [ordersStats, setOrdersStats] = useState(sampleOrdersStats);
-  const [customerCategoryData, setCustomerCategoryData] = useState([]);
+  const [customerCategoryData, setCustomerCategoryData] = useState<
+    CustomerCategoryData[]
+  >([]);
   const [customerSegments, setCustomerSegments] = useState({
     newCustomers: "Loading...",
     returningCustomers: "Loading...",
   });
-  const [categoryPerformance, setCategoryPerformance] = useState({
-    categoryPerformance: [],
-    mostProfitableCategory: null,
-    fastestGrowingCategory: null,
-    mostReviewedCategory: null,
-    popularBrandCategoryRelations: [],
-  });
+
+  interface CategoryPerformanceItem {
+    name: string;
+    totalStock: number;
+    avgMargin?: number;
+    totalSales?: number;
+    avgRating?: number;
+  }
+
+  interface BrandCategoryRelation {
+    brandName: string;
+    categoryName: string;
+    percentage: number;
+  }
+
+  interface CategoryPerformanceData {
+    categoryPerformance: CategoryPerformanceItem[];
+    mostProfitableCategory: CategoryPerformanceItem | null;
+    fastestGrowingCategory: CategoryPerformanceItem | null;
+    mostReviewedCategory: CategoryPerformanceItem | null;
+    popularBrandCategoryRelations: BrandCategoryRelation[];
+  }
+
+  const [categoryPerformance, setCategoryPerformance] =
+    useState<CategoryPerformanceData>({
+      categoryPerformance: [],
+      mostProfitableCategory: null,
+      fastestGrowingCategory: null,
+      mostReviewedCategory: null,
+      popularBrandCategoryRelations: [],
+    });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [reportType, setReportType] = useState("sales");
   const [reportTimeframe, setReportTimeframe] = useState("last30days");
@@ -223,7 +255,9 @@ export default function ReportsPage() {
         }
       } catch (error) {
         console.error("Error fetching report data:", error);
-        setError(error.message);
+        setError(
+          error instanceof Error ? error.message : "An unknown error occurred"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -233,7 +267,12 @@ export default function ReportsPage() {
   }, [timeframe, dateRange]);
 
   // Handle date selection for custom ranges
-  const handleDateChange = (field, value) => {
+  interface DateRange {
+    from: string;
+    to: string;
+  }
+
+  const handleDateChange = (field: keyof DateRange, value: string): void => {
     setDateRange((prev) => ({
       ...prev,
       [field]: value,
@@ -241,22 +280,62 @@ export default function ReportsPage() {
   };
 
   // Export reports as CSV
-  const handleExportCSV = (reportType) => {
-    let csvData;
-    let fileName;
+  // Export report types
+  interface SalesData {
+    name: string;
+    sales: number;
+    profit: number;
+  }
+
+  interface ProductData {
+    name: string;
+    sales: number;
+    revenue: number;
+    stock: number;
+  }
+
+  interface ProfitabilityData {
+    id: number;
+    name: string;
+    cost: number;
+    price: number;
+    margin: number;
+    marginPercentage: number;
+    totalProfit: number;
+  }
+
+  interface CustomerData {
+    country: string;
+    customers: number;
+  }
+
+  type ReportType =
+    | "sales"
+    | "products"
+    | "profitability"
+    | "customers"
+    | "orders";
+
+  const handleExportCSV = (reportType: ReportType): void => {
+    let csvData: string;
+    let fileName: string;
 
     switch (reportType) {
       case "sales":
         csvData =
           "Period,Sales,Profit\n" +
-          salesData.map((d) => `${d.name},${d.sales},${d.profit}`).join("\n");
+          salesData
+            .map((d: SalesData) => `${d.name},${d.sales},${d.profit}`)
+            .join("\n");
         fileName = "sales-report.csv";
         break;
       case "products":
         csvData =
           "Product,Sales,Revenue,Stock\n" +
           productData
-            .map((d) => `${d.name},${d.sales},${d.revenue},${d.stock}`)
+            .map(
+              (d: ProductData) => `${d.name},${d.sales},${d.revenue},${d.stock}`
+            )
             .join("\n");
         fileName = "products-report.csv";
         break;
@@ -265,7 +344,7 @@ export default function ReportsPage() {
           "Product,Cost,Price,Margin,Margin %,Total Profit\n" +
           profitabilityData
             .map(
-              (d) =>
+              (d: ProfitabilityData) =>
                 `${d.name},${d.cost},${d.price},${d.margin},${d.marginPercentage},${d.totalProfit}`
             )
             .join("\n");
@@ -274,7 +353,9 @@ export default function ReportsPage() {
       case "customers":
         csvData =
           "Country,Customers\n" +
-          customerData.map((d) => `${d.country},${d.customers}`).join("\n");
+          customerData
+            .map((d: CustomerData) => `${d.country},${d.customers}`)
+            .join("\n");
         fileName = "customers-report.csv";
         break;
       case "orders":
@@ -298,9 +379,9 @@ export default function ReportsPage() {
         return;
     }
 
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const blob: Blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url: string = URL.createObjectURL(blob);
+    const link: HTMLAnchorElement = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
@@ -327,20 +408,55 @@ export default function ReportsPage() {
 
       switch (reportType) {
         case "sales":
+          interface DailySalesData {
+            date: string;
+            sales: number;
+            orders: number;
+          }
+
+          interface SalesReportData {
+            dailySales: DailySalesData[];
+          }
+
+          interface CustomReportResult {
+            reportData: SalesReportData;
+          }
+
           csvData =
             "Date,Sales,Orders\n" +
-            result.reportData.dailySales
-              .map((d) => `${d.date},${d.sales.toFixed(2)},${d.orders}`)
+            (result as CustomReportResult).reportData.dailySales
+              .map(
+                (d: DailySalesData) =>
+                  `${d.date},${d.sales.toFixed(2)},${d.orders}`
+              )
               .join("\n");
           fileName = "custom-sales-report.csv";
           break;
 
         case "products":
+          interface ProductReportData {
+            name: string;
+            category: string;
+            quantitySold: number;
+            revenue: number;
+            cost: number;
+            profit: number;
+            margin: number;
+          }
+
+          interface ProductsReportData {
+            products: ProductReportData[];
+          }
+
+          interface ProductCustomReportResult {
+            reportData: ProductsReportData;
+          }
+
           csvData =
             "Product,Category,Quantity Sold,Revenue,Cost,Profit,Margin\n" +
-            result.reportData.products
+            (result as ProductCustomReportResult).reportData.products
               .map(
-                (p) =>
+                (p: ProductReportData) =>
                   `"${p.name}","${p.category}",${
                     p.quantitySold
                   },${p.revenue.toFixed(2)},${p.cost.toFixed(
@@ -352,11 +468,28 @@ export default function ReportsPage() {
           break;
 
         case "customers":
+          interface CustomerReportData {
+            id: number;
+            name: string;
+            email: string;
+            orderCount: number;
+            totalSpent: number;
+            averageOrderValue: number;
+          }
+
+          interface CustomersReportData {
+            customers: CustomerReportData[];
+          }
+
+          interface CustomerCustomReportResult {
+            reportData: CustomersReportData;
+          }
+
           csvData =
             "Customer ID,Name,Email,Orders,Total Spent,Avg Order Value\n" +
-            result.reportData.customers
+            (result as CustomerCustomReportResult).reportData.customers
               .map(
-                (c) =>
+                (c: CustomerReportData) =>
                   `${c.id},"${c.name}",${c.email},${
                     c.orderCount
                   },${c.totalSpent.toFixed(2)},${c.averageOrderValue}`
@@ -366,10 +499,27 @@ export default function ReportsPage() {
           break;
 
         case "orders":
+          interface DailyOrderData {
+            date: string;
+            count: number;
+            revenue: number;
+          }
+
+          interface OrdersReportData {
+            dailyOrders: DailyOrderData[];
+          }
+
+          interface OrderCustomReportResult {
+            reportData: OrdersReportData;
+          }
+
           csvData =
             "Date,Orders,Revenue\n" +
-            result.reportData.dailyOrders
-              .map((d) => `${d.date},${d.count},${d.revenue.toFixed(2)}`)
+            (result as OrderCustomReportResult).reportData.dailyOrders
+              .map(
+                (d: DailyOrderData) =>
+                  `${d.date},${d.count},${d.revenue.toFixed(2)}`
+              )
               .join("\n");
           fileName = "custom-orders-report.csv";
           break;
@@ -446,7 +596,7 @@ export default function ReportsPage() {
           </thead>
           <tbody>
             {" "}
-            {profitabilityData.map((product, index) => (
+            {profitabilityData.map((product) => (
               <tr key={product.id} className="bg-white border-b">
                 <td className="px-6 py-4">{product.name}</td>
                 <td className="px-6 py-4">€{product.cost}</td>
@@ -495,8 +645,8 @@ export default function ReportsPage() {
       <>
         <div className="mb-4">
           <p className="text-sm text-gray-600">
-            Visualize your customers' preferred product categories to better
-            target your offers.
+            Visualize your customers&apos; preferred product categories to
+            better target your offers.
           </p>
         </div>
         <ResponsiveContainer width="100%" height={300}>

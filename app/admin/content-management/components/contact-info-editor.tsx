@@ -238,8 +238,8 @@ export default function ContactInfoEditor() {
                   placeholder="https://www.google.com/maps/embed?pb=..."
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Get this from Google Maps by clicking "Share" and selecting
-                  "Embed a map"
+                  Get this from Google Maps by clicking &quot;Share&quot; and
+                  selecting &quot;Embed a map&quot;
                 </p>
               </div>
 
