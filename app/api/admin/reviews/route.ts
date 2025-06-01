@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -18,8 +19,8 @@ export async function GET(request: Request) {
       const where = search
         ? {
             OR: [
-              { question: { contains: search, mode: "insensitive" } },
-              { answer: { contains: search, mode: "insensitive" } },
+              { question: { contains: search, mode: "insensitive" as const } },
+              { answer: { contains: search, mode: "insensitive" as const } },
             ],
           }
         : {};
@@ -60,16 +61,16 @@ export async function GET(request: Request) {
       const whereClause = search
         ? {
             OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-              { subject: { contains: search, mode: "insensitive" } },
-              { message: { contains: search, mode: "insensitive" } },
+              { name: { contains: search, mode: "insensitive" as const } },
+              { email: { contains: search, mode: "insensitive" as const } },
+              { subject: { contains: search, mode: "insensitive" as const } },
+              { message: { contains: search, mode: "insensitive" as const } },
             ],
           }
         : {};
 
       try {
-        let contacts = [];
+        let contacts: any[] = [];
         let totalCount = 0;
 
         try {

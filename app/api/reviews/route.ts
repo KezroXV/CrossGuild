@@ -195,23 +195,3 @@ async function updateProductRating(itemId: string) {
     data: { averageRating },
   });
 }
-
-async function hasUserPurchasedItem(
-  userId: string,
-  itemId: string
-): Promise<boolean> {
-  // Check if the user has purchased this item
-  const purchases = await prisma.orderItem.findMany({
-    where: {
-      itemId,
-      order: {
-        userId,
-        status: {
-          in: ["delivered", "completed"],
-        },
-      },
-    },
-  });
-
-  return purchases.length > 0;
-}

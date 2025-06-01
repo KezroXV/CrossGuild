@@ -42,8 +42,8 @@ export default function ContactFAQ() {
         <h2 className="text-3xl font-bold mb-2">Frequently Asked Questions</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Find quick answers to common questions about our services and
-          policies. If you don't see what you're looking for, feel free to reach
-          out.
+          policies. If you don&apos;t see what you&apos;re looking for, feel
+          free to reach out.
         </p>
       </div>
 

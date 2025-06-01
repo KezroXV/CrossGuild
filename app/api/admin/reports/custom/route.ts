@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -125,7 +126,9 @@ async function generateSalesReport(startDate: Date, endDate: Date) {
   });
 
   // Calculate total sales and organize by date
-  const salesByDate = {};
+  const salesByDate: {
+    [key: string]: { date: string; sales: number; orders: number };
+  } = {};
 
   orders.forEach((order) => {
     const dateStr = order.createdAt.toISOString().split("T")[0];
@@ -177,7 +180,7 @@ async function generateProductsReport(startDate: Date, endDate: Date) {
   });
 
   // Product performance analysis
-  const productPerformance = {};
+  const productPerformance: { [key: string]: any } = {};
 
   orderItems.forEach((orderItem) => {
     const { item, quantity, price } = orderItem;
@@ -238,7 +241,7 @@ async function generateCustomersReport(startDate: Date, endDate: Date) {
   });
 
   // Customer analysis
-  const customerData = {};
+  const customerData: { [key: string]: any } = {};
 
   orders.forEach((order) => {
     if (!order.userId) return;
@@ -291,7 +294,7 @@ async function generateOrdersReport(startDate: Date, endDate: Date) {
   });
 
   // Order status breakdown
-  const statusCount = {};
+  const statusCount: { [key: string]: number } = {};
 
   orders.forEach((order) => {
     if (!statusCount[order.status]) {
@@ -301,7 +304,9 @@ async function generateOrdersReport(startDate: Date, endDate: Date) {
   });
 
   // Order by date
-  const ordersByDate = {};
+  const ordersByDate: {
+    [key: string]: { date: string; count: number; revenue: number };
+  } = {};
 
   orders.forEach((order) => {
     const dateStr = order.createdAt.toISOString().split("T")[0];

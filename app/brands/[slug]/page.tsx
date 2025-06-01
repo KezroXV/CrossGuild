@@ -4,8 +4,6 @@ import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 
 // Importer le composant client pour le filtrage et le tri
 import ClientSideCategoryPage from "../../categories/[slug]/components/ClientSideCategoryPage";
@@ -38,7 +36,7 @@ interface Brand {
 export async function generateStaticParams() {
   const brands = await prisma.brand.findMany();
   return brands.map((brand) => ({
-    slug: brand.slug,
+    slug: brand.name.toLowerCase().replace(/\s+/g, "-"),
   }));
 }
 
@@ -78,8 +76,8 @@ async function getBrand(brandSlug: string): Promise<Brand | null> {
 
   return {
     ...brand,
-    slug: brandSlug, // Ajouter le slug manuellement
-  };
+    slug: brand.name.toLowerCase().replace(/\s+/g, "-"), // Generate slug from brand name
+  } as Brand;
 }
 
 export const metadata: Metadata = {

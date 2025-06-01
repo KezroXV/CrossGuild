@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import ItemsCategories from "./itemsCategories";
 import NewClientSideCategoryPage from "./components/NewClientSideCategoryPage";
 
 // Modifié pour être compatible avec les attentes de type de Next.js

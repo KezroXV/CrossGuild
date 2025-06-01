@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -176,11 +177,13 @@ export async function GET(req: Request) {
     });
 
     // Trouver les catégories principales par segment
-    const getTopCategory = (map) => {
+    interface CategoryMap extends Map<string, number> {}
+
+    const getTopCategory = (map: CategoryMap): string => {
       let max = 0;
       let topCategory = "Non classé";
 
-      map.forEach((count, category) => {
+      map.forEach((count: number, category: string) => {
         if (count > max) {
           max = count;
           topCategory = category;

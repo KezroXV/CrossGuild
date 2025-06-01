@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -172,7 +173,7 @@ export default function CategoryFilters({
             min={lowestPrice}
             max={highestPrice}
             step={1}
-            onValueChange={setPriceRange}
+            onValueChange={(value) => setPriceRange(value as [number, number])}
           />
         </div>
       </div>

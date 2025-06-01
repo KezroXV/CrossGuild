@@ -74,7 +74,7 @@ export default function ItemsCategories({ items }: ItemsCategoriesProps) {
                 key={item.id}
                 item={{
                   ...item,
-                  rating: item.rating || 0, // Fournir une valeur par défaut pour rating
+                  averageRating: item.rating || 0, // Fournir une valeur par défaut pour averageRating
                   brand: item.brand || { name: "Unknown" }, // Fournir une valeur par défaut pour brand
                 }}
               />

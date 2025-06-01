@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Updated import to match your pattern
-
+import prisma from "@/lib/prisma";
 /**
  * Calculates date range based on timeframe
  */

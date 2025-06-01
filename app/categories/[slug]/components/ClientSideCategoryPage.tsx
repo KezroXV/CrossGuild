@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useCallback } from "react";
@@ -14,7 +15,7 @@ interface ClientSideCategoryPageProps {
 
 export default function ClientSideCategoryPage({
   items,
-  categoryName,
+
   uniqueBrands,
   lowestPrice,
   highestPrice,
