@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, Download } from "lucide-react";
+import { Calendar, CalendarIcon, Download } from "lucide-react";
 
 // Chart components
 import {
@@ -38,7 +38,6 @@ import {
 } from "recharts";
 import { sampleSalesData } from "@/app/reports/components/data/mockData";
 
-
 const sampleCategoryData = [
   { name: "Gaming", value: 400, color: "#FF6384" },
   { name: "Accessories", value: 300, color: "#36A2EB" },
@@ -46,7 +45,6 @@ const sampleCategoryData = [
   { name: "Components", value: 200, color: "#4BC0C0" },
   { name: "Peripherals", value: 100, color: "#9966FF" },
 ];
-
 
 const sampleCustomerData = [
   { country: "United States", customers: 450 },
@@ -81,9 +79,9 @@ export default function ReportsPage() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [salesData, setSalesData] = useState(sampleSalesData);
-  const [productData, setProductData] = useState(sampleProductData);
-  const [categoryData, setCategoryData] = useState(sampleCategoryData);
+  const [salesData] = useState(sampleSalesData);
+  const [productData] = useState(sampleProductData);
+  const [categoryData] = useState(sampleCategoryData);
 
   // Fetch data based on selected timeframe
   useEffect(() => {
@@ -111,10 +109,10 @@ export default function ReportsPage() {
   }, [timeframe, dateRange]);
 
   // Handle date selection for custom ranges
-  const handleDateSelect = (
-    range: SetStateAction<{ from: Date; to: Date }>
-  ) => {
-    setDateRange(range);
+  const handleDateSelect = (range: { from: Date; to: Date } | undefined) => {
+    if (range) {
+      setDateRange(range);
+    }
   };
 
   // Export reports as CSV
@@ -936,4 +934,4 @@ export default function ReportsPage() {
       </Tabs>
     </div>
   );
-}}
+}
