@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useEffect, useState } from "react";
 import {
@@ -17,8 +18,6 @@ import {
   ShoppingCart,
   ImageIcon,
   ArrowRight,
-  User,
-  MapPin,
   CreditCard,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -77,7 +76,6 @@ const Cart = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState<string | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
 

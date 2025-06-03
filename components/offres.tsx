@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 
 const slideFromLeft = {
   hidden: { opacity: 0, x: -100 },

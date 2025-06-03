@@ -1,5 +1,4 @@
 import FooterSection from "@/components/footer";
-import { Navbar } from "@/components/navbar";
 import Wishlist from "@/components/wishlist";
 import React from "react";
 

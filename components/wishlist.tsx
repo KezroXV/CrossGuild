@@ -41,7 +41,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "./ui/pagination";
-import { useTheme } from "next-themes";
 import { LoadingState } from "./ui/loading-state";
 
 interface WishlistItem {
@@ -63,7 +62,6 @@ const Wishlist = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const { theme, resolvedTheme } = useTheme();
   const router = useRouter();
 
   const fetchWishlist = async () => {
@@ -492,7 +490,7 @@ const Wishlist = () => {
                   No items match your search
                 </p>
                 <p className="text-muted-foreground mb-4">
-                  Try adjusting your search or filter to find what you're
+                  Try adjusting your search or filter to find what you&apos;re
                   looking for
                 </p>
                 <Button variant="outline" onClick={() => setSearchQuery("")}>

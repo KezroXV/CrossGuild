@@ -25,7 +25,7 @@ interface ProductCardProps {
     name: string;
     images: { url: string }[];
     averageRating: number; // Modifié de rating à averageRating pour correspondre au schema
-    brand: { name: string };
+    brand?: { name: string }; // Rendu optionnel
     price: number;
     quantity: number;
     slug: string;

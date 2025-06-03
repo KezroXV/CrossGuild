@@ -6,9 +6,9 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  rating: number;
+  averageRating: number; // Changé de rating à averageRating pour correspondre au schema
   images: { url: string }[];
-  brand: { name: string };
+  brand?: { name: string }; // Rendu optionnel
   quantity: number;
   topSelling: number;
   slug: string; // Added slug property
@@ -55,14 +55,11 @@ export const TopSellingGamingGear = () => {
           <a href="#" className="text-accent hover:underline">
             See More
           </a>
-        </div>
+        </div>{" "}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {Array.isArray(products) && products.length > 0 ? (
             products.map((product) => (
-              <ProductCard
-                key={product.id}
-                item={{ ...product, price: `${product.price} €` }}
-              />
+              <ProductCard key={product.id} item={product} />
             ))
           ) : (
             <p></p>

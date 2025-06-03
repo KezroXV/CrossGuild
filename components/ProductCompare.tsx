@@ -34,7 +34,6 @@ interface Product {
 
 const ProductCompare = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -130,7 +129,7 @@ const ProductCompare = () => {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="mb-4">
-              You haven't added any products to compare yet.
+              You haven&apos;t added any products to compare yet.
             </p>
             <Button asChild>
               <Link href="/categories/all">Browse Products</Link>
