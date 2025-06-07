@@ -1,16 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model Account {
@@ -19,15 +13,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -41,48 +34,48 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  isAdmin       Boolean   @default(false)
-  phone         String?   // Ce champ est correct, on garde phone plutôt que phoneNumber
-  address       String?
-  city          String?
-  postalCode    String?
-  country       String?
-  createdAt     DateTime  @default(now())
-  twoFactorEnabled  Boolean @default(false)
-  twoFactorSecret   String?
-  accounts      Account[]
-  sessions      Session[]
-  orders        Order[]
-  cart          Cart?
-  reviews       Review[]
-  role          Role?     @relation(fields: [roleId], references: [id])
-  roleId        String?
-  wishlistItems WishlistItem[]
+  id               String         @id @default(cuid())
+  email            String?        @unique
+  password         String?
+  name             String?
+  isAdmin          Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  emailVerified    DateTime?
+  image            String?
+  roleId           String?
+  address          String?
+  city             String?
+  country          String?
+  phone            String?
+  postalCode       String?
+  twoFactorEnabled Boolean        @default(false)
+  twoFactorSecret  String?
+  accounts         Account[]
+  cart             Cart?
+  orders           Order[]
+  reviews          Review[]
+  sessions         Session[]
+  role             Role?          @relation(fields: [roleId], references: [id])
+  wishlistItems    WishlistItem[]
 }
 
 model Order {
   id          String      @id @default(cuid())
   userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  city        String      @default("") // Ajoute une valeur par défaut ici
-  firstName   String?     // Delivery information
-  lastName    String?
-  phone       String?
-  address     String?
-  postalCode  String?
-  country     String?
-  orderItems  OrderItem[]
-  total       Float
   status      String      @default("pending")
-  isPaid      Boolean     @default(false)  // Ajout de ce champ manquant
   createdAt   DateTime    @default(now())
-  orderNumber String?     // Ajouté un champ optionnel pour le numéro de commande
+  total       Float
+  address     String?
+  city        String      @default("")
+  country     String?
+  firstName   String?
+  isPaid      Boolean     @default(false)
+  lastName    String?
+  orderNumber String?
+  phone       String?
+  postalCode  String?
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
 }
 
 model Cart {
@@ -95,12 +88,12 @@ model Cart {
 model CartItem {
   id        String   @id @default(cuid())
   cartId    String
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id])
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  item      Item     @relation(fields: [itemId], references: [id])
 
   @@unique([cartId, itemId])
 }
@@ -108,52 +101,52 @@ model CartItem {
 model OrderItem {
   id        String   @id @default(cuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id])
   quantity  Int      @default(1)
-  price     Float    // Prix au moment de l'achat
+  price     Float
   createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([orderId, itemId])
 }
 
 model Item {
-  id            String      @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
   price         Float
   quantity      Int
+  createdAt     DateTime       @default(now())
   description   String?
-  sku           String?     @unique
-  slug          String      @unique
-  isPublished   Boolean     @default(false)
-  images        Image[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  categoryId    String?
-  category      Category?   @relation(fields: [categoryId], references: [id])
-  reviews       Review[]
+  isPublished   Boolean        @default(false)
+  sku           String?        @unique
+  slug          String         @unique
+  updatedAt     DateTime       @updatedAt
+  topSelling    Int            @default(0)
   brandId       String?
-  brand         Brand?      @relation(fields: [brandId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  topSelling    Int         @default(0)
-  averageRating Float       @default(0.0)
+  averageRating Float          @default(0.0)
+  categoryId    String?
+  cost          Float          @default(0.0)
+  margin        Float?
+  profit        Float?
+  totalProfit   Float?
+  cartItems     CartItem[]
+  images        Image[]
+  brand         Brand?         @relation(fields: [brandId], references: [id])
+  category      Category?      @relation(fields: [categoryId], references: [id])
   options       ItemOption[]
-  cost          Float       @default(0.0)  // Coût du produit
-  profit        Float?      // Profit unitaire calculé (price - cost)
-  margin        Float?      // Marge en pourcentage ((price - cost) / price * 100)
-  totalProfit   Float?      // Profit total basé sur les ventes (calculé par le système)
+  orderItems    OrderItem[]
+  reviews       Review[]
   wishlistItems WishlistItem[]
 }
 
 model WishlistItem {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id])
   createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, itemId])
 }
@@ -162,19 +155,19 @@ model Image {
   id        String   @id @default(cuid())
   url       String
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model Review {
   id        String   @id @default(cuid())
-  content   String
-  rating    Int // Note donnée par l'utilisateur (1 à 5 par exemple)
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  createdAt DateTime @default(now())
+  content   String
   itemId    String
   item      Item     @relation(fields: [itemId], references: [id])
-  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model VerificationToken {
@@ -198,37 +191,37 @@ model PasswordResetToken {
 model Category {
   id          String   @id @default(cuid())
   name        String   @unique
-  createdAt   DateTime @default(now())
   description String?
-  image       String?  // URL de l'image de la catégorie
-  items       Item[]   // Garde la relation One-to-Many
+  createdAt   DateTime @default(now())
+  image       String?
+  items       Item[]
 }
 
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
-  permissions String[] // ["MANAGE_PRODUCTS", "MANAGE_CATEGORIES", "MANAGE_USERS", etc.]
-  users       User[]
+  permissions String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  users       User[]
 }
 
 model Brand {
   id          String   @id @default(cuid())
   name        String   @unique
   description String?
-  logo        String?  // URL du logo de la marque
-  items       Item[]
+  logo        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
+  items       Item[]
 }
 
 model ItemOption {
-  id          String   @id @default(cuid())
-  name        String   // ex: "Size" or "Color"
-  values      String[] // ex: ["S", "M", "L"] or ["Red", "Blue", "Black"]
-  itemId      String
-  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  id     String   @id @default(cuid())
+  name   String
+  values String[]
+  itemId String
+  item   Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model FAQ {
@@ -241,33 +234,33 @@ model FAQ {
 }
 
 model HeroContent {
-  id                String   @id @default(cuid())
-  tagline           String
-  heading           String
-  highlightedText   String
-  description       String   @db.Text
-  primaryButtonText String
+  id                  String   @id @default(cuid())
+  tagline             String
+  heading             String
+  highlightedText     String
+  description         String
+  primaryButtonText   String
   secondaryButtonText String
-  backgroundImage   String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  backgroundImage     String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model CategoryHeroContent {
-  id                String   @id @default(cuid())
-  heading           String
-  highlightedText   String
-  description       String   @db.Text
-  buttonText        String
-  backgroundImage   String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  heading         String
+  highlightedText String
+  description     String
+  buttonText      String
+  backgroundImage String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Offer {
   id          String   @id @default(cuid())
   title       String
-  description String   @db.Text
+  description String
   image       String
   buttonLabel String   @default("Free Delivery")
   createdAt   DateTime @default(now())
@@ -279,7 +272,7 @@ model ContactMessage {
   name       String
   email      String
   subject    String
-  message    String   @db.Text
+  message    String
   department String
   isResolved Boolean  @default(false)
   createdAt  DateTime @default(now())
@@ -287,27 +280,27 @@ model ContactMessage {
 }
 
 model ContactInfo {
-  id           String   @id @default(cuid())
-  address      String
-  city         String
-  postalCode   String
-  country      String
-  phone1       String
-  phone2       String?
-  email1       String
-  email2       String?
+  id            String   @id @default(cuid())
+  address       String
+  city          String
+  postalCode    String
+  country       String
+  phone1        String
+  phone2        String?
+  email1        String
+  email2        String?
   businessHours String
-  mapEmbedUrl  String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  mapEmbedUrl   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model SocialLinks {
-  id           String   @id @default(cuid())
-  facebook     String?
-  twitter      String?
-  instagram    String?
-  linkedin     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  facebook  String?
+  twitter   String?
+  instagram String?
+  linkedin  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
