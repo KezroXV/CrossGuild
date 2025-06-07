@@ -11,14 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Calendar, CalendarIcon, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
 // Chart components
 import {
@@ -106,16 +101,7 @@ export default function ReportsPage() {
     };
 
     fetchReportData();
-  }, [timeframe, dateRange]);
-
-  // Handle date selection for custom ranges
-  const handleDateSelect = (range: { from: Date; to: Date } | undefined) => {
-    if (range) {
-      setDateRange(range);
-    }
-  };
-
-  // Export reports as CSV
+  }, [timeframe, dateRange]);  // Export reports as CSV
   const handleExportCSV = (reportType: string) => {
     let csvData;
     let fileName;
@@ -166,40 +152,34 @@ export default function ReportsPage() {
               <SelectItem value="year">This Year</SelectItem>
               <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
-          </Select>
-
-          {timeframe === "custom" && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="flex gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "P", { locale: fr })} -{" "}
-                          {format(dateRange.to, "P", { locale: fr })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "P", { locale: fr })
-                      )
-                    ) : (
-                      "Pick a date"
-                    )}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange.from}
-                  selected={dateRange}
-                  onSelect={handleDateSelect}
-                  numberOfMonths={2}
+          </Select>          {timeframe === "custom" && (
+            <div className="flex gap-2">              <div>
+                <Input
+                  type="date"
+                  value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const newDate = e.target.value ? new Date(e.target.value) : undefined;
+                    if (newDate) {
+                      setDateRange(prev => ({ ...prev, from: newDate }));
+                    }
+                  }}
+                  className="w-36"
                 />
-              </PopoverContent>
-            </Popover>
+              </div>
+              <div>
+                <Input
+                  type="date"
+                  value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const newDate = e.target.value ? new Date(e.target.value) : undefined;
+                    if (newDate) {
+                      setDateRange(prev => ({ ...prev, to: newDate }));
+                    }
+                  }}
+                  className="w-36"
+                />
+              </div>
+            </div>
           )}
 
           <Button

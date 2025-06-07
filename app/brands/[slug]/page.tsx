@@ -9,9 +9,9 @@ import Image from "next/image";
 import ClientSideCategoryPage from "../../categories/[slug]/components/ClientSideCategoryPage";
 
 type PageParams = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 interface Brand {
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BrandPage({ params }: PageParams) {
-  const slug = params.slug;
+  const { slug } = await params;
   const brand = await getBrand(slug);
 
   if (!brand) {
