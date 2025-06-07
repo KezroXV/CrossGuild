@@ -9,7 +9,7 @@ import {
   SquarePenIcon,
 } from "lucide-react";
 import { Item, ItemIcon, ItemTitle, ItemDescription } from "../../ui/item";
-import { Section } from "../../ui/section";
+import { Section } from "lucide-react";
 import { ReactNode } from "react";
 
 interface ItemProps {
