@@ -101,7 +101,7 @@ export default function ReportsPage() {
     };
 
     fetchReportData();
-  }, [timeframe, dateRange]);  // Export reports as CSV
+  }, [timeframe, dateRange]); // Export reports as CSV
   const handleExportCSV = (reportType: string) => {
     let csvData;
     let fileName;
@@ -152,15 +152,22 @@ export default function ReportsPage() {
               <SelectItem value="year">This Year</SelectItem>
               <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
-          </Select>          {timeframe === "custom" && (
-            <div className="flex gap-2">              <div>
+          </Select>{" "}
+          {timeframe === "custom" && (
+            <div className="flex gap-2">
+              {" "}
+              <div>
                 <Input
                   type="date"
-                  value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
+                  value={
+                    dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""
+                  }
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const newDate = e.target.value ? new Date(e.target.value) : undefined;
+                    const newDate = e.target.value
+                      ? new Date(e.target.value)
+                      : undefined;
                     if (newDate) {
-                      setDateRange(prev => ({ ...prev, from: newDate }));
+                      setDateRange((prev) => ({ ...prev, from: newDate }));
                     }
                   }}
                   className="w-36"
@@ -171,9 +178,11 @@ export default function ReportsPage() {
                   type="date"
                   value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const newDate = e.target.value ? new Date(e.target.value) : undefined;
+                    const newDate = e.target.value
+                      ? new Date(e.target.value)
+                      : undefined;
                     if (newDate) {
-                      setDateRange(prev => ({ ...prev, to: newDate }));
+                      setDateRange((prev) => ({ ...prev, to: newDate }));
                     }
                   }}
                   className="w-36"
@@ -181,7 +190,6 @@ export default function ReportsPage() {
               </div>
             </div>
           )}
-
           <Button
             variant="outline"
             onClick={() => setCompareMode(!compareMode)}
