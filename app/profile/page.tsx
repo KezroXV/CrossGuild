@@ -68,7 +68,7 @@ import {
 import { Home } from "lucide-react"; // Import Home icon
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
-
+import Image from "next/image";
 // Form schemas
 const personalInfoSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -461,13 +461,15 @@ export default function ProfilePage() {
                       {/* Profile Photo */}
                       <div className="flex flex-col items-center space-y-4 mb-6">
                         <div className="relative h-24 w-24 rounded-full overflow-hidden border">
-                          <img
+                          <Image
                             src={
                               imagePreview ||
                               session?.user?.image ||
                               "/placeholder-avatar.png"
                             }
                             alt="Avatar"
+                            width={96}
+                            height={96}
                             className="h-full w-full object-cover"
                           />
                         </div>
