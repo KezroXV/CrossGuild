@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { writeFile } from "fs/promises";
-import { join } from "path";
 
 export async function GET() {
   try {
@@ -39,46 +37,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const logo = formData.get("logo") as File;
-
-    // Gérer le fichier uploadé
-    if (logo) {
-      const bytes = await logo.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Créer un nom de fichier unique
-      const filename = `${Date.now()}-${logo.name}`;
-      const path = join(process.cwd(), "public/uploads", filename);
-
-      // Sauvegarder le fichier
-      await writeFile(path, buffer);
-
-      // Créer la marque avec le chemin du fichier
-      const brand = await prisma.brand.create({
-        data: {
-          name,
-          description,
-          logo: `/uploads/${filename}`,
-        },
-        select: {
-          id: true,
-          name: true,
-          logo: true,
-          description: true,
-        },
-      });
-
-      return NextResponse.json(brand);
+    const { name, description, logo } = await request.json();
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
-
-    // Si pas de logo, créer la marque sans logo
     const brand = await prisma.brand.create({
       data: {
         name,
         description,
+        logo, // logo est une URL ou undefined
       },
       select: {
         id: true,
@@ -87,12 +54,21 @@ export async function POST(request: Request) {
         description: true,
       },
     });
-
     return NextResponse.json(brand);
   } catch (error) {
     console.error("Error creating brand:", error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          error: "Error creating brand",
+          message: error.message,
+          stack: error.stack,
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: "Error creating brand" },
+      { error: "Error creating brand", message: String(error) },
       { status: 500 }
     );
   }

@@ -138,7 +138,8 @@ export async function POST(request: Request) {
           opt.name.trim() !== "" &&
           Array.isArray(opt.values) &&
           opt.values.length > 0
-      ) || []; // Création du produit
+      ) || [];
+    // Création du produit
     const product = await prisma.item.create({
       data: {
         name,

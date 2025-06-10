@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { writeFile } from "fs/promises";
 import { join } from "path";
 import { existsSync, unlinkSync } from "fs";
 
@@ -10,53 +8,18 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const formData = await request.formData();
     const id = params.id;
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string | null;
-    const logo = formData.get("logo") as File | null;
-
-    // Get the current brand data to check for existing logo
-    const existingBrand = await prisma.brand.findUnique({
-      where: { id },
-      select: { logo: true },
-    });
-
-    if (!existingBrand) {
-      return NextResponse.json({ error: "Brand not found" }, { status: 404 });
+    const { name, description, logo } = await request.json();
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
-
-    const updateData: any = {
-      name,
-      description: description || undefined,
-    };
-
-    // Handle logo upload if provided
-    if (logo && logo.size > 0) {
-      const bytes = await logo.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Create unique filename
-      const filename = `${Date.now()}-${logo.name}`;
-      const path = join(process.cwd(), "public/uploads", filename);
-
-      // Save the file
-      await writeFile(path, buffer);
-      updateData.logo = `/uploads/${filename}`;
-
-      // Remove old logo file if it exists
-      if (existingBrand.logo) {
-        const oldPath = join(process.cwd(), "public", existingBrand.logo);
-        if (existsSync(oldPath)) {
-          unlinkSync(oldPath);
-        }
-      }
-    }
-
-    // Update the brand
     const brand = await prisma.brand.update({
       where: { id },
-      data: updateData,
+      data: {
+        name,
+        description,
+        logo, // logo est une URL ou undefined
+      },
       select: {
         id: true,
         name: true,
@@ -64,12 +27,21 @@ export async function PUT(
         description: true,
       },
     });
-
     return NextResponse.json(brand);
   } catch (error) {
     console.error("Error updating brand:", error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          error: "Error updating brand",
+          message: error.message,
+          stack: error.stack,
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: "Error updating brand" },
+      { error: "Error updating brand", message: String(error) },
       { status: 500 }
     );
   }
