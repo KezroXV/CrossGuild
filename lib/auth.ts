@@ -7,6 +7,15 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
+// Debug: log provider env variables in production
+if (process.env.NODE_ENV === "production") {
+  console.log("GITHUB_ID", process.env.GITHUB_ID);
+  console.log("GITHUB_SECRET", process.env.GITHUB_SECRET);
+  console.log("GOOGLE_ID", process.env.GOOGLE_ID);
+  console.log("GOOGLE_SECRET", process.env.GOOGLE_SECRET);
+  console.log("NEXTAUTH_URL", process.env.NEXTAUTH_URL);
+}
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -108,6 +117,10 @@ export const {
         }
       }
       return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // Toujours rediriger vers le domaine principal (production)
+      return baseUrl;
     },
   },
   providers: [
