@@ -112,6 +112,24 @@ export async function POST(request: Request) {
       );
     }
 
+    // Vérification des URLs d'images
+    if (Array.isArray(images)) {
+      for (const url of images) {
+        if (
+          typeof url !== "string" ||
+          (!url.startsWith("http") && !url.startsWith("/uploads/"))
+        ) {
+          return NextResponse.json(
+            {
+              error:
+                "Each image must be a valid URL (http(s):// ou /uploads/...)",
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const priceValue = parseFloat(price);
     const costValue = parseFloat(cost || "0");
     const quantityValue = parseInt(quantity);

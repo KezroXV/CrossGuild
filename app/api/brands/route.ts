@@ -41,6 +41,16 @@ export async function POST(request: Request) {
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
+    if (
+      logo &&
+      (typeof logo !== "string" ||
+        (!logo.startsWith("http") && !logo.startsWith("/uploads/")))
+    ) {
+      return NextResponse.json(
+        { error: "Logo must be a valid URL (http(s):// ou /uploads/...)" },
+        { status: 400 }
+      );
+    }
     const brand = await prisma.brand.create({
       data: {
         name,
