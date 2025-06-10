@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
 
 export async function POST(req: Request) {
   try {
@@ -32,30 +29,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Créer un nom de fichier unique
-    const uniqueFilename = `${uuidv4()}${path.extname(file.name || ".jpg")}`;
-
-    // Chemin de sauvegarde relatif au dossier public
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "profiles");
-
-    // S'assurer que le dossier existe
-    try {
-      await mkdir(uploadDir, { recursive: true });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      console.log("Directory already exists or cannot be created");
+    // Vérifier la taille du fichier (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File size exceeds the 5MB limit" },
+        { status: 400 }
+      );
     }
 
-    const filePath = path.join(uploadDir, uniqueFilename);
+    // Utiliser l'API d'upload existante qui utilise Cloudinary
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
 
-    // Convertir le fichier en buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const uploadResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upload`, {
+      method: "POST",
+      body: uploadFormData,
+    });
 
-    // Écrire le fichier
-    await writeFile(filePath, buffer);
+    if (!uploadResponse.ok) {
+      throw new Error("Failed to upload image to Cloudinary");
+    }
 
-    // URL relative pour accéder à l'image depuis le frontend
-    const imageUrl = `/uploads/profiles/${uniqueFilename}`;
+    const uploadResult = await uploadResponse.json();
+    const imageUrl = uploadResult.url;
 
     // Mettre à jour l'URL de l'image de l'utilisateur dans la base de données
     await prisma.user.update({

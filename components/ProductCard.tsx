@@ -211,10 +211,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
             ))}
             <span className="ml-1 text-xs text-muted-foreground">
               ({item.averageRating?.toFixed(1) || "0.0"})
-            </span>
-          </div>
+            </span>          </div>
           <p className="text-gray-600">{item.brand?.name}</p>
-          <p className="text-lg font-bold">{item.price} </p>
+          <p className="text-lg font-bold">{item.price} €</p>
           <p className="text-sm text-gray-500">
             {item.quantity > 0 ? `In Stock: ${item.quantity}` : "Out of Stock"}
           </p>

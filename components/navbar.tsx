@@ -198,14 +198,19 @@ export const Navbar = () => {
                 )}
               </Link>
               <ModeToggle />
-              {session?.user ? (
-                <div className="relative group">
+              {session?.user ? (                <div className="relative group">
                   <Image
-                    src={session.user.image || "/default-avatar.png"}
+                    src={session.user.image || "/images/default-avatar.svg"}
                     alt="Profile"
                     width={60}
                     height={60}
                     className="rounded-full cursor-pointer border-2 border-transparent group-hover:border-accent transition-colors"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== "/images/default-avatar.svg") {
+                        target.src = "/images/default-avatar.svg";
+                      }
+                    }}
                   />
                   <div className="absolute right-0 w-48 mt-2 py-2 bg-background rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <Link

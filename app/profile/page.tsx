@@ -459,18 +459,23 @@ export default function ProfilePage() {
                       className="space-y-6"
                     >
                       {/* Profile Photo */}
-                      <div className="flex flex-col items-center space-y-4 mb-6">
-                        <div className="relative h-24 w-24 rounded-full overflow-hidden border">
+                      <div className="flex flex-col items-center space-y-4 mb-6">                        <div className="relative h-24 w-24 rounded-full overflow-hidden border">
                           <Image
                             src={
                               imagePreview ||
                               session?.user?.image ||
-                              "/placeholder-avatar.png"
+                              "/images/default-avatar.svg"
                             }
                             alt="Avatar"
                             width={96}
                             height={96}
                             className="h-full w-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              if (target.src !== "/images/default-avatar.svg") {
+                                target.src = "/images/default-avatar.svg";
+                              }
+                            }}
                           />
                         </div>
                         <div className="flex flex-col items-center space-y-2">
