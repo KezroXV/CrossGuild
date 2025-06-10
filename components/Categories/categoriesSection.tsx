@@ -52,13 +52,18 @@ const CategoriesSection = () => {
           >
             <Card className="overflow-hidden shadow-md border-4 cursor-pointer p-4 hover:border-accent transition-colors">
               <CardContent className="p-4 flex flex-col items-center">
-                <div className="relative w-full aspect-square max-w-[200px]">
-                  <Image
-                    src={category.image || "/images/placeholder.jpg"}
+                <div className="relative w-full aspect-square max-w-[200px]">                  <Image
+                    src={category.image || "/images/placeholder-product.svg"}
                     alt={category.name}
                     fill
                     className="object-contain p-2"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== "/images/placeholder-product.svg") {
+                        target.src = "/images/placeholder-product.svg";
+                      }
+                    }}
                   />
                 </div>
               </CardContent>

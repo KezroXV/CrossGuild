@@ -50,17 +50,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
             className={`relative w-full ${
               showFullDetails ? "h-[400px]" : "h-[200px]"
             } flex items-center justify-center p-4`}
-          >
-            <Image
+          >            <Image
               src={
                 item.images?.length > 0
                   ? item.images[0].url
-                  : "/path/to/default.jpg"
+                  : "/images/placeholder-product.svg"
               }
               alt={item.name}
               fill
               className="object-contain p-2"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src !== "/images/placeholder-product.svg") {
+                  target.src = "/images/placeholder-product.svg";
+                }
+              }}
             />
           </div>
           <CardTitle

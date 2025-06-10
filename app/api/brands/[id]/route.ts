@@ -8,17 +8,51 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const formData = await request.formData();
     const id = params.id;
-    const { name, description, logo } = await request.json();
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const logo = formData.get("logo") as File | string;
+
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
+
+    let logoUrl: string | undefined;
+
+    // Si logo est un File, on l'upload vers Cloudinary
+    if (logo && logo instanceof File && logo.size > 0) {
+      const logoFormData = new FormData();
+      logoFormData.append("file", logo);
+      
+      const uploadResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upload`, {
+        method: "POST",
+        body: logoFormData,
+      });
+      
+      if (uploadResponse.ok) {
+        const uploadResult = await uploadResponse.json();
+        logoUrl = uploadResult.url;
+      }
+    } else if (logo && typeof logo === "string") {
+      // Si logo est déjà une URL, on la garde
+      logoUrl = logo;
+    }
+
+    // Vérification de l'URL si elle existe
+    if (logoUrl && (typeof logoUrl !== "string" || (!logoUrl.startsWith("http") && !logoUrl.startsWith("/uploads/") && !logoUrl.includes("cloudinary.com")))) {
+      return NextResponse.json(
+        { error: "Logo must be a valid URL (http(s)://, /uploads/... ou cloudinary.com)" },
+        { status: 400 }
+      );
+    }
+
     const brand = await prisma.brand.update({
       where: { id },
       data: {
         name,
-        description,
-        logo, // logo est une URL ou undefined
+        description: description || undefined,
+        logo: logoUrl,
       },
       select: {
         id: true,

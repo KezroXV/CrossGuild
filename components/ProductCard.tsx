@@ -176,14 +176,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
           />
         </button>
 
-        <CardHeader className="pb-0">
-          <div className="relative w-full h-[200px] flex items-center justify-center p-4">
+        <CardHeader className="pb-0">          <div className="relative w-full h-[200px] flex items-center justify-center p-4">
             <Image
-              src={item.images[0]?.url || "/path/to/default.jpg"}
+              src={item.images[0]?.url || "/images/placeholder-product.svg"}
               alt={item.name}
               fill
               className="object-contain p-2"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src !== "/images/placeholder-product.svg") {
+                  target.src = "/images/placeholder-product.svg";
+                }
+              }}
             />
           </div>
           <CardTitle className="text-xl text-left font-semibold truncate">

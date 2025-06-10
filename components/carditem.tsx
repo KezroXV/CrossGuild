@@ -37,13 +37,18 @@ const CardItem = ({
   const card = (
     <Card className="flex flex-col h-full">
       <CardHeader className="pb-0">
-        <div className="relative w-full h-[200px]">
-          <Image
-            src={product.images[0]?.url || "/images/placeholder-product.png"}
+        <div className="relative w-full h-[200px]">          <Image
+            src={product.images[0]?.url || "/images/placeholder-product.svg"}
             alt={product.name}
             fill
             className="object-contain"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== "/images/placeholder-product.svg") {
+                target.src = "/images/placeholder-product.svg";
+              }
+            }}
           />
         </div>
         <CardTitle className="text-lg mt-2 truncate">{product.name}</CardTitle>
