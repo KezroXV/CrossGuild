@@ -40,14 +40,13 @@ export async function POST(request: Request) {
     const { name, description, logo } = await request.json();
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-    if (
+    }    if (
       logo &&
       (typeof logo !== "string" ||
-        (!logo.startsWith("http") && !logo.startsWith("/uploads/")))
+        (!logo.startsWith("http") && !logo.startsWith("/uploads/") && !logo.includes("cloudinary.com")))
     ) {
       return NextResponse.json(
-        { error: "Logo must be a valid URL (http(s):// ou /uploads/...)" },
+        { error: "Logo must be a valid URL (http(s)://, /uploads/... ou cloudinary.com)" },
         { status: 400 }
       );
     }

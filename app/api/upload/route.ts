@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { Readable } from "stream";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+async function bufferToStream(buffer: Buffer) {
+  const readable = new Readable();
+  readable._read = () => {};
+  readable.push(buffer);
+  readable.push(null);
+  return readable;
+}
 
 export async function POST(request: Request) {
   try {
@@ -32,29 +45,27 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create a unique filename
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      console.error("Error creating directory:", error);
-    }
-
-    // Save the file
-    const filePath = path.join(uploadDir, fileName);
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
 
-    // Return the URL to the saved file
-    const fileUrl = `/uploads/${fileName}`;
+    // Upload to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { 
+          folder: "crossguild",
+          resource_type: "image"
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      bufferToStream(buffer).then((readable) => readable.pipe(stream));
+    });    // @ts-expect-error Cloudinary upload result type is not properly typed
+    const url = uploadResult.secure_url;
 
     return NextResponse.json({
       success: true,
-      url: fileUrl,
+      url,
     });
   } catch (error) {
     console.error("Error uploading file:", error);

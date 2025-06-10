@@ -110,19 +110,17 @@ export async function POST(request: Request) {
         { error: "Quantity is required and must be a number" },
         { status: 400 }
       );
-    }
-
-    // Vérification des URLs d'images
+    }    // Vérification des URLs d'images
     if (Array.isArray(images)) {
       for (const url of images) {
         if (
           typeof url !== "string" ||
-          (!url.startsWith("http") && !url.startsWith("/uploads/"))
+          (!url.startsWith("http") && !url.startsWith("/uploads/") && !url.includes("cloudinary.com"))
         ) {
           return NextResponse.json(
             {
               error:
-                "Each image must be a valid URL (http(s):// ou /uploads/...)",
+                "Each image must be a valid URL (http(s)://, /uploads/... ou cloudinary.com)",
             },
             { status: 400 }
           );
