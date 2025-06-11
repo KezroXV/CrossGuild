@@ -204,8 +204,8 @@ export const Navbar = () => {
                   <SafeAvatar
                     src={session.user.image}
                     alt="Profile"
-                    width={60}
-                    height={60}
+                    width={40}
+                    height={40}
                     className="cursor-pointer border-2 border-transparent group-hover:border-accent transition-colors"
                   />
                   <div className="absolute right-0 w-48 mt-2 py-2 bg-background rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
