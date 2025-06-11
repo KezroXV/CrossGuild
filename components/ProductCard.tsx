@@ -176,7 +176,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
           />
         </button>
 
-        <CardHeader className="pb-0">          <div className="relative w-full h-[200px] flex items-center justify-center p-4">
+        <CardHeader className="pb-0">
+          {" "}
+          <div className="relative w-full h-[200px] flex items-center justify-center p-4">
             <Image
               src={item.images[0]?.url || "/images/placeholder-product.svg"}
               alt={item.name}
@@ -211,7 +213,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
             ))}
             <span className="ml-1 text-xs text-muted-foreground">
               ({item.averageRating?.toFixed(1) || "0.0"})
-            </span>          </div>
+            </span>{" "}
+          </div>
           <p className="text-gray-600">{item.brand?.name}</p>
           <p className="text-lg font-bold">{item.price} €</p>
           <p className="text-sm text-gray-500">

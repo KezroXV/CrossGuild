@@ -37,7 +37,9 @@ const CardItem = ({
   const card = (
     <Card className="flex flex-col h-full">
       <CardHeader className="pb-0">
-        <div className="relative w-full h-[200px]">          <Image
+        <div className="relative w-full h-[200px]">
+          {" "}
+          <Image
             src={product.images[0]?.url || "/images/placeholder-product.svg"}
             alt={product.name}
             fill

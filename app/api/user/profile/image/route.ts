@@ -22,7 +22,7 @@ async function bufferToStream(buffer: Buffer) {
 export async function POST(req: Request) {
   try {
     console.log("[PROFILE_IMAGE_UPLOAD] Starting profile image upload...");
-    
+
     const session = await auth();
 
     if (!session?.user) {
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     }
 
     console.log("[PROFILE_IMAGE_UPLOAD] Uploading to Cloudinary...");
-    
+
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
     console.log("[PROFILE_IMAGE_UPLOAD] Buffer created, size:", buffer.length);
@@ -76,16 +76,19 @@ export async function POST(req: Request) {
     // Upload directly to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { 
+        {
           folder: "crossguild/profiles",
-          resource_type: "image"
+          resource_type: "image",
         },
         (error, result) => {
           if (error) {
             console.error("[PROFILE_IMAGE_UPLOAD] Cloudinary error:", error);
             reject(error);
           } else {
-            console.log("[PROFILE_IMAGE_UPLOAD] Cloudinary success:", result?.secure_url);
+            console.log(
+              "[PROFILE_IMAGE_UPLOAD] Cloudinary success:",
+              result?.secure_url
+            );
             resolve(result);
           }
         }
@@ -101,8 +104,11 @@ export async function POST(req: Request) {
       throw new Error("Upload successful but no URL returned");
     }
 
-    console.log("[PROFILE_IMAGE_UPLOAD] Image uploaded successfully:", imageUrl);
-    
+    console.log(
+      "[PROFILE_IMAGE_UPLOAD] Image uploaded successfully:",
+      imageUrl
+    );
+
     // Update user image URL in database
     console.log("[PROFILE_IMAGE_UPLOAD] Updating database...");
     await prisma.user.update({

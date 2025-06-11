@@ -54,7 +54,9 @@ export default function BrandsPage() {
                 >
                   <Card className="overflow-hidden shadow-md border-4 cursor-pointer p-2 hover:border-accent transition">
                     <CardContent className="p-2 flex flex-col items-center">
-                      <div className="relative w-full aspect-square max-w-[150px]">                        <Image
+                      <div className="relative w-full aspect-square max-w-[150px]">
+                        {" "}
+                        <Image
                           src={brand.logo || "/images/placeholder-product.svg"}
                           alt={brand.name}
                           fill
@@ -62,7 +64,9 @@ export default function BrandsPage() {
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            if (target.src !== "/images/placeholder-product.svg") {
+                            if (
+                              target.src !== "/images/placeholder-product.svg"
+                            ) {
                               target.src = "/images/placeholder-product.svg";
                             }
                           }}

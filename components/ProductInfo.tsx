@@ -50,7 +50,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             className={`relative w-full ${
               showFullDetails ? "h-[400px]" : "h-[200px]"
             } flex items-center justify-center p-4`}
-          >            <Image
+          >
+            {" "}
+            <Image
               src={
                 item.images?.length > 0
                   ? item.images[0].url

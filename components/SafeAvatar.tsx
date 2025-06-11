@@ -19,7 +19,14 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
 }) => {
   // Debug logging
   if (process.env.NODE_ENV === "development") {
-    console.log("SafeAvatar props:", { src, alt, width, height, className, userName });
+    console.log("SafeAvatar props:", {
+      src,
+      alt,
+      width,
+      height,
+      className,
+      userName,
+    });
   }
 
   // Get initials from user name for avatar fallback
@@ -45,13 +52,11 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
     console.log("SafeAvatar finalSrc:", finalSrc);
   }
   return (
-    <Avatar className={`${className}`} style={{ width: `${width}px`, height: `${height}px` }}>
-      {finalSrc && (
-        <AvatarImage
-          src={finalSrc}
-          alt={alt}
-        />
-      )}
+    <Avatar
+      className={`${className}`}
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      {finalSrc && <AvatarImage src={finalSrc} alt={alt} />}
       <AvatarFallback className="text-xs">
         {getInitials(userName)}
       </AvatarFallback>

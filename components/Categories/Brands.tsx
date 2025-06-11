@@ -57,7 +57,9 @@ const Brands = () => {
             >
               <Card className="overflow-hidden shadow-md border-4 cursor-pointer p-2 hover:border-accent transition">
                 <CardContent className="p-2 flex flex-col items-center">
-                  <div className="relative w-full aspect-square max-w-[150px]">                    <Image
+                  <div className="relative w-full aspect-square max-w-[150px]">
+                    {" "}
+                    <Image
                       src={brand.logo || "/images/placeholder-product.svg"}
                       alt={brand.name}
                       fill

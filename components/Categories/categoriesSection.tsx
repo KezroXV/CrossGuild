@@ -52,7 +52,9 @@ const CategoriesSection = () => {
           >
             <Card className="overflow-hidden shadow-md border-4 cursor-pointer p-4 hover:border-accent transition-colors">
               <CardContent className="p-4 flex flex-col items-center">
-                <div className="relative w-full aspect-square max-w-[200px]">                  <Image
+                <div className="relative w-full aspect-square max-w-[200px]">
+                  {" "}
+                  <Image
                     src={category.image || "/images/placeholder-product.svg"}
                     alt={category.name}
                     fill

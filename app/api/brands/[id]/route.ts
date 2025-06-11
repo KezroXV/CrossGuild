@@ -24,12 +24,15 @@ export async function PUT(
     if (logo && logo instanceof File && logo.size > 0) {
       const logoFormData = new FormData();
       logoFormData.append("file", logo);
-      
-      const uploadResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upload`, {
-        method: "POST",
-        body: logoFormData,
-      });
-      
+
+      const uploadResponse = await fetch(
+        `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/upload`,
+        {
+          method: "POST",
+          body: logoFormData,
+        }
+      );
+
       if (uploadResponse.ok) {
         const uploadResult = await uploadResponse.json();
         logoUrl = uploadResult.url;
@@ -40,9 +43,18 @@ export async function PUT(
     }
 
     // Vérification de l'URL si elle existe
-    if (logoUrl && (typeof logoUrl !== "string" || (!logoUrl.startsWith("http") && !logoUrl.startsWith("/uploads/") && !logoUrl.includes("cloudinary.com")))) {
+    if (
+      logoUrl &&
+      (typeof logoUrl !== "string" ||
+        (!logoUrl.startsWith("http") &&
+          !logoUrl.startsWith("/uploads/") &&
+          !logoUrl.includes("cloudinary.com")))
+    ) {
       return NextResponse.json(
-        { error: "Logo must be a valid URL (http(s)://, /uploads/... ou cloudinary.com)" },
+        {
+          error:
+            "Logo must be a valid URL (http(s)://, /uploads/... ou cloudinary.com)",
+        },
         { status: 400 }
       );
     }

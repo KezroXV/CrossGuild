@@ -459,7 +459,9 @@ export default function ProfilePage() {
                       className="space-y-6"
                     >
                       {/* Profile Photo */}
-                      <div className="flex flex-col items-center space-y-4 mb-6">                        <div className="relative h-24 w-24 rounded-full overflow-hidden border">
+                      <div className="flex flex-col items-center space-y-4 mb-6">
+                        {" "}
+                        <div className="relative h-24 w-24 rounded-full overflow-hidden border">
                           <Image
                             src={
                               imagePreview ||

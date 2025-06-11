@@ -50,9 +50,9 @@ export async function POST(request: Request) {
     // Upload to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { 
+        {
           folder: "crossguild",
-          resource_type: "image"
+          resource_type: "image",
         },
         (error, result) => {
           if (error) reject(error);
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         }
       );
       bufferToStream(buffer).then((readable) => readable.pipe(stream));
-    });    // @ts-expect-error Cloudinary upload result type is not properly typed
+    }); // @ts-expect-error Cloudinary upload result type is not properly typed
     const url = uploadResult.secure_url;
 
     return NextResponse.json({
