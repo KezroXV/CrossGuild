@@ -198,7 +198,8 @@ export const Navbar = () => {
                   </span>
                 )}
               </Link>
-              <ModeToggle />              {session?.user ? (
+              <ModeToggle />{" "}
+              {session?.user ? (
                 <div className="relative group">
                   <SafeAvatar
                     src={session.user.image}
@@ -307,7 +308,8 @@ export const Navbar = () => {
                   )}
                 </Link>
                 <ModeToggle />
-              </div>              {session?.user ? (
+              </div>{" "}
+              {session?.user ? (
                 <div className="flex items-center space-x-3">
                   <SafeAvatar
                     src={session.user.image}

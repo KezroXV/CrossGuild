@@ -1,5 +1,4 @@
-import { useState } from "react";
-import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface SafeAvatarProps {
   src?: string | null;
@@ -7,7 +6,7 @@ interface SafeAvatarProps {
   width?: number;
   height?: number;
   className?: string;
-  fallbackSrc?: string;
+  userName?: string; // For generating initials fallback
 }
 
 const SafeAvatar: React.FC<SafeAvatarProps> = ({
@@ -16,33 +15,47 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
   width = 40,
   height = 40,
   className = "",
-  fallbackSrc = "/images/default-avatar.svg",
+  userName,
 }) => {
-  const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
-  const [hasError, setHasError] = useState(false);
+  // Debug logging
+  if (process.env.NODE_ENV === "development") {
+    console.log("SafeAvatar props:", { src, alt, width, height, className, userName });
+  }
 
-  const handleError = () => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(fallbackSrc);
-    }
+  // Get initials from user name for avatar fallback
+  const getInitials = (name?: string) => {
+    if (!name || name === "Anonymous" || name === "Anonymous User") return "?";
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   // Check if the image URL is problematic (local uploads that won't work in production)
   const isProblematicUrl =
-    imgSrc?.startsWith("/uploads/") && process.env.NODE_ENV === "production";
+    src?.startsWith("/uploads/") && process.env.NODE_ENV === "production";
 
-  const finalSrc = isProblematicUrl ? fallbackSrc : imgSrc || fallbackSrc;
+  // Don't use problematic URLs in production
+  const finalSrc = isProblematicUrl ? null : src;
 
+  // Debug the final src
+  if (process.env.NODE_ENV === "development") {
+    console.log("SafeAvatar finalSrc:", finalSrc);
+  }
   return (
-    <Image
-      src={finalSrc}
-      alt={alt}
-      width={width}
-      height={height}
-      className={`rounded-full ${className}`}
-      onError={handleError}
-    />
+    <Avatar className={`${className}`} style={{ width: `${width}px`, height: `${height}px` }}>
+      {finalSrc && (
+        <AvatarImage
+          src={finalSrc}
+          alt={alt}
+        />
+      )}
+      <AvatarFallback className="text-xs">
+        {getInitials(userName)}
+      </AvatarFallback>
+    </Avatar>
   );
 };
 
