@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -39,13 +39,14 @@ function ErrorContent() {
         return `Erreur d'authentification: ${error || "inconnue"}`;
     }
   };
-
-  // Log error for debugging
-  console.error("Auth Error Details:", {
-    error,
-    url: window.location.href,
-    timestamp: new Date().toISOString(),
-  });
+  // Log error for debugging (côté client seulement)
+  useEffect(() => {
+    console.error("Auth Error Details:", {
+      error,
+      url: typeof window !== 'undefined' ? window.location.href : 'server-side',
+      timestamp: new Date().toISOString(),
+    });
+  }, [error]);
 
   // Display appropriate error message based on parameter
   return (
@@ -63,7 +64,7 @@ function ErrorContent() {
           <AlertDescription className="text-yellow-700">
             <div className="text-sm font-mono">
               <div>Error code: {error || "null"}</div>
-              <div>URL: {window.location.href}</div>
+              <div>URL: {typeof window !== 'undefined' ? window.location.href : 'server-side'}</div>
               <div>Timestamp: {new Date().toISOString()}</div>
             </div>
           </AlertDescription>

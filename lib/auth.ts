@@ -7,13 +7,17 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-// Debug: log provider env variables in production
-if (process.env.NODE_ENV === "production") {
-  console.log("GITHUB_ID", process.env.GITHUB_ID);
-  console.log("GITHUB_SECRET", process.env.GITHUB_SECRET);
-  console.log("GOOGLE_ID", process.env.GOOGLE_ID);
-  console.log("GOOGLE_SECRET", process.env.GOOGLE_SECRET);
-  console.log("NEXTAUTH_URL", process.env.NEXTAUTH_URL);
+// Debug: log provider env variables (only in development)
+if (process.env.NODE_ENV === "development") {
+  console.log("Environment check:", {
+    GITHUB_ID: process.env.GITHUB_ID ? "✓" : "✗",
+    GITHUB_SECRET: process.env.GITHUB_SECRET ? "✓" : "✗", 
+    GOOGLE_ID: process.env.GOOGLE_ID ? "✓" : "✗",
+    GOOGLE_SECRET: process.env.GOOGLE_SECRET ? "✓" : "✗",
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    AUTH_SECRET: process.env.AUTH_SECRET ? "✓" : "✗",
+    NODE_ENV: process.env.NODE_ENV,
+  });
 }
 
 export const {
@@ -30,107 +34,63 @@ export const {
     signIn: "/login",
     error: "/login/error",
   },
-  callbacks: {
+  debug: process.env.NODE_ENV === "development",callbacks: {
     async session({ session, token }) {
-      // Ajouter l'ID utilisateur à la session
       if (session.user && token.sub) {
         session.user.id = token.sub;
-      }
-
-      // Ajouter isAdmin comme avant
-      if (session.user) {
+        
+        // Ajouter isAdmin
         const user = await prisma.user.findUnique({
           where: { id: token.sub },
           select: { isAdmin: true },
         });
         session.user.isAdmin = user?.isAdmin ?? false;
       }
-
       return session;
     },
-    async jwt({ token, user, trigger, session }) {
+    
+    async jwt({ token, user }) {
       if (user) {
         token.isAdmin = user.isAdmin;
       }
       return token;
     },
-    async signIn({ user, account, profile, email, credentials }) {
-      // Création automatique du panier lors de la première connexion sociale
+    
+    async signIn({ user, account, profile }) {
+      // Pour les providers OAuth, on laisse PrismaAdapter gérer la création
       if (account?.provider === "google" || account?.provider === "github") {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email ?? undefined },
-          include: { accounts: true, cart: true },
-        });
-
-        if (existingUser) {
-          // Vérifier si l'utilisateur a un panier
-          if (!existingUser.cart) {
-            // Créer un panier vide pour l'utilisateur
-            await prisma.cart.create({
-              data: {
-                userId: existingUser.id,
-              },
-            });
-          }
-
-          // Si l'utilisateur existe déjà mais n'a pas de compte lié avec ce provider
-          const existingAccount = existingUser.accounts.find(
-            (acc) => acc.provider === account.provider
-          );
-
-          if (!existingAccount) {
-            // Lier le nouveau compte au compte existant
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                refresh_token: account.refresh_token,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token,
-                session_state:
-                  typeof account.session_state === "string"
-                    ? account.session_state
-                    : null,
-              },
-            });
-          }
-        } else if (user.id) {
-          // Si l'utilisateur vient d'être créé via un provider social
-          // Vérifier si un panier existe déjà
-          const existingCart = await prisma.cart.findUnique({
-            where: { userId: user.id },
-          });
-
-          if (!existingCart) {
-            // Créer un panier
-            await prisma.cart.create({
-              data: {
-                userId: user.id,
-              },
-            });
-          }
-        }
+        return true; // Laisser PrismaAdapter faire son travail
       }
+      
+      // Pour credentials, vérifier que l'utilisateur existe
+      if (account?.provider === "credentials") {
+        return !!user;
+      }
+      
       return true;
     },
+    
     async redirect({ url, baseUrl }) {
-      // Toujours rediriger vers le domaine principal (production)
       return baseUrl;
     },
-  },
-  providers: [
+  },  providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID || "",
-      clientSecret: process.env.GITHUB_SECRET || "",
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
+      authorization: {
+        params: {
+          scope: "read:user user:email",
+        },
+      },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID || "",
-      clientSecret: process.env.GOOGLE_SECRET || "",
+      clientId: process.env.GOOGLE_ID!,
+      clientSecret: process.env.GOOGLE_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile",
+        },
+      },
     }),
     CredentialsProvider({
       name: "Credentials",
