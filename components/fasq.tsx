@@ -117,30 +117,34 @@ const Faqs = () => {
   const displayFaqs = faqs && faqs.length > 0 ? faqs : defaultFaqs;
 
   return (
-    <div className="my-28 max-w-4xl mx-auto mt-10 p-4 sm:p-6 md:mt-20 rounded-lg">
+    <div className="my-32 max-w-5xl mx-auto mt-10 p-4 sm:p-6 md:mt-20 rounded-lg">
       {/* Header Section */}
       <motion.div
-        className="text-center mb-8"
+        className="text-center mb-12"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeInVariant}
         transition={{ duration: 0.8, ease: "easeInOut" }}
       >
-        <h1 className="bg-gradient-to-r from-foreground to-foreground text-3xl sm:text-4xl md:text-5xl font-bold inline-block bg-clip-text text-transparent">
-          FAQ&apos;s
+        <h1 className="bg-gradient-to-r from-accent via-primary to-accent text-3xl sm:text-4xl md:text-5xl font-bold inline-block bg-clip-text text-transparent animate-gradient">
+          Questions Fréquentes
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2">
-          Providing answers to your questions
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mt-3">
+          Trouvez rapidement des réponses à vos questions
         </p>
       </motion.div>
 
       {/* Accordion Section */}
       <Accordion type="single" collapsible className="space-y-4">
         {loading ? (
-          <p className="text-center py-4 text-muted-foreground">
-            Loading FAQs...
-          </p>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-16 bg-muted rounded-lg"></div>
+              </div>
+            ))}
+          </div>
         ) : (
           displayFaqs.map((faq, index) => (
             <motion.div
@@ -149,23 +153,27 @@ const Faqs = () => {
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
               variants={fadeInVariant}
-              transition={{ duration: 0.5, delay: index * 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <AccordionItem
                 value={faq.id}
-                className="border-2 border-accent rounded-md overflow-hidden"
+                className="border-2 border-accent/20 hover:border-accent/50 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/10"
               >
                 <AccordionTrigger
-                  className="w-full flex justify-between items-center text-left text-base sm:text-lg font-medium p-4 transition-all bg-background hover:bg-muted"
+                  className="w-full flex justify-between items-center text-left text-base sm:text-lg font-semibold p-5 transition-all bg-background hover:bg-accent/5"
                   onClick={() => handleToggle(faq.id)}
                 >
-                  {typeof faq.question === "string"
-                    ? faq.question.toUpperCase()
-                    : faq.question}
+                  <span className="pr-4">
+                    {typeof faq.question === "string"
+                      ? faq.question.toUpperCase()
+                      : faq.question}
+                  </span>
                   <Image
                     src={arrow}
                     alt="arrow"
-                    className={`transition-transform ${
+                    width={20}
+                    height={20}
+                    className={`transition-transform duration-300 flex-shrink-0 ${
                       openItem === faq.id ? "rotate-180" : "rotate-0"
                     }`}
                   />
@@ -180,7 +188,7 @@ const Faqs = () => {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
-                      <AccordionContent className="p-4 text-sm sm:text-base md:text-lg text-foreground bg-muted">
+                      <AccordionContent className="p-5 text-sm sm:text-base md:text-lg text-foreground/90 bg-gradient-to-br from-muted/50 to-muted leading-relaxed">
                         {faq.answer}
                       </AccordionContent>
                     </m.div>
@@ -194,36 +202,43 @@ const Faqs = () => {
 
       {/* Contact Section */}
       <motion.div
-        className="mt-8"
+        className="mt-12 p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeInVariant}
-        transition={{ duration: 0.8, delay: 0.6 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
       >
+        <h3 className="text-xl font-bold mb-4 text-foreground">
+          Vous avez d&apos;autres questions ?
+        </h3>
         <textarea
-          className="w-full resize-none h-24 sm:h-28 md:h-32 p-4 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
-          placeholder="Still have questions? Write to us!"
+          className="w-full resize-none h-28 sm:h-32 md:h-36 p-4 border-2 border-border focus:border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 bg-background text-foreground transition-all duration-300"
+          placeholder="Posez votre question ici..."
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         ></textarea>
-        <div className="flex flex-col sm:flex-row justify-between mt-4">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 gap-4">
+          <div className="flex-1">
             <p className="text-sm text-muted-foreground">
-              We will answer your question via email within 48 hours.
+              📧 Nous répondrons à votre question par email sous 48 heures.
             </p>
             {messageSent && (
-              <p className="mt-2 text-sm text-green-500">
-                Your question has been successfully sent!
-              </p>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-2"
+              >
+                ✓ Votre question a été envoyée avec succès !
+              </motion.p>
             )}
           </div>
 
           <button
             onClick={handleSend}
-            className="mt-2 sm:mt-0 px-6 py-2 bg-accent text-accent-foreground font-medium rounded-md transition-all hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-secondary"
+            className="px-8 py-3 bg-accent text-accent-foreground font-semibold rounded-lg transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent active:scale-95"
           >
-            Send
+            Envoyer
           </button>
         </div>
       </motion.div>
