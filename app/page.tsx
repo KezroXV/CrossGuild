@@ -12,33 +12,29 @@ export default async function Home() {
   const session = await auth();
 
   return (
-<<<<<<< HEAD
     <div className="pt-px min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-purple-50/10 dark:to-purple-950/5">
-=======
-    <div className="pt-2px min-h-screen flex flex-col">
->>>>>>> 93b2ce4e34baec3e06e9eb9b1bc3f3219f930528
       <Navbar />
       <main className="flex-1 flex flex-col">
         <HeroSection />
-        
+
         {/* Séparateur visuel avec effet de gradient */}
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
-        
+
         <TopSellingGamingGear />
-        
+
         {/* Séparateur visuel */}
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
-        
+
         <Reviews />
-        
+
         {/* Séparateur visuel */}
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
-        
+
         <Offres />
-        
+
         {/* Séparateur visuel */}
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
-        
+
         <Faqs />
       </main>
       <Footer />
