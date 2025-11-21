@@ -63,19 +63,20 @@ export const HeroSection = () => {
   }
 
   return (
-    <section className="relative mt-20 flex flex-col items-center justify-center text-center text-white py-32 md:py-40 overflow-hidden">
+    <section className="relative mt-20 flex flex-col items-center justify-center text-center text-white py-32 md:py-40 overflow-hidden min-h-[600px] md:min-h-[700px]">
       {/* Image de fond avec overlay amélioré */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 rounded-lg">
         <Image
           src={content.backgroundImage}
           alt="Hero background"
           fill
           className="object-cover object-center rounded-lg transition-transform duration-700 hover:scale-105"
           priority
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80 rounded-lg"></div>
         {/* Effet de lumière ambiante */}
-        <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent opacity-50 rounded-lg"></div>
       </div>
 
       {/* Contenu texte avec animations */}
