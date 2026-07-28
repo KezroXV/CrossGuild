@@ -1,59 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/shared/lib/prisma";
+import { verifyEmail } from "@/features/auth/server/auth.server";
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { token: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ token: string }> }
 ) {
-  const token = params.token;
+  const baseUrl = process.env.NEXTAUTH_URL!;
+  const { token } = await params;
 
   try {
-    // Find verification token
-    const verificationToken = await prisma.verificationToken.findUnique({
-      where: { token },
-    });
+    const result = await verifyEmail(token);
 
-    if (!verificationToken) {
-      return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/verify-error?error=invalid-token`
-      );
+    if (result.status === "success") {
+      return NextResponse.redirect(`${baseUrl}/verify-success`);
     }
 
-    // Check if token is expired
-    if (verificationToken.expires < new Date()) {
-      return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/verify-error?error=expired-token`
-      );
-    }
-
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: verificationToken.identifier },
-    });
-
-    if (!user) {
-      return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/verify-error?error=user-not-found`
-      );
-    }
-
-    // Update user, set emailVerified
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: new Date() },
-    });
-
-    // Delete the used token
-    await prisma.verificationToken.delete({
-      where: { token: verificationToken.token },
-    });
-
-    // Redirect to success page
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verify-success`);
+    return NextResponse.redirect(
+      `${baseUrl}/verify-error?error=${result.status}`
+    );
   } catch (error) {
     console.error("Error confirming email:", error);
-    return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/verify-error?error=server-error`
-    );
+    return NextResponse.redirect(`${baseUrl}/verify-error?error=server-error`);
   }
 }
