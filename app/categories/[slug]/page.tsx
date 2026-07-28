@@ -6,6 +6,8 @@ import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import NewClientSideCategoryPage from "./components/NewClientSideCategoryPage";
 
+export const dynamic = "force-dynamic";
+
 // Modifié pour être compatible avec les attentes de type de Next.js
 type PageParams = {
   params: {
@@ -41,13 +43,6 @@ interface Category {
     topSelling: number;
     createdAt: Date;
   }>;
-}
-
-export async function generateStaticParams() {
-  const categories = await prisma.category.findMany();
-  return categories.map((category) => ({
-    slug: category.name.toLowerCase().replace(/ /g, "-"),
-  }));
 }
 
 async function getCategory(categorySlug: string) {

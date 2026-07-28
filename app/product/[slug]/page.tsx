@@ -6,6 +6,8 @@ import FooterSection from "@/components/footer";
 import ProductDetails from "@/components/ProductDetails";
 import { Navbar } from "@/components/navbar";
 
+export const dynamic = "force-dynamic";
+
 // Modifié pour être compatible avec les attentes de type de Next.js
 type PageParams = {
   params: {
@@ -29,23 +31,6 @@ interface Product {
     name: string;
     values: string[];
   }>;
-}
-
-export async function generateStaticParams() {
-  try {
-    const products = await prisma.item.findMany({
-      where: { isPublished: true },
-      select: {
-        slug: true,
-      },
-    });
-    return products.map((product) => ({
-      slug: product.slug,
-    }));
-  } catch (error) {
-    console.error("Error generating static params:", error);
-    return [];
-  }
 }
 
 async function getProduct(slug: string) {

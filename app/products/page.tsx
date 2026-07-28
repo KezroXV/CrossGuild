@@ -4,6 +4,8 @@ import FooterSection from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import ClientSideAllProductsPage from "./components/ClientSideAllProductsPage";
 
+export const dynamic = "force-dynamic";
+
 interface Item {
   id: string;
   name: string;

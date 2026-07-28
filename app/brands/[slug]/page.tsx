@@ -8,6 +8,8 @@ import Image from "next/image";
 // Importer le composant client pour le filtrage et le tri
 import ClientSideCategoryPage from "../../categories/[slug]/components/ClientSideCategoryPage";
 
+export const dynamic = "force-dynamic";
+
 type PageParams = {
   params: Promise<{
     slug: string;
@@ -31,13 +33,6 @@ interface Brand {
     averageRating: number;
     topSelling: number;
   }>;
-}
-
-export async function generateStaticParams() {
-  const brands = await prisma.brand.findMany();
-  return brands.map((brand) => ({
-    slug: brand.name.toLowerCase().replace(/\s+/g, "-"),
-  }));
 }
 
 async function getBrand(brandSlug: string): Promise<Brand | null> {

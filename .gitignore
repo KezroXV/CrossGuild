@@ -153,3 +153,9 @@ prisma/dev.db*
 # Upload files
 /public/uploads/*
 !public/uploads/.gitkeep
+
+# env files
+.env
+
+.REFACTOR_PROMPTS.md
+.refactor.md
