@@ -1,4 +1,4 @@
-import { sendEmail } from "@/lib/email";
+import { sendEmail } from "@/shared/lib/email";
 
 async function main() {
   const to = process.env.ALLOWED_TEST_EMAIL || "kezro10@gmail.com";
