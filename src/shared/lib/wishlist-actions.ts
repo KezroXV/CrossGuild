@@ -1,8 +1,12 @@
 "use server";
 
-import { auth } from "@/shared/lib/auth";
-import prisma from "./prisma";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/shared/lib/auth";
+import {
+  addItem,
+  removeItem,
+} from "@/features/wishlist/server/wishlist.server";
+import { NotFoundError } from "@/shared/lib/handle-api-error";
 
 export async function addToWishlist(itemId: string) {
   try {
@@ -16,42 +20,16 @@ export async function addToWishlist(itemId: string) {
       return { error: "L'ID de l'article est requis", success: false };
     }
 
-    // Vérifier si l'article existe
-    const item = await prisma.item.findUnique({
-      where: { id: itemId },
-    });
+    const result = await addItem(session.user.id, itemId);
 
-    if (!item) {
-      return { error: "Article non trouvé", success: false };
-    }
+    revalidatePath("/wishlist");
 
-    // Vérifier si l'article est déjà dans la liste de souhaits
-    const existingItem = await prisma.wishlistItem.findUnique({
-      where: {
-        userId_itemId: {
-          userId: session.user.id,
-          itemId,
-        },
-      },
-    });
-
-    if (existingItem) {
+    if (result.alreadyExists) {
       return {
         message: "L'article est déjà dans votre liste de souhaits",
         success: true,
       };
     }
-
-    // Ajouter l'article à la liste de souhaits
-    await prisma.wishlistItem.create({
-      data: {
-        userId: session.user.id,
-        itemId,
-      },
-    });
-
-    // Revalider le chemin
-    revalidatePath("/wishlist");
 
     return {
       message: "Article ajouté à votre liste de souhaits",
@@ -59,6 +37,11 @@ export async function addToWishlist(itemId: string) {
     };
   } catch (error) {
     console.error("[ADD_TO_WISHLIST]", error);
+
+    if (error instanceof NotFoundError) {
+      return { error: error.message, success: false };
+    }
+
     return {
       error:
         error instanceof Error
@@ -81,17 +64,8 @@ export async function removeFromWishlist(itemId: string) {
       return { error: "L'ID de l'article est requis", success: false };
     }
 
-    // Supprimer l'article de la liste de souhaits
-    await prisma.wishlistItem.delete({
-      where: {
-        userId_itemId: {
-          userId: session.user.id,
-          itemId,
-        },
-      },
-    });
+    await removeItem(session.user.id, itemId);
 
-    // Revalider le chemin
     revalidatePath("/wishlist");
 
     return {
@@ -100,6 +74,11 @@ export async function removeFromWishlist(itemId: string) {
     };
   } catch (error) {
     console.error("[REMOVE_FROM_WISHLIST]", error);
+
+    if (error instanceof NotFoundError) {
+      return { error: error.message, success: false };
+    }
+
     return {
       error:
         error instanceof Error

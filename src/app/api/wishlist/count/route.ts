@@ -1,6 +1,7 @@
-import prisma from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/shared/lib/auth";
+import { getCount } from "@/features/wishlist/server/wishlist.server";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export async function GET() {
   try {
@@ -10,11 +11,7 @@ export async function GET() {
       return NextResponse.json({ count: 0 });
     }
 
-    // Count the number of items in the user's wishlist
-    const count = await prisma.wishlistItem.count({
-      where: { userId: session.user.id },
-    });
-
+    const count = await getCount(session.user.id);
     return NextResponse.json({ count });
   } catch (error) {
     console.error("[WISHLIST_COUNT_GET]", error);

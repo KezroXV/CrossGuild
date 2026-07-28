@@ -1,6 +1,8 @@
-import prisma from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { auth } from "@/shared/lib/auth";
+import { isInWishlist } from "@/features/wishlist/server/wishlist.server";
+import { wishlistItemIdQuerySchema } from "@/features/wishlist/validations/wishlist.schema";
 
 export async function GET(req: Request) {
   try {
@@ -10,28 +12,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ inWishlist: false });
     }
 
-    const { searchParams } = new URL(req.url);
-    const itemId = searchParams.get("itemId");
+    const query = wishlistItemIdQuerySchema.parse({
+      itemId: new URL(req.url).searchParams.get("itemId"),
+    });
 
-    if (!itemId) {
+    const inWishlist = await isInWishlist(session.user.id, query.itemId);
+    return NextResponse.json({ inWishlist });
+  } catch (error) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { error: "Item ID is required" },
         { status: 400 }
       );
     }
 
-    // Check if the item is in the user's wishlist
-    const wishlistItem = await prisma.wishlistItem.findUnique({
-      where: {
-        userId_itemId: {
-          userId: session.user.id,
-          itemId,
-        },
-      },
-    });
-
-    return NextResponse.json({ inWishlist: !!wishlistItem });
-  } catch (error) {
     console.error("[WISHLIST_CHECK_GET]", error);
     return NextResponse.json({ inWishlist: false });
   }
