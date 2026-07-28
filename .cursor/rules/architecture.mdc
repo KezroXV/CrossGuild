@@ -1,0 +1,65 @@
+---
+description: CrossGuild feature-based architecture conventions (OST pattern)
+alwaysApply: true
+---
+
+# CrossGuild Architecture Rules
+
+Reference: `docs/ARCHITECTURE.md`
+
+## Pages must be thin
+
+- `src/app/**/page.tsx` → metadata + `<XxxView />` from `@/features/X/views/` (~15 lines max)
+- No business logic, data fetching, or large JSX in page files
+
+## Route handlers must be thin
+
+- `src/app/api/**/route.ts` → auth wrapper + validation + call to `@/features/X/server/X.server.ts`
+- **Never put Prisma queries directly in `route.ts`**
+
+## Feature structure
+
+Each domain under `src/features/X/`:
+
+```
+components/  hooks/  services/  server/  validations/  views/  types/
+```
+
+## Naming suffixes
+
+| Suffix | Role |
+|--------|------|
+| `.view.tsx` | Page-level view |
+| `.component.tsx` | UI component |
+| `.hook.ts` | React hook |
+| `.service.ts` | Client API calls |
+| `.server.ts` | Server/Prisma logic |
+| `.schema.ts` | Zod validation |
+| `.type.ts` | TypeScript types |
+
+## Import rules
+
+- Use `@/` path alias (`@/*` → `./src/*`)
+- Features import from `@/shared/` only — never from other features
+- `src/shared/` must not import from `src/features/`
+
+## Example: thin page
+
+```tsx
+import CartView from "@/features/cart/views/cart.view";
+
+export default function CartPage() {
+  return <CartView />;
+}
+```
+
+## Example: thin route
+
+```typescript
+import { getCart } from "@/features/cart/server/cart.server";
+
+export const GET = withAuth(async (_req, { session }) => {
+  const items = await getCart(session.user.id);
+  return apiSuccess({ items });
+});
+```
