@@ -1,71 +1,24 @@
-import { NextResponse } from "next/server";
-import prisma from "@/shared/lib/prisma";
+import { submitContactMessage } from "@/features/contact/server/contact.server";
+import {
+  handleApiError,
+  ValidationError,
+} from "@/shared/lib/handle-api-error";
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { name, email, subject, message, department } = data;
+    const result = await submitContactMessage(data);
 
-    if (!name || !email || !subject || !message || !department) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
-    const contactData = {
-      name,
-      email,
-      subject,
-      message,
-      department,
-      isResolved: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    try {
-      // Try to create a ContactMessage in the database
-      const newContact = await prisma.contactMessage.create({
-        data: contactData,
-      });
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Message sent successfully",
-          id: newContact.id,
-        },
-        { status: 201 }
-      );
-    } catch (dbError) {
-      console.error("Database error saving contact message:", dbError);
-
-      // Log the message for manual processing even if DB fails
-      console.log("CONTACT FORM SUBMISSION:", {
-        name,
-        email,
-        subject,
-        department,
-        message: message.substring(0, 50) + (message.length > 50 ? "..." : ""),
-        timestamp: new Date().toISOString(),
-      });
-
-      // Return success to the client even if DB operation fails
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Message received",
-          id: `temp-${Date.now()}`,
-        },
-        { status: 200 }
-      );
-    }
+    const status = result.id.startsWith("temp-") ? 200 : 201;
+    return Response.json(result, { status });
   } catch (error) {
     console.error("Error processing contact submission:", error);
 
-    // Return a generic error but with 200 status for better UX
-    return NextResponse.json(
+    if (error instanceof ValidationError) {
+      return handleApiError(error);
+    }
+
+    return Response.json(
       {
         success: true,
         message: "Message received",

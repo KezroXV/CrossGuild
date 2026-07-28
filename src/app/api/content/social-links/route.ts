@@ -1,31 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import {
+  getSocialLinks,
+  isMissingSocialLinksTable,
+  updateSocialLinks,
+} from "@/features/cms/server/social-links.server";
 import { withAdmin } from "@/shared/lib/with-admin";
-import prisma from "@/shared/lib/prisma";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export async function GET() {
   try {
-    const socialLinks = await prisma.socialLinks.findFirst();
-
-    if (!socialLinks) {
-      const newSocialLinks = await prisma.socialLinks.create({
-        data: {
-          facebook: "https://facebook.com/crossguild",
-          twitter: "https://twitter.com/crossguild",
-          instagram: "https://instagram.com/crossguild",
-          linkedin: "https://linkedin.com/company/crossguild",
-        },
-      });
-      return NextResponse.json(newSocialLinks);
-    }
-
-    return NextResponse.json(socialLinks);
+    const socialLinks = await getSocialLinks();
+    return Response.json(socialLinks);
   } catch (error) {
     console.error("Error fetching social links:", error);
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    if (errorMessage.includes("does not exist in the current database")) {
-      return NextResponse.json(
+    if (isMissingSocialLinksTable(error)) {
+      return Response.json(
         {
           error:
             "The SocialLinks table doesn't exist yet. Please run Prisma migrations.",
@@ -34,7 +24,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to fetch social media links" },
       { status: 500 }
     );
@@ -44,37 +34,10 @@ export async function GET() {
 export const PUT = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
-
-    const existingLinks = await prisma.socialLinks.findFirst();
-
-    let updatedLinks;
-    if (existingLinks) {
-      updatedLinks = await prisma.socialLinks.update({
-        where: { id: existingLinks.id },
-        data: {
-          facebook: data.facebook,
-          twitter: data.twitter,
-          instagram: data.instagram,
-          linkedin: data.linkedin,
-        },
-      });
-    } else {
-      updatedLinks = await prisma.socialLinks.create({
-        data: {
-          facebook: data.facebook,
-          twitter: data.twitter,
-          instagram: data.instagram,
-          linkedin: data.linkedin,
-        },
-      });
-    }
-
-    return NextResponse.json(updatedLinks);
+    const updatedLinks = await updateSocialLinks(data);
+    return Response.json(updatedLinks);
   } catch (error) {
     console.error("Error updating social links:", error);
-    return NextResponse.json(
-      { error: "Failed to update social media links" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 });
