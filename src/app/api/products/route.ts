@@ -1,35 +1,18 @@
-import prisma from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
+import { productListQuerySchema } from "@/features/products/validations/product.schema";
+import { getPublishedProducts } from "@/features/products/server/product.server";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const sort = searchParams.get("sort");
-
   try {
-    const products = await prisma.item.findMany({
-      where: {
-        isPublished: true,
-        topSelling: {
-          gt: 0,
-        },
-      },
-      orderBy: sort === "topSelling" ? { topSelling: "desc" } : undefined,
-      include: {
-        images: true,
-      },
+    const { searchParams } = new URL(request.url);
+    const query = productListQuerySchema.parse({
+      sort: searchParams.get("sort") ?? undefined,
     });
 
-    return NextResponse.json(
-      products.map((product) => ({
-        ...product,
-        slug: product.slug, // Assurez-vous que le slug est inclus
-      }))
-    );
+    const products = await getPublishedProducts(query);
+    return NextResponse.json(products);
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Error fetching products" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

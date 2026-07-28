@@ -1,44 +1,18 @@
 import { NextResponse } from "next/server";
-import prisma from "@/shared/lib/prisma";
+import { searchQuerySchema } from "@/features/products/validations/product.schema";
+import { searchProducts } from "@/features/products/server/search.server";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q");
-
-  if (!query) {
-    return NextResponse.json({ products: [] });
-  }
-
   try {
-    const products = await prisma.item.findMany({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: query,
-              mode: "insensitive",
-            },
-          },
-          {
-            description: {
-              contains: query,
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
-      include: {
-        images: true,
-      },
-      take: 5,
+    const { searchParams } = new URL(request.url);
+    const { q } = searchQuerySchema.parse({
+      q: searchParams.get("q") ?? undefined,
     });
 
+    const products = await searchProducts(q ?? "");
     return NextResponse.json({ products });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to search products" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

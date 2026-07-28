@@ -1,88 +1,52 @@
-import { NextRequest } from "next/server";
+import {
+  createCategorySchema,
+  deleteCategorySchema,
+  updateCategorySchema,
+} from "@/features/products/validations/category.schema";
+import {
+  createCategory,
+  deleteCategory,
+  getAdminCategories,
+  updateCategory,
+} from "@/features/products/server/category.server";
 import { withAdmin } from "@/shared/lib/with-admin";
-import prisma from "@/shared/lib/prisma";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export const GET = withAdmin(async () => {
   try {
-    const categories = await prisma.category.findMany();
+    const categories = await getAdminCategories();
     return Response.json({ categories }, { status: 200 });
-  } catch {
-    return Response.json(
-      { error: "Failed to retrieve categories" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 });
 
-export const POST = withAdmin(async (req: NextRequest) => {
+export const POST = withAdmin(async (req) => {
   try {
-    const { name, description, image } = await req.json();
-    if (!name) {
-      return Response.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    const category = await prisma.category.create({
-      data: {
-        name,
-        description,
-        image,
-      },
-    });
-
+    const input = createCategorySchema.parse(await req.json());
+    const category = await createCategory(input);
     return Response.json({ category }, { status: 201 });
-  } catch {
-    return Response.json(
-      { error: "Failed to create category" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 });
 
-export const DELETE = withAdmin(async (req: NextRequest) => {
+export const DELETE = withAdmin(async (req) => {
   try {
-    const { id } = await req.json();
-    if (!id) {
-      return Response.json({ error: "ID is required" }, { status: 400 });
-    }
-
-    await prisma.category.delete({
-      where: { id },
-    });
-
+    const { id } = deleteCategorySchema.parse(await req.json());
+    await deleteCategory(id);
     return Response.json({ message: "Category deleted" }, { status: 200 });
-  } catch {
-    return Response.json(
-      { error: "Failed to delete category" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 });
 
-export const PUT = withAdmin(async (req: NextRequest) => {
+export const PUT = withAdmin(async (req) => {
   try {
-    const { id, name, description, image } = await req.json();
-
-    if (!id || !name) {
-      return Response.json(
-        { error: "ID and name are required" },
-        { status: 400 }
-      );
-    }
-
-    const category = await prisma.category.update({
-      where: { id },
-      data: {
-        name,
-        description,
-        image,
-      },
-    });
-
+    const input = updateCategorySchema.parse(await req.json());
+    const category = await updateCategory(input);
     return Response.json({ category }, { status: 200 });
-  } catch {
-    return Response.json(
-      { error: "Failed to update category" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
 });
