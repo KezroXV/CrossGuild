@@ -1,107 +1,53 @@
-import prisma from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
-import { auth } from "@/shared/lib/auth";
+import { ZodError } from "zod";
+import { updateCartItemQuantitySchema } from "@/features/cart/validations/cart.schema";
+import {
+  removeFromCart,
+  updateCartItem,
+} from "@/features/cart/server/cart.server";
+import { withAuth } from "@/shared/lib/with-auth";
+import {
+  handleApiError,
+  NotFoundError,
+} from "@/shared/lib/handle-api-error";
 
-// Mettre à jour un article spécifique du panier
-export async function PATCH(
-  req: Request,
-  { params }: { params: { itemId: string } }
-) {
+type RouteContext = {
+  params: Promise<{ itemId: string }>;
+};
+
+export const PATCH = withAuth<RouteContext>(async (req, { session, params }) => {
   try {
-    const session = await auth();
+    const { itemId } = await params;
+    const { quantity } = updateCartItemQuantitySchema.parse(await req.json());
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    const { itemId } = params;
-    const { quantity } = await req.json();
-
-    if (!itemId) {
+    await updateCartItem(session.user.id, itemId, quantity);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: "L'ID de l'article est requis" },
+        { error: "Invalid data", details: error.format() },
         { status: 400 }
       );
     }
 
-    // Vérifier que l'article appartient au panier de l'utilisateur
-    const cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
-      include: { cartItems: true }, // Correction ici: "items" -> "cartItems"
-    });
-
-    const cartItem = cart?.cartItems.find((item) => item.id === itemId); // Correction ici: "items" -> "cartItems"
-
-    if (!cartItem) {
-      return NextResponse.json(
-        { error: "Article non trouvé dans le panier" },
-        { status: 404 }
-      );
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    // Mettre à jour la quantité
-    await prisma.item.update({
-      where: { id: itemId },
-      data: { quantity },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("[CART_ITEM_PATCH]", error);
-    return NextResponse.json(
-      { error: "Échec de la mise à jour", success: false },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});
 
-// Supprimer un article spécifique du panier
-export async function DELETE(
-  req: Request,
-  { params }: { params: { itemId: string } }
-) {
+export const DELETE = withAuth<RouteContext>(async (_req, { session, params }) => {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    const { itemId } = params;
-
-    if (!itemId) {
-      return NextResponse.json(
-        { error: "L'ID de l'article est requis" },
-        { status: 400 }
-      );
-    }
-
-    // Vérifier que l'article appartient au panier de l'utilisateur
-    const cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
-      include: { cartItems: true }, // Correction ici: "items" -> "cartItems"
-    });
-
-    const cartItem = cart?.cartItems.find((item) => item.id === itemId); // Correction ici: "items" -> "cartItems"
-
-    if (!cartItem) {
-      return NextResponse.json(
-        { error: "Article non trouvé dans le panier" },
-        { status: 404 }
-      );
-    }
-
-    // Supprimer l'article
-    await prisma.item.delete({
-      where: { id: itemId },
-    });
-
+    const { itemId } = await params;
+    await removeFromCart(session.user.id, itemId);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[CART_ITEM_DELETE]", error);
-    return NextResponse.json(
-      { error: "Échec de la suppression", success: false },
-      { status: 500 }
-    );
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    return handleApiError(error);
   }
-}
+});
