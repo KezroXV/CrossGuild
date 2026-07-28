@@ -1,197 +1,102 @@
-// ROUTE UTILISATEUR : Reviews produits (GET/POST/DELETE) - à utiliser côté client
 import { NextResponse } from "next/server";
-import { auth } from "@/shared/lib/auth";
-import prisma from "@/shared/lib/prisma";
+import { ZodError } from "zod";
+import {
+  createReviewSchema,
+  deleteReviewQuerySchema,
+  reviewsByProductQuerySchema,
+} from "@/features/reviews/validations/review.schema";
+import {
+  createReview,
+  deleteReview,
+  getReviewsByProduct,
+} from "@/features/reviews/server/review.server";
+import { withAuth } from "@/shared/lib/with-auth";
+import {
+  ForbiddenError,
+  handleApiError,
+  NotFoundError,
+} from "@/shared/lib/handle-api-error";
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const itemId = url.searchParams.get("itemId");
-
-  if (!itemId) {
-    return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
-  }
-
   try {
-    const reviews = await prisma.review.findMany({
-      where: { itemId },
-      include: {
-        user: {
-          select: {
-            name: true,
-            image: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const query = reviewsByProductQuerySchema.parse({
+      itemId: new URL(request.url).searchParams.get("itemId"),
     });
 
+    const reviews = await getReviewsByProduct(query.itemId);
     return NextResponse.json({ reviews });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
+    }
+
     console.error("Error fetching reviews:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch reviews" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request, { session }) => {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const body = createReviewSchema.parse(await request.json());
+    const result = await createReview(
+      session.user.id,
+      body.itemId,
+      body.rating,
+      body.comment ?? ""
+    );
 
-    const { itemId, rating, comment } = await request.json();
-
-    if (!itemId || !rating) {
+    return NextResponse.json({
+      message: result.updated
+        ? "Review updated successfully"
+        : "Review submitted successfully",
+      review: result.review,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { error: "Item ID and rating are required" },
         { status: 400 }
       );
     }
 
-    // Check if user has already reviewed this item
-    const existingReview = await prisma.review.findFirst({
-      where: {
-        userId: session.user.id as string,
-        itemId,
-      },
-    });
-
-    if (existingReview) {
-      // Update existing review
-      const updatedReview = await prisma.review.update({
-        where: { id: existingReview.id },
-        data: {
-          rating,
-          content: comment, // Using content field instead of comment
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-      });
-
-      // Update the product's average rating
-      await updateProductRating(itemId);
-
-      return NextResponse.json({
-        message: "Review updated successfully",
-        review: updatedReview,
-      });
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    // Create new review
-    const review = await prisma.review.create({
-      data: {
-        userId: session.user.id as string,
-        itemId,
-        rating,
-        content: comment, // Using content field instead of comment
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            image: true,
-          },
-        },
-      },
-    });
-
-    // Update the product's average rating
-    await updateProductRating(itemId);
-
-    return NextResponse.json({
-      message: "Review submitted successfully",
-      review,
-    });
-  } catch (error) {
     console.error("Error submitting review:", error);
-    return NextResponse.json(
-      { error: "Failed to submit review" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAuth(async (request, { session }) => {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const query = deleteReviewQuerySchema.parse({
+      id: new URL(request.url).searchParams.get("id"),
+    });
 
-    const url = new URL(request.url);
-    const reviewId = url.searchParams.get("id");
+    await deleteReview(query.id, {
+      requesterId: session.user.id,
+      isAdmin: session.user.isAdmin,
+    });
 
-    if (!reviewId) {
+    return NextResponse.json({ message: "Review deleted successfully" });
+  } catch (error) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { error: "Review ID is required" },
         { status: 400 }
       );
     }
 
-    // Get the review to check ownership and item ID
-    const review = await prisma.review.findUnique({
-      where: { id: reviewId },
-      select: { userId: true, itemId: true },
-    });
-
-    if (!review) {
-      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    // Check if the user is the owner of the review or an admin
-    if (review.userId !== session.user.id && !session.user.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized to delete this review" },
-        { status: 403 }
-      );
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    // Delete the review
-    await prisma.review.delete({
-      where: { id: reviewId },
-    });
-
-    // Update the product's average rating
-    await updateProductRating(review.itemId);
-
-    return NextResponse.json({
-      message: "Review deleted successfully",
-    });
-  } catch (error) {
     console.error("Error deleting review:", error);
-    return NextResponse.json(
-      { error: "Failed to delete review" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
-
-async function updateProductRating(itemId: string) {
-  // Calculate new average rating
-  const ratings = await prisma.review.findMany({
-    where: { itemId },
-    select: { rating: true },
-  });
-
-  if (ratings.length === 0) return;
-
-  const averageRating =
-    ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-
-  // Update the product
-  await prisma.item.update({
-    where: { id: itemId },
-    data: { averageRating },
-  });
-}
+});

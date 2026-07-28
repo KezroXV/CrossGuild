@@ -1,7 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
+import {
+  adminCreateReviewSchema,
+  adminDeleteReviewSchema,
+  moderateReviewSchema,
+} from "@/features/reviews/validations/review.schema";
+import {
+  createReview,
+  deleteReview,
+  listAdminReviews,
+  moderateReview,
+} from "@/features/reviews/server/review.server";
 import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
+import {
+  ConflictError,
+  handleApiError,
+  NotFoundError,
+} from "@/shared/lib/handle-api-error";
 
 export const GET = withAdmin(async (request: NextRequest) => {
   const url = new URL(request.url);
@@ -51,7 +68,9 @@ export const GET = withAdmin(async (request: NextRequest) => {
         totalCount: count,
         totalPages: Math.ceil(count / pageSize),
       });
-    } else if (type === "contacts") {
+    }
+
+    if (type === "contacts") {
       const page = parseInt(url.searchParams.get("page") || "1");
       const pageSize = parseInt(url.searchParams.get("pageSize") || "10");
       const search = url.searchParams.get("search") || "";
@@ -101,40 +120,10 @@ export const GET = withAdmin(async (request: NextRequest) => {
           totalPages: 1,
         });
       }
-    } else {
-      const reviews = await prisma.review.findMany({
-        select: {
-          id: true,
-          content: true,
-          rating: true,
-          user: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-          item: {
-            select: {
-              name: true,
-              averageRating: true,
-            },
-          },
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 10,
-      });
-
-      return NextResponse.json(
-        {
-          reviews: reviews || [],
-          success: true,
-        },
-        { status: 200 }
-      );
     }
+
+    const reviews = await listAdminReviews();
+    return NextResponse.json({ reviews: reviews || [], success: true });
   } catch (error) {
     console.error(`Error retrieving ${type}:`, error);
     if (type === "faqs") {
@@ -147,7 +136,9 @@ export const GET = withAdmin(async (request: NextRequest) => {
         },
         { status: 500 }
       );
-    } else if (type === "contacts") {
+    }
+
+    if (type === "contacts") {
       return NextResponse.json(
         {
           contacts: [],
@@ -157,31 +148,14 @@ export const GET = withAdmin(async (request: NextRequest) => {
         },
         { status: 500 }
       );
-    } else {
-      return NextResponse.json(
-        { reviews: [], success: false, error: `Failed to retrieve ${type}` },
-        { status: 500 }
-      );
     }
+
+    return NextResponse.json(
+      { reviews: [], success: false, error: `Failed to retrieve ${type}` },
+      { status: 500 }
+    );
   }
 });
-
-async function updateAverageRating(itemId: string) {
-  const reviews = await prisma.review.findMany({
-    where: { itemId },
-    select: { rating: true },
-  });
-
-  const average =
-    reviews.length > 0
-      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-      : 0;
-
-  await prisma.item.update({
-    where: { id: itemId },
-    data: { averageRating: average },
-  });
-}
 
 export const POST = withAdmin(async (request: NextRequest) => {
   try {
@@ -246,101 +220,32 @@ export const POST = withAdmin(async (request: NextRequest) => {
       }
     }
 
-    const { content, rating, userId, itemId } = data;
-
-    if (!content) {
-      return NextResponse.json(
-        { error: "Review content is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!rating) {
-      return NextResponse.json(
-        { error: "Rating is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is missing. Please log in again." },
-        { status: 400 }
-      );
-    }
-
-    if (!itemId) {
-      return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 }
-      );
-    }
-
-    console.log("Review submission received:", {
-      content: content ? "provided" : "missing",
-      rating,
-      userId,
-      itemId,
-    });
-
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!userExists) {
-      console.error(`User with ID ${userId} not found`);
-      return NextResponse.json(
-        { error: "User not found. Please log in again." },
-        { status: 404 }
-      );
-    }
-
-    const itemExists = await prisma.item.findUnique({
-      where: { id: itemId },
-    });
-
-    if (!itemExists) {
-      return NextResponse.json(
-        { error: "Product not found." },
-        { status: 404 }
-      );
-    }
-
-    const existingReview = await prisma.review.findFirst({
-      where: {
-        userId,
-        itemId,
-      },
-    });
-
-    if (existingReview) {
-      return NextResponse.json(
-        { error: "You have already reviewed this product" },
-        { status: 409 }
-      );
-    }
-
-    const newReview = await prisma.review.create({
-      data: {
-        content,
-        rating: Number(rating),
-        userId,
-        itemId,
-      },
-      include: {
-        user: true,
-        item: true,
-      },
-    });
-
-    await updateAverageRating(itemId);
-    return NextResponse.json({ review: newReview }, { status: 201 });
-  } catch (error) {
-    console.error("Error in POST handler:", error);
-    return NextResponse.json(
-      { error: "Failed to process request" },
-      { status: 500 }
+    const body = adminCreateReviewSchema.parse(data);
+    const result = await createReview(
+      body.userId,
+      body.itemId,
+      body.rating,
+      body.content,
+      { upsert: false }
     );
+
+    return NextResponse.json({ review: result.review }, { status: 201 });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const message = error.errors[0]?.message ?? "Invalid data";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    if (error instanceof ConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
+    console.error("Error in POST handler:", error);
+    return handleApiError(error);
   }
 });
 
@@ -357,12 +262,11 @@ export const DELETE = withAdmin(async (request: NextRequest) => {
         );
       }
 
-      await prisma.fAQ.delete({
-        where: { id },
-      });
-
+      await prisma.fAQ.delete({ where: { id } });
       return NextResponse.json({ message: "FAQ deleted" }, { status: 200 });
-    } else if (type === "contact") {
+    }
+
+    if (type === "contact") {
       if (!id) {
         return NextResponse.json(
           { error: "Contact ID is required" },
@@ -382,32 +286,25 @@ export const DELETE = withAdmin(async (request: NextRequest) => {
           { status: 200 }
         );
       }
-    } else {
-      if (!id) {
-        return NextResponse.json(
-          { error: "Review ID is required" },
-          { status: 400 }
-        );
-      }
-
-      const review = await prisma.review.findUnique({
-        where: { id },
-        select: { itemId: true },
-      });
-
-      await prisma.review.delete({
-        where: { id },
-      });
-
-      if (review) {
-        await updateAverageRating(review.itemId);
-      }
-
-      return NextResponse.json({ message: "Review deleted" }, { status: 200 });
     }
+
+    const body = adminDeleteReviewSchema.parse(data);
+    await deleteReview(body.id);
+    return NextResponse.json({ message: "Review deleted" }, { status: 200 });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: "Review ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
     console.error("Error deleting:", error);
-    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+    return handleApiError(error);
   }
 });
 
@@ -458,7 +355,9 @@ export const PUT = withAdmin(async (request: NextRequest) => {
           { status: 200 }
         );
       }
-    } else if (data.type === "faq") {
+    }
+
+    if (data.type === "faq") {
       const { id, question, answer, isPublished } = data;
 
       const updatedFaq = await prisma.fAQ.update({
@@ -472,23 +371,18 @@ export const PUT = withAdmin(async (request: NextRequest) => {
       });
 
       return NextResponse.json({ faq: updatedFaq }, { status: 200 });
-    } else {
-      const { id, data: reviewData } = data;
-
-      const updatedReview = await prisma.review.update({
-        where: { id },
-        data: reviewData,
-        include: {
-          user: true,
-          item: true,
-        },
-      });
-
-      return NextResponse.json({ review: updatedReview }, { status: 200 });
     }
+
+    const body = moderateReviewSchema.parse(data);
+    const updatedReview = await moderateReview(body.id, body.data);
+    return NextResponse.json({ review: updatedReview }, { status: 200 });
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
     console.error("Error updating:", error);
-    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+    return handleApiError(error);
   }
 });
 
@@ -520,5 +414,3 @@ export const PATCH = withAdmin(async (request: NextRequest) => {
     );
   }
 });
-
-// ROUTE ADMIN : Reviews produits, FAQ, contacts (GET/POST/PUT/DELETE/PATCH) - à utiliser côté admin
