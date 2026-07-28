@@ -44,7 +44,7 @@ export default function ReportsPage() {
       setIsLoading(true);
       try {
         const metricsResponse = await fetch(
-          `/api/reports/customer-metrics?timeframe=${timeframe}&from=${dateRange.from}&to=${dateRange.to}`
+          `/api/admin/reports/customer-metrics?timeframe=${timeframe}&from=${dateRange.from}&to=${dateRange.to}`
         );
         if (metricsResponse.ok) {
           const metricsData = await metricsResponse.json();
