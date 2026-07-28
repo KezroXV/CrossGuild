@@ -1,66 +1,37 @@
 import { NextRequest } from "next/server";
+import {
+  deleteUser,
+  listUsers,
+  updateUser,
+} from "@/features/admin/server/user.server";
 import { withAdmin } from "@/shared/lib/with-admin";
-import prisma from "@/shared/lib/prisma";
-import { mapUserFields } from "@/shared/lib/user-fields";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export const GET = withAdmin(async () => {
   try {
-    const users = await prisma.user.findMany({
-      include: {
-        role: true,
-      },
-    });
+    const users = await listUsers();
     return Response.json({ users }, { status: 200 });
   } catch (error) {
-    console.error("Error retrieving users:", error);
-    return Response.json(
-      { error: "Failed to retrieve users" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 });
 
 export const PUT = withAdmin(async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const mappedUser = mapUserFields(body);
-
-    const updatedUser = await prisma.user.update({
-      where: { id: mappedUser.id },
-      data: mappedUser,
-    });
-
+    const updatedUser = await updateUser(body);
     return Response.json(updatedUser);
   } catch (error) {
-    console.error("Error updating user:", error);
-    return Response.json(
-      { error: "Failed to update user" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 });
 
 export const DELETE = withAdmin(async (req: NextRequest) => {
   try {
     const { id } = await req.json();
-
-    if (!id) {
-      return Response.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
-    await prisma.user.delete({
-      where: { id },
-    });
-
+    await deleteUser(id);
     return Response.json({ message: "User deleted" }, { status: 200 });
   } catch (error) {
-    console.error("Error deleting user:", error);
-    return Response.json(
-      { error: "Failed to delete user" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 });

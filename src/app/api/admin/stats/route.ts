@@ -1,70 +1,12 @@
+import { getAdminStats } from "@/features/admin/server/stats.server";
 import { withAdmin } from "@/shared/lib/with-admin";
-import prisma from "@/shared/lib/prisma";
+import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export const GET = withAdmin(async () => {
   try {
-    const [
-      totalUsers,
-      totalOrders,
-      totalItems,
-      recentOrders,
-      totalRevenue,
-      newUsers,
-      recentReviews,
-    ] = await Promise.all([
-      prisma.user.count(),
-      prisma.order.count(),
-      prisma.item.count(),
-      prisma.order.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: { user: true },
-      }),
-      prisma.order.aggregate({
-        _sum: { total: true },
-      }),
-      prisma.user.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          createdAt: true,
-        },
-      }),
-      prisma.review.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-          item: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      }),
-    ]);
-
-    return Response.json({
-      totalUsers,
-      totalOrders,
-      totalItems,
-      recentOrders,
-      revenue: totalRevenue._sum.total || 0,
-      newUsers,
-      recentReviews,
-    });
-  } catch {
-    return Response.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    const stats = await getAdminStats();
+    return Response.json(stats);
+  } catch (error) {
+    return handleApiError(error);
   }
 });
