@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
 
-export async function GET() {
+export const GET = withAdmin(async () => {
   try {
     const [
       totalUsers,
@@ -52,7 +52,7 @@ export async function GET() {
       }),
     ]);
 
-    return NextResponse.json({
+    return Response.json({
       totalUsers,
       totalOrders,
       totalItems,
@@ -61,11 +61,10 @@ export async function GET() {
       newUsers,
       recentReviews,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
-    return NextResponse.json(
+  } catch {
+    return Response.json(
       { error: "Internal Server Error" },
       { status: 500 }
     );
   }
-}
+});

@@ -1,63 +1,51 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
+import prisma from "@/shared/lib/prisma";
 import { mapUserFields } from "@/shared/lib/user-fields";
 
-const prisma = new PrismaClient();
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(request: Request) {
+export const GET = withAdmin(async () => {
   try {
-    // Utiliser une sélection explicite des champs pour éviter les erreurs
     const users = await prisma.user.findMany({
       include: {
         role: true,
       },
-      // N'ajoutez pas de champs qui n'existent pas dans la base de données
     });
-    return NextResponse.json({ users }, { status: 200 });
+    return Response.json({ users }, { status: 200 });
   } catch (error) {
     console.error("Error retrieving users:", error);
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to retrieve users" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (req: NextRequest) => {
   try {
-    const body = await request.json();
-
-    // Map any inconsistent field names
+    const body = await req.json();
     const mappedUser = mapUserFields(body);
 
-    // Update user with the mapped fields
     const updatedUser = await prisma.user.update({
       where: { id: mappedUser.id },
       data: mappedUser,
     });
 
-    // Return the updated user
-    return NextResponse.json(updatedUser);
+    return Response.json(updatedUser);
   } catch (error) {
     console.error("Error updating user:", error);
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to update user" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAdmin(async (req: NextRequest) => {
   try {
-    const { id } = await request.json();
+    const { id } = await req.json();
 
     if (!id) {
-      return NextResponse.json(
+      return Response.json(
         { error: "User ID is required" },
         { status: 400 }
       );
@@ -67,14 +55,12 @@ export async function DELETE(request: Request) {
       where: { id },
     });
 
-    return NextResponse.json({ message: "User deleted" }, { status: 200 });
+    return Response.json({ message: "User deleted" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting user:", error);
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to delete user" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

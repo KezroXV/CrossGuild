@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
-import { auth } from "@/shared/lib/auth";
 
-export async function GET(req: Request) {
+export const GET = withAdmin(async (req: NextRequest) => {
   try {
-    const session = await auth();
-
-    if (!session?.user?.isAdmin) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
 
     // Get pagination and filtering params
@@ -74,9 +68,9 @@ export async function GET(req: Request) {
     console.error("[PRODUCTS_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
     const {
@@ -202,9 +196,9 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (request: NextRequest) => {
   try {
     const { id, ...data } = await request.json();
     const {
@@ -280,9 +274,9 @@ export async function PUT(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAdmin(async (request: NextRequest) => {
   try {
     const { id } = await request.json();
 
@@ -305,4 +299,4 @@ export async function DELETE(request: Request) {
       { status: 500 }
     );
   }
-}
+});

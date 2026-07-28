@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
 
 export async function GET() {
@@ -35,7 +36,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export const POST = withAdmin(async (request: NextRequest) => {
   try {
     const formData = await request.formData();
     const name = formData.get("name") as string;
@@ -58,6 +59,9 @@ export async function POST(request: Request) {
         {
           method: "POST",
           body: logoFormData,
+          headers: {
+            cookie: request.headers.get("cookie") || "",
+          },
         }
       );
 
@@ -118,4 +122,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

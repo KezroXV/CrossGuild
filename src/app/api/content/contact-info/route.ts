@@ -1,14 +1,11 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
+import prisma from "@/shared/lib/prisma";
 
 export async function GET() {
   try {
-    // Try to fetch existing contact info
     const contactInfo = await prisma.contactInfo.findFirst();
 
-    // If no contact info exists, create a default one
     if (!contactInfo) {
       const newContactInfo = await prisma.contactInfo.create({
         data: {
@@ -33,7 +30,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching contact info:", error);
 
-    // Check if it's a PrismaClient initialization error or missing table error
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     if (errorMessage.includes("does not exist in the current database")) {
@@ -50,21 +46,17 @@ export async function GET() {
       { error: "Failed to fetch contact information" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
 
-    // Find existing record
     const existingInfo = await prisma.contactInfo.findFirst();
 
     let updatedInfo;
     if (existingInfo) {
-      // Update existing record
       updatedInfo = await prisma.contactInfo.update({
         where: { id: existingInfo.id },
         data: {
@@ -81,7 +73,6 @@ export async function PUT(request: Request) {
         },
       });
     } else {
-      // Create new record if none exists
       updatedInfo = await prisma.contactInfo.create({
         data: {
           address: data.address,
@@ -105,7 +96,5 @@ export async function PUT(request: Request) {
       { error: "Failed to update contact information" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

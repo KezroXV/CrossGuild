@@ -1,28 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
+import prisma from "@/shared/lib/prisma";
 
-const prisma = new PrismaClient();
-
-export async function GET(request: Request) {
+export const GET = withAdmin(async () => {
   try {
     const categories = await prisma.category.findMany();
-    return NextResponse.json({ categories }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
+    return Response.json({ categories }, { status: 200 });
+  } catch {
+    return Response.json(
       { error: "Failed to retrieve categories" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAdmin(async (req: NextRequest) => {
   try {
-    const { name, description, image } = await request.json();
+    const { name, description, image } = await req.json();
     if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      return Response.json({ error: "Name is required" }, { status: 400 });
     }
 
     const category = await prisma.category.create({
@@ -33,45 +29,41 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ category }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json(
+    return Response.json({ category }, { status: 201 });
+  } catch {
+    return Response.json(
       { error: "Failed to create category" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAdmin(async (req: NextRequest) => {
   try {
-    const { id } = await request.json();
+    const { id } = await req.json();
     if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+      return Response.json({ error: "ID is required" }, { status: 400 });
     }
 
     await prisma.category.delete({
       where: { id },
     });
 
-    return NextResponse.json({ message: "Category deleted" }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
+    return Response.json({ message: "Category deleted" }, { status: 200 });
+  } catch {
+    return Response.json(
       { error: "Failed to delete category" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (req: NextRequest) => {
   try {
-    const { id, name, description, image } = await request.json();
+    const { id, name, description, image } = await req.json();
 
     if (!id || !name) {
-      return NextResponse.json(
+      return Response.json(
         { error: "ID and name are required" },
         { status: 400 }
       );
@@ -86,13 +78,11 @@ export async function PUT(request: Request) {
       },
     });
 
-    return NextResponse.json({ category }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
+    return Response.json({ category }, { status: 200 });
+  } catch {
+    return Response.json(
       { error: "Failed to update category" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

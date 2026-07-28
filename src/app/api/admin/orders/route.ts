@@ -1,28 +1,18 @@
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
-import { NextResponse } from "next/server";
-import { auth } from "@/shared/lib/auth";
 
-export async function GET(req: Request) {
+export const GET = withAdmin(async (req: NextRequest) => {
   try {
-    const session = await auth();
-
-    if (!session?.user?.isAdmin) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    // Get pagination parameters
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = parseInt(searchParams.get("pageSize") || "10");
 
-    // Calculate skip value for pagination
     const skip = (page - 1) * pageSize;
 
-    // Get total count of orders for pagination
     const totalOrders = await prisma.order.count();
     const totalPages = Math.ceil(totalOrders / pageSize);
 
-    // Get paginated orders with the new schema structure
     const orders = await prisma.order.findMany({
       skip,
       take: pageSize,
@@ -43,7 +33,6 @@ export async function GET(req: Request) {
       },
     });
 
-    // Format orders to match the expected structure in the frontend
     const formattedOrders = orders.map((order) => ({
       ...order,
       items: order.orderItems.map((orderItem) => ({
@@ -66,4 +55,4 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,14 +1,11 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
+import prisma from "@/shared/lib/prisma";
 
 export async function GET() {
   try {
-    // Try to fetch existing social links
     const socialLinks = await prisma.socialLinks.findFirst();
 
-    // If no social links exist, create default ones
     if (!socialLinks) {
       const newSocialLinks = await prisma.socialLinks.create({
         data: {
@@ -25,7 +22,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching social links:", error);
 
-    // Check if it's a PrismaClient initialization error or missing table error
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     if (errorMessage.includes("does not exist in the current database")) {
@@ -42,21 +38,17 @@ export async function GET() {
       { error: "Failed to fetch social media links" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
 
-    // Find existing record
     const existingLinks = await prisma.socialLinks.findFirst();
 
     let updatedLinks;
     if (existingLinks) {
-      // Update existing record
       updatedLinks = await prisma.socialLinks.update({
         where: { id: existingLinks.id },
         data: {
@@ -67,7 +59,6 @@ export async function PUT(request: Request) {
         },
       });
     } else {
-      // Create new record if none exists
       updatedLinks = await prisma.socialLinks.create({
         data: {
           facebook: data.facebook,
@@ -85,7 +76,5 @@ export async function PUT(request: Request) {
       { error: "Failed to update social media links" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

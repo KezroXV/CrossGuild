@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
 import { v2 as cloudinary } from "cloudinary";
+import { withAuth } from "@/shared/lib/with-auth";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,7 +17,7 @@ async function bufferToStream(buffer: Buffer) {
   return readable;
 }
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -25,7 +26,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -37,7 +37,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: "File size exceeds the 5MB limit" },
@@ -47,7 +46,6 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -71,12 +69,4 @@ export async function POST(request: Request) {
     console.error("Error uploading file:", error);
     return NextResponse.json({ error: "File upload failed" }, { status: 500 });
   }
-}
-
-// Next.js App Router doesn't use this config anymore
-// Remove this as it causes issues
-// export const config = {
-//   api: {
-//     bodyParser: false,
-//   },
-// };
+});

@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
-import { auth } from "@/shared/lib/auth";
 
-export async function GET(req: Request) {
+export const GET = withAdmin(async (req: NextRequest) => {
   try {
-    const session = await auth();
-
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
     const timeframe = searchParams.get("timeframe") || "month";
 
@@ -210,4 +204,4 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
-}
+});

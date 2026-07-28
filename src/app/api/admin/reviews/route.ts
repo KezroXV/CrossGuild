@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import { withAdmin } from "@/shared/lib/with-admin";
+import prisma from "@/shared/lib/prisma";
 
-const prisma = new PrismaClient();
-
-export async function GET(request: Request) {
+export const GET = withAdmin(async (request: NextRequest) => {
   const url = new URL(request.url);
   const type = url.searchParams.get("type") || "reviews";
 
@@ -164,10 +163,8 @@ export async function GET(request: Request) {
         { status: 500 }
       );
     }
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
 async function updateAverageRating(itemId: string) {
   const reviews = await prisma.review.findMany({
@@ -186,7 +183,7 @@ async function updateAverageRating(itemId: string) {
   });
 }
 
-export async function POST(request: Request) {
+export const POST = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
 
@@ -344,12 +341,10 @@ export async function POST(request: Request) {
       { error: "Failed to process request" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
     const { id, type } = data;
@@ -413,12 +408,10 @@ export async function DELETE(request: Request) {
   } catch (error) {
     console.error("Error deleting:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function PUT(request: Request) {
+export const PUT = withAdmin(async (request: NextRequest) => {
   try {
     const data = await request.json();
 
@@ -496,12 +489,10 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error("Error updating:", error);
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
-export async function PATCH(request: Request) {
+export const PATCH = withAdmin(async (request: NextRequest) => {
   try {
     const { question } = await request.json();
 
@@ -527,9 +518,7 @@ export async function PATCH(request: Request) {
       { error: "Failed to create FAQ" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
 
 // ROUTE ADMIN : Reviews produits, FAQ, contacts (GET/POST/PUT/DELETE/PATCH) - à utiliser côté admin
