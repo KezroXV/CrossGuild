@@ -2,6 +2,7 @@ import { join } from "path";
 import { existsSync, unlinkSync } from "fs";
 import prisma from "@/shared/lib/prisma";
 import { NotFoundError } from "@/shared/lib/handle-api-error";
+import type { BrandPageData } from "@/features/products/types/product.type";
 import { uploadImage } from "@/shared/lib/upload.server";
 import {
   createBrandSchema,
@@ -106,6 +107,61 @@ export async function updateBrandFromFormData(id: string, formData: FormData) {
   });
 
   return updateBrand(input);
+}
+
+function slugToName(slug: string) {
+  return decodeURIComponent(slug).replace(/-/g, " ");
+}
+
+export async function getBrandBySlug(brandSlug: string): Promise<BrandPageData> {
+  if (!brandSlug) {
+    throw new NotFoundError("Brand not found");
+  }
+
+  const brand = await prisma.brand.findFirst({
+    where: {
+      name: {
+        equals: slugToName(brandSlug),
+        mode: "insensitive",
+      },
+    },
+    include: {
+      items: {
+        where: { isPublished: true },
+        include: {
+          images: { select: { url: true } },
+          brand: { select: { name: true, id: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  if (!brand) {
+    throw new NotFoundError("Brand not found");
+  }
+
+  return {
+    id: brand.id,
+    name: brand.name,
+    logo: brand.logo || "/images/placeholder.jpg",
+    description: brand.description,
+    slug: brand.name.toLowerCase().replace(/\s+/g, "-"),
+    items: brand.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      images: item.images,
+      brand: item.brand || { name: brand.name },
+      brandId: item.brand?.id,
+      slug: item.slug,
+      isPublished: item.isPublished,
+      averageRating: item.averageRating,
+      topSelling: item.topSelling,
+      createdAt: item.createdAt,
+    })),
+  };
 }
 
 export async function deleteBrand(brandId: string) {

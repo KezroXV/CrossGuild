@@ -1,157 +1,45 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import prisma from "@/shared/lib/prisma";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Metadata } from "next";
-import NewClientSideCategoryPage from "./components/NewClientSideCategoryPage";
+import CategoryView from "@/features/products/views/category.view";
+import { getCategoryBySlug } from "@/features/products/server/category.server";
+import { computeFilterConfig } from "@/features/products/types/product.type";
+import { NotFoundError } from "@/shared/lib/handle-api-error";
 
 export const dynamic = "force-dynamic";
-
-// Modifié pour être compatible avec les attentes de type de Next.js
-type PageParams = {
-  params: Promise<{
-    slug: string;
-  }>;
-  searchParams?: Promise<{
-    inStock?: string;
-    outOfStock?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    brand?: string;
-    rating?: string;
-    sort?: string;
-  }>;
-};
-
-interface Category {
-  name: string;
-  description?: string;
-  items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    images: Array<{ url: string }>;
-    brand?: {
-      name: string;
-    };
-    brandId?: string;
-    isPublished: boolean;
-    slug: string;
-    averageRating: number;
-    topSelling: number;
-    createdAt: Date;
-  }>;
-}
-
-async function getCategory(categorySlug: string) {
-  if (!categorySlug) return null;
-
-  const formattedName = decodeURIComponent(categorySlug).replace(/-/g, " ");
-
-  const category = await prisma.category.findFirst({
-    where: {
-      name: {
-        equals: formattedName,
-        mode: "insensitive",
-      },
-    },
-    include: {
-      items: {
-        where: {
-          isPublished: true,
-        },
-        include: {
-          images: {
-            select: {
-              url: true,
-            },
-          },
-          brand: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
-  });
-
-  if (!category) notFound();
-
-  const formattedCategory = {
-    ...category,
-    items: category.items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      images: item.images,
-      brand: item.brand || undefined,
-      brandId: item.brand?.id,
-      slug: item.slug,
-      isPublished: item.isPublished,
-      averageRating: item.averageRating,
-      topSelling: item.topSelling,
-      createdAt: item.createdAt,
-    })),
-  };
-
-  return formattedCategory;
-}
 
 export const metadata: Metadata = {
   title: "Category Page",
   description: "Browse items by category",
 };
 
-const CategoryPage = async ({ params }: PageParams) => {
-  const { slug } = await params;
-  const category = await getCategory(slug);
-
-  if (!category || !category.items) {
-    return (
-      <div className="container mx-auto px-4 py-8 mt-20">
-        <div className="text-center">
-          <p>No items found in this category.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Calculate price range for the slider
-  const lowestPrice = Math.min(...category.items.map((item) => item.price));
-  const highestPrice = Math.max(...category.items.map((item) => item.price));
-
-  // Get unique brands in this category
-  const uniqueBrands = Array.from(
-    new Set(
-      category.items
-        .map((item) => item.brand?.name)
-        .filter((brand) => brand !== undefined)
-    )
-  ) as string[];
-
-  return (
-    <div className="container mx-auto px-4 py-8 pt-28">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{category.name}</h1>
-        {category.description && (
-          <p className="text-gray-600 mt-2">{category.description}</p>
-        )}
-      </div>{" "}
-      <NewClientSideCategoryPage
-        items={category.items}
-        categoryName={category.name}
-        uniqueBrands={uniqueBrands}
-        lowestPrice={lowestPrice}
-        highestPrice={highestPrice}
-      />
-    </div>
-  );
+type PageParams = {
+  params: Promise<{ slug: string }>;
 };
 
-export default CategoryPage;
+export default async function CategoryPage({ params }: PageParams) {
+  const { slug } = await params;
+
+  try {
+    const category = await getCategoryBySlug(slug);
+
+    if (!category.items.length) {
+      return (
+        <div className="container mx-auto px-4 py-8 mt-20">
+          <div className="text-center">
+            <p>No items found in this category.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <CategoryView
+        category={category}
+        filterConfig={computeFilterConfig(category.items)}
+      />
+    );
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}

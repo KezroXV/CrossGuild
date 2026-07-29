@@ -4,6 +4,10 @@ import {
   ValidationError,
 } from "@/shared/lib/handle-api-error";
 import type {
+  ProductDetailItem,
+  ProductListItem,
+} from "@/features/products/types/product.type";
+import type {
   AdminProductsQuery,
   CreateProductInput,
   ProductListQuery,
@@ -73,6 +77,34 @@ async function generateUniqueSlug(name: string) {
   return slug;
 }
 
+export async function getAllPublishedProducts(): Promise<ProductListItem[]> {
+  const items = await prisma.item.findMany({
+    where: { isPublished: true },
+    include: {
+      images: { select: { url: true } },
+      brand: { select: { name: true, id: true } },
+      category: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    images: item.images,
+    brand: item.brand || undefined,
+    brandId: item.brand?.id,
+    slug: item.slug,
+    isPublished: item.isPublished,
+    averageRating: item.averageRating,
+    topSelling: item.topSelling,
+    createdAt: item.createdAt,
+    category: item.category,
+  }));
+}
+
 export async function getPublishedProducts(query: ProductListQuery) {
   const products = await prisma.item.findMany({
     where: {
@@ -113,6 +145,29 @@ export async function findBySlug(slug: string, publishedOnly = true) {
   }
 
   return product;
+}
+
+export function formatProductForDetail(
+  product: Awaited<ReturnType<typeof findBySlug>>
+): ProductDetailItem {
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description || "",
+    price: product.price,
+    quantity: product.quantity,
+    images: product.images.map((image) => ({ url: image.url })),
+    brand: product.brand ? { name: product.brand.name } : undefined,
+    category: product.category
+      ? { name: product.category.name, id: product.category.id }
+      : undefined,
+    reviews: product.reviews?.map((review) => ({ rating: review.rating })),
+    options: product.options.map((option) => ({
+      id: option.id,
+      name: option.name,
+      values: Array.isArray(option.values) ? (option.values as string[]) : [],
+    })),
+  };
 }
 
 export async function getRelatedProducts(query: RelatedProductsQuery) {

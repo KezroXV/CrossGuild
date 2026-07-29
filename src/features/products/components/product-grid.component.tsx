@@ -1,45 +1,35 @@
 "use client";
-import React, { useState } from "react";
+
+import { useState } from "react";
+import { Search } from "lucide-react";
 import ProductCard from "@/shared/components/ProductCard";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Search } from "lucide-react";
+import type { ProductListItem } from "@/features/products/types/product.type";
 
-// Types
-interface ProductItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  images: Array<{ url: string }>;
-  brand?: {
-    name: string;
-  };
-  slug: string;
-  averageRating: number;
-  category: {
-    name: string;
-  };
+interface ProductGridProps {
+  items: ProductListItem[];
+  variant?: "category" | "all-products";
 }
 
-interface AllProductsItemsProps {
-  items: ProductItem[];
-}
-
-export default function AllProductsItems({ items }: AllProductsItemsProps) {
+export function ProductGrid({ items, variant = "category" }: ProductGridProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; // Slightly more items per page for the all products view
+  const itemsPerPage = variant === "all-products" ? 12 : 9;
 
-  // Filter items based on search term
-  const filteredItems = items.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.brand?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter((item) => {
+    const term = searchTerm.toLowerCase();
+    const matchesName = item.name.toLowerCase().includes(term);
+    const matchesBrand = item.brand?.name.toLowerCase().includes(term);
+    const matchesCategory = item.category?.name.toLowerCase().includes(term);
 
-  // Pagination
+    if (variant === "all-products") {
+      return matchesName || matchesBrand || matchesCategory;
+    }
+
+    return matchesName;
+  });
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
@@ -50,6 +40,14 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const placeholder =
+    variant === "all-products"
+      ? "Search products, brands, categories..."
+      : "Search items...";
+
+  const emptyMessage =
+    variant === "all-products" ? "No products found" : "No items found";
+
   return (
     <div className="space-y-6">
       <div className="relative">
@@ -58,7 +56,7 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
         </div>
         <Input
           type="text"
-          placeholder="Search products, brands, categories..."
+          placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -70,8 +68,8 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
 
       {filteredItems.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-lg text-gray-600">No products found</p>
-          {searchTerm && (
+          <p className="text-lg text-gray-600">{emptyMessage}</p>
+          {searchTerm && variant === "all-products" && (
             <p className="text-sm text-gray-500 mt-2">
               Try adjusting your search or filters
             </p>
@@ -79,20 +77,24 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-            {" "}
+          <div
+            className={
+              variant === "all-products"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
+                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            }
+          >
             {currentItems.map((item) => (
               <ProductCard
                 key={item.id}
                 item={{
                   ...item,
-                  brand: item.brand || { name: "Unknown" }, // Provide default value for brand
+                  brand: item.brand || { name: "Unknown" },
                 }}
               />
             ))}
           </div>
 
-          {/* Pagination controls */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-8">
               <Button
@@ -103,9 +105,7 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
                 Previous
               </Button>
 
-              {/* Show page numbers with ellipsis for large page counts */}
               {totalPages <= 7 ? (
-                // Show all pages if 7 or fewer
                 [...Array(totalPages)].map((_, i) => (
                   <Button
                     key={i}
@@ -116,9 +116,7 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
                   </Button>
                 ))
               ) : (
-                // Show with ellipsis for more than 7 pages
                 <>
-                  {/* First page */}
                   <Button
                     variant={currentPage === 1 ? "default" : "outline"}
                     onClick={() => handlePageChange(1)}
@@ -126,10 +124,8 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
                     1
                   </Button>
 
-                  {/* Ellipsis or pages before current */}
                   {currentPage > 3 && <span className="px-2">...</span>}
 
-                  {/* Pages around current page */}
                   {[...Array(Math.min(5, totalPages - 2))]
                     .map(
                       (_, i) =>
@@ -147,12 +143,10 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
                       </Button>
                     ))}
 
-                  {/* Ellipsis or pages after current */}
                   {currentPage < totalPages - 2 && (
                     <span className="px-2">...</span>
                   )}
 
-                  {/* Last page */}
                   {totalPages > 1 && (
                     <Button
                       variant={
@@ -176,12 +170,13 @@ export default function AllProductsItems({ items }: AllProductsItemsProps) {
             </div>
           )}
 
-          {/* Results summary */}
-          <div className="text-center text-sm text-gray-500">
-            Showing {indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, filteredItems.length)} of{" "}
-            {filteredItems.length} products
-          </div>
+          {variant === "all-products" && (
+            <div className="text-center text-sm text-gray-500">
+              Showing {indexOfFirstItem + 1}-
+              {Math.min(indexOfLastItem, filteredItems.length)} of{" "}
+              {filteredItems.length} products
+            </div>
+          )}
         </>
       )}
     </div>

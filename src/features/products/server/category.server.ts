@@ -1,8 +1,14 @@
 import prisma from "@/shared/lib/prisma";
+import { NotFoundError } from "@/shared/lib/handle-api-error";
+import type { CategoryPageData } from "@/features/products/types/product.type";
 import type {
   CreateCategoryInput,
   UpdateCategoryInput,
 } from "@/features/products/validations/category.schema";
+
+function slugToName(slug: string) {
+  return decodeURIComponent(slug).replace(/-/g, " ");
+}
 
 export async function getPublicCategories() {
   const categories = await prisma.category.findMany({
@@ -69,4 +75,54 @@ export async function deleteCategory(categoryId: string) {
   await prisma.category.delete({
     where: { id: categoryId },
   });
+}
+
+export async function getCategoryBySlug(
+  categorySlug: string
+): Promise<CategoryPageData> {
+  if (!categorySlug) {
+    throw new NotFoundError("Category not found");
+  }
+
+  const category = await prisma.category.findFirst({
+    where: {
+      name: {
+        equals: slugToName(categorySlug),
+        mode: "insensitive",
+      },
+    },
+    include: {
+      items: {
+        where: { isPublished: true },
+        include: {
+          images: { select: { url: true } },
+          brand: { select: { name: true, id: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  if (!category) {
+    throw new NotFoundError("Category not found");
+  }
+
+  return {
+    name: category.name,
+    description: category.description,
+    items: category.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      images: item.images,
+      brand: item.brand || undefined,
+      brandId: item.brand?.id,
+      slug: item.slug,
+      isPublished: item.isPublished,
+      averageRating: item.averageRating,
+      topSelling: item.topSelling,
+      createdAt: item.createdAt,
+    })),
+  };
 }
