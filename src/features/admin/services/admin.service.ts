@@ -3,11 +3,20 @@ import type {
   AdminBrand,
   AdminCategoriesResponse,
   AdminCategory,
+  AdminContactMessage,
+  AdminContactsResponse,
+  AdminFAQ,
+  AdminFaqsResponse,
+  AdminFaqFormInput,
+  AdminListParams,
   AdminOrder,
   AdminOrdersResponse,
   AdminProduct,
   AdminProductFormInput,
   AdminProductsResponse,
+  AdminReview,
+  AdminReviewFormInput,
+  AdminReviewsResponse,
   AdminRole,
   AdminUser,
   AdminUsersResponse,
@@ -276,6 +285,139 @@ export async function deleteAdminUser(id: string) {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
+  });
+
+  return parseResponse<{ message: string }>(res);
+}
+
+export async function fetchAdminReviews(): Promise<AdminReviewsResponse> {
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reviews?type=reviews`,
+    { credentials: "include" }
+  );
+
+  return parseResponse<AdminReviewsResponse>(res);
+}
+
+export async function createAdminReview(
+  input: AdminReviewFormInput
+): Promise<{ review: AdminReview }> {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  return parseResponse<{ review: AdminReview }>(res);
+}
+
+export async function updateAdminReview(
+  id: string,
+  data: AdminReviewFormInput
+): Promise<{ review: AdminReview }> {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, data }),
+  });
+
+  return parseResponse<{ review: AdminReview }>(res);
+}
+
+export async function deleteAdminReview(id: string) {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+
+  return parseResponse<{ message: string }>(res);
+}
+
+export async function fetchAdminFaqs(
+  params: AdminListParams
+): Promise<AdminFaqsResponse> {
+  const searchParams = new URLSearchParams({
+    type: "faqs",
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+    search: params.search ?? "",
+  });
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reviews?${searchParams}`,
+    { credentials: "include" }
+  );
+
+  return parseResponse<AdminFaqsResponse>(res);
+}
+
+export async function updateAdminFaq(
+  id: string,
+  input: AdminFaqFormInput
+): Promise<{ faq: AdminFAQ }> {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "faq", id, ...input }),
+  });
+
+  return parseResponse<{ faq: AdminFAQ }>(res);
+}
+
+export async function deleteAdminFaq(id: string) {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, type: "faq" }),
+  });
+
+  return parseResponse<{ message: string }>(res);
+}
+
+export async function fetchAdminContacts(
+  params: AdminListParams
+): Promise<AdminContactsResponse> {
+  const searchParams = new URLSearchParams({
+    type: "contacts",
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+    search: params.search ?? "",
+  });
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reviews?${searchParams}`,
+    { credentials: "include" }
+  );
+
+  return parseResponse<AdminContactsResponse>(res);
+}
+
+export async function updateAdminContactStatus(
+  id: string,
+  isResolved: boolean
+): Promise<{ contact: AdminContactMessage }> {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, type: "contact", isResolved }),
+  });
+
+  return parseResponse<{ contact: AdminContactMessage }>(res);
+}
+
+export async function deleteAdminContact(id: string) {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, type: "contact" }),
   });
 
   return parseResponse<{ message: string }>(res);

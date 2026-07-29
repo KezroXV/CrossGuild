@@ -152,3 +152,73 @@ export interface PaginationParams {
   page: number;
   pageSize: number;
 }
+
+export interface AdminReview {
+  id: string;
+  content: string;
+  rating: number;
+  userId: string;
+  itemId: string;
+  createdAt: string;
+  user: {
+    name: string;
+    image: string | null;
+  };
+  item: {
+    name: string;
+  };
+}
+
+export interface AdminFAQ {
+  id: string;
+  question: string;
+  answer: string | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  department: string;
+  createdAt: string;
+  isResolved: boolean;
+}
+
+export interface AdminReviewsResponse {
+  reviews: AdminReview[];
+  success?: boolean;
+}
+
+export interface AdminFaqsResponse {
+  faqs: AdminFAQ[];
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AdminContactsResponse {
+  contacts: AdminContactMessage[];
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AdminReviewFormInput {
+  content: string;
+  rating: number;
+  userId: string;
+  itemId: string;
+}
+
+export interface AdminFaqFormInput {
+  question: string;
+  answer: string;
+  isPublished: boolean;
+}
+
+export interface AdminListParams extends PaginationParams {
+  search?: string;
+}
