@@ -13,6 +13,11 @@ function matchesRoute(pathname: string, routes: string[]) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (pathname === "/auth/signin" || pathname.startsWith("/auth/signin/")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,

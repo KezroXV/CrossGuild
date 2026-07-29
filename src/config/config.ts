@@ -19,7 +19,6 @@ export const PROTECTED_ROUTES = {
 /** Auth pages — redirect away if user is already signed in */
 export const AUTH_ROUTES = [
   "/login",
-  "/auth/signin",
   "/auth/register",
   "/password-reset",
 ] as const;
