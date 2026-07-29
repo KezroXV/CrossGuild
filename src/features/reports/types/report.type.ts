@@ -105,9 +105,16 @@ export type CustomReportTimeframe =
   | "lastMonth"
   | "custom";
 
+export type SalesComparison = {
+  currentTotal: number;
+  previousTotal: number;
+  percentChange: number;
+};
+
 export type ReportsData = {
   salesData: SalesDataPoint[];
   categoryData: CategoryDataPoint[];
+  salesComparison: SalesComparison | null;
   productData: ProductDataPoint[];
   profitabilityData: ProfitabilityData[];
   customerData: CustomerCountryData[];

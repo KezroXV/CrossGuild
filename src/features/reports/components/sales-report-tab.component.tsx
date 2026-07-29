@@ -1,16 +1,15 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import ExportButton from "@/features/reports/components/export-button.component";
-import {
-  CategoryPieChart,
-  ReportBarChart,
-  ReportLineChart,
-} from "@/features/reports/components/report-chart.component";
 import CategoryPerformanceSection from "@/features/reports/components/category-performance-section.component";
+import CategoryPieChart from "@/features/reports/components/category-pie-chart.component";
+import ExportButton from "@/features/reports/components/export-button.component";
+import ReportLoading from "@/features/reports/components/report-loading.component";
+import { ReportBarChart, ReportLineChart } from "@/features/reports/components/report-chart.component";
 import type {
   CategoryDataPoint,
   CategoryPerformanceData,
+  SalesComparison,
   SalesDataPoint,
 } from "@/features/reports/types/report.type";
 
@@ -20,6 +19,7 @@ type SalesReportTabProps = {
   salesData: SalesDataPoint[];
   categoryData: CategoryDataPoint[];
   categoryPerformance: CategoryPerformanceData;
+  salesComparison: SalesComparison | null;
   onExport: () => void;
 };
 
@@ -29,8 +29,12 @@ export default function SalesReportTab({
   salesData,
   categoryData,
   categoryPerformance,
+  salesComparison,
   onExport,
 }: SalesReportTabProps) {
+  const percentChange = salesComparison?.percentChange ?? 0;
+  const isPositive = percentChange >= 0;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -41,7 +45,7 @@ export default function SalesReportTab({
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <LoadingPlaceholder />
+              <ReportLoading />
             ) : (
               <ReportLineChart
                 data={salesData}
@@ -60,7 +64,7 @@ export default function SalesReportTab({
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <LoadingPlaceholder />
+              <ReportLoading />
             ) : (
               <CategoryPieChart data={categoryData} />
             )}
@@ -68,7 +72,7 @@ export default function SalesReportTab({
         </Card>
       </div>
 
-      {compareMode && (
+      {compareMode && salesComparison && (
         <Card>
           <CardHeader>
             <CardTitle>Period Comparison</CardTitle>
@@ -78,15 +82,28 @@ export default function SalesReportTab({
               <p className="text-sm font-medium">
                 Comparing current period with previous period
               </p>
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                +12.5%
+              <span
+                className={`text-xs font-medium px-2.5 py-0.5 rounded ${
+                  isPositive
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {isPositive ? "+" : ""}
+                {percentChange.toFixed(1)}%
               </span>
             </div>
             <ReportBarChart
-              data={salesData}
+              data={[
+                {
+                  name: "Sales",
+                  current: salesComparison.currentTotal,
+                  previous: salesComparison.previousTotal,
+                },
+              ]}
               bars={[
-                { dataKey: "sales", fill: "#8884d8", name: "Current Period" },
-                { dataKey: "profit", fill: "#82ca9d", name: "Previous Period" },
+                { dataKey: "current", fill: "#8884d8", name: "Current Period" },
+                { dataKey: "previous", fill: "#82ca9d", name: "Previous Period" },
               ]}
             />
           </CardContent>
@@ -97,14 +114,6 @@ export default function SalesReportTab({
         categoryPerformance={categoryPerformance}
         isLoading={isLoading}
       />
-    </div>
-  );
-}
-
-function LoadingPlaceholder() {
-  return (
-    <div className="h-80 flex items-center justify-center">
-      <p>Loading data...</p>
     </div>
   );
 }

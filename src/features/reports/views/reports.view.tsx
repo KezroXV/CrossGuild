@@ -1,15 +1,33 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import ReportFilters from "@/features/reports/components/report-filters.component";
-import SalesReportTab from "@/features/reports/components/sales-report-tab.component";
-import ProductsReportTab from "@/features/reports/components/products-report-tab.component";
-import CustomersReportTab from "@/features/reports/components/customers-report-tab.component";
-import OrdersReportTab from "@/features/reports/components/orders-report-tab.component";
-import CustomReportBuilder from "@/features/reports/components/custom-report-builder.component";
+import ReportLoading from "@/features/reports/components/report-loading.component";
 import { useReports } from "@/features/reports/hooks/use-reports.hook";
 import { exportReportCsv } from "@/features/reports/services/report.service";
+
+const SalesReportTab = dynamic(
+  () => import("@/features/reports/components/sales-report-tab.component"),
+  { loading: () => <ReportLoading /> }
+);
+const ProductsReportTab = dynamic(
+  () => import("@/features/reports/components/products-report-tab.component"),
+  { loading: () => <ReportLoading /> }
+);
+const CustomersReportTab = dynamic(
+  () => import("@/features/reports/components/customers-report-tab.component"),
+  { loading: () => <ReportLoading /> }
+);
+const OrdersReportTab = dynamic(
+  () => import("@/features/reports/components/orders-report-tab.component"),
+  { loading: () => <ReportLoading /> }
+);
+const CustomReportBuilder = dynamic(
+  () => import("@/features/reports/components/custom-report-builder.component"),
+  { loading: () => <ReportLoading height={120} message="Loading builder..." /> }
+);
 
 export default function ReportsView() {
   const {
@@ -24,6 +42,7 @@ export default function ReportsView() {
     refetch,
     salesData,
     categoryData,
+    salesComparison,
     productData,
     profitabilityData,
     customerData,
@@ -84,6 +103,7 @@ export default function ReportsView() {
             salesData={salesData}
             categoryData={categoryData}
             categoryPerformance={categoryPerformance}
+            salesComparison={salesComparison}
             onExport={() => exportReportCsv("sales", exportData)}
           />
         </TabsContent>

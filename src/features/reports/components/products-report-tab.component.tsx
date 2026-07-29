@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import ExportButton from "@/features/reports/components/export-button.component";
+import ProfitabilityTable from "@/features/reports/components/profitability-table.component";
+import ReportLoading from "@/features/reports/components/report-loading.component";
 import { ReportBarChart } from "@/features/reports/components/report-chart.component";
 import type {
   ProductDataPoint,
@@ -63,7 +65,7 @@ export default function ProductsReportTab({
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <LoadingPlaceholder height={200} />
+              <ReportLoading height={200} />
             ) : (
               <ReportBarChart
                 data={productData.slice(0, 5)}
@@ -87,76 +89,9 @@ export default function ProductsReportTab({
           />
         </CardHeader>
         <CardContent>
-          <ProfitabilityTable
-            isLoading={isLoading}
-            data={profitabilityData}
-          />
+          <ProfitabilityTable isLoading={isLoading} data={profitabilityData} />
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function ProfitabilityTable({
-  isLoading,
-  data,
-}: {
-  isLoading: boolean;
-  data: ProfitabilityData[];
-}) {
-  if (isLoading) {
-    return (
-      <div className="h-40 flex items-center justify-center">
-        <p>Loading profitability data...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative overflow-x-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="text-xs uppercase bg-gray-50">
-          <tr>
-            <th className="px-6 py-3">Product</th>
-            <th className="px-6 py-3">Cost</th>
-            <th className="px-6 py-3">Price</th>
-            <th className="px-6 py-3">Margin</th>
-            <th className="px-6 py-3">Margin %</th>
-            <th className="px-6 py-3">Total Profit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
-            <tr className="bg-white border-b">
-              <td colSpan={6} className="px-6 py-4 text-center">
-                No profitability data available
-              </td>
-            </tr>
-          ) : (
-            data.map((product) => (
-              <tr key={product.id} className="bg-white border-b">
-                <td className="px-6 py-4">{product.name}</td>
-                <td className="px-6 py-4">€{product.cost}</td>
-                <td className="px-6 py-4">€{product.price}</td>
-                <td className="px-6 py-4">€{product.margin}</td>
-                <td className="px-6 py-4">{product.marginPercentage}%</td>
-                <td className="px-6 py-4">€{product.totalProfit}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function LoadingPlaceholder({ height = 300 }: { height?: number }) {
-  return (
-    <div
-      className="flex items-center justify-center"
-      style={{ height }}
-    >
-      <p>Loading data...</p>
     </div>
   );
 }

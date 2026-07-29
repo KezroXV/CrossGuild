@@ -41,6 +41,7 @@ export function useReports() {
     refetch,
     salesData: data?.salesData ?? [],
     categoryData: data?.categoryData ?? [],
+    salesComparison: data?.salesComparison ?? null,
     productData: data?.productData ?? [],
     profitabilityData: data?.profitabilityData ?? [],
     customerData: data?.customerData ?? [],
