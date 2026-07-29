@@ -1,87 +1,45 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
+
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import axios from "axios";
+import { useContactInfo } from "@/features/cms/hooks/use-contact-info.hook";
+import type { ContactInfo } from "@/features/cms/types/cms.type";
 
-interface ContactInfo {
-  id: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
-  phone1: string;
-  phone2?: string | null;
-  email1: string;
-  email2?: string | null;
-  businessHours: string;
-  mapEmbedUrl: string;
-}
+const emptyContactInfo: ContactInfo = {
+  id: "",
+  address: "",
+  city: "",
+  postalCode: "",
+  country: "",
+  phone1: "",
+  phone2: "",
+  email1: "",
+  email2: "",
+  businessHours: "",
+  mapEmbedUrl: "",
+};
 
 export default function ContactInfoEditor() {
-  const [contactInfo, setContactInfo] = useState<ContactInfo>({
-    id: "",
-    address: "",
-    city: "",
-    postalCode: "",
-    country: "",
-    phone1: "",
-    phone2: "",
-    email1: "",
-    email2: "",
-    businessHours: "",
-    mapEmbedUrl: "",
-  });
-
-  const [loading, setLoading] = useState({
-    fetch: false,
-    submit: false,
-  });
+  const { contactInfo, isLoading, isSubmitting, updateContactInfo } =
+    useContactInfo();
+  const [form, setForm] = useState<ContactInfo>(emptyContactInfo);
 
   useEffect(() => {
-    fetchContactInfo();
-  }, []);
-
-  const fetchContactInfo = async () => {
-    setLoading({ ...loading, fetch: true });
-    try {
-      const response = await axios.get("/api/content/contact-info");
-      setContactInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching contact info:", error);
-      toast.error("Unable to load contact information. Creating a new entry.");
-    } finally {
-      setLoading({ ...loading, fetch: false });
-    }
-  };
+    if (contactInfo) setForm(contactInfo);
+  }, [contactInfo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading({ ...loading, submit: true });
+    await updateContactInfo(form);
+  };
 
-    try {
-      const response = await axios.put(
-        "/api/content/contact-info",
-        contactInfo
-      );
-
-      if (response.status === 200) {
-        setContactInfo(response.data);
-        toast.success("Contact information updated successfully");
-      } else {
-        toast.error("Failed to update contact information");
-      }
-    } catch (error) {
-      console.error("Error updating contact info:", error);
-      toast.error("An error occurred while updating contact information");
-    } finally {
-      setLoading({ ...loading, submit: false });
-    }
+  const update = (field: keyof ContactInfo, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -92,7 +50,7 @@ export default function ContactInfoEditor() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading.fetch ? (
+        {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -103,10 +61,8 @@ export default function ContactInfoEditor() {
                 <Label htmlFor="address">Street Address</Label>
                 <Input
                   id="address"
-                  value={contactInfo.address}
-                  onChange={(e) =>
-                    setContactInfo({ ...contactInfo, address: e.target.value })
-                  }
+                  value={form.address}
+                  onChange={(e) => update("address", e.target.value)}
                   placeholder="123 Commerce Street"
                 />
               </div>
@@ -116,10 +72,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="city">City</Label>
                   <Input
                     id="city"
-                    value={contactInfo.city}
-                    onChange={(e) =>
-                      setContactInfo({ ...contactInfo, city: e.target.value })
-                    }
+                    value={form.city}
+                    onChange={(e) => update("city", e.target.value)}
                     placeholder="Paris"
                   />
                 </div>
@@ -127,13 +81,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
                     id="postalCode"
-                    value={contactInfo.postalCode}
-                    onChange={(e) =>
-                      setContactInfo({
-                        ...contactInfo,
-                        postalCode: e.target.value,
-                      })
-                    }
+                    value={form.postalCode}
+                    onChange={(e) => update("postalCode", e.target.value)}
                     placeholder="75000"
                   />
                 </div>
@@ -141,13 +90,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="country">Country</Label>
                   <Input
                     id="country"
-                    value={contactInfo.country}
-                    onChange={(e) =>
-                      setContactInfo({
-                        ...contactInfo,
-                        country: e.target.value,
-                      })
-                    }
+                    value={form.country}
+                    onChange={(e) => update("country", e.target.value)}
                     placeholder="France"
                   />
                 </div>
@@ -158,10 +102,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="phone1">Phone Number 1</Label>
                   <Input
                     id="phone1"
-                    value={contactInfo.phone1}
-                    onChange={(e) =>
-                      setContactInfo({ ...contactInfo, phone1: e.target.value })
-                    }
+                    value={form.phone1}
+                    onChange={(e) => update("phone1", e.target.value)}
                     placeholder="+33 (0)1 23 45 67 89"
                   />
                 </div>
@@ -169,10 +111,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="phone2">Phone Number 2 (Optional)</Label>
                   <Input
                     id="phone2"
-                    value={contactInfo.phone2 || ""}
-                    onChange={(e) =>
-                      setContactInfo({ ...contactInfo, phone2: e.target.value })
-                    }
+                    value={form.phone2 || ""}
+                    onChange={(e) => update("phone2", e.target.value)}
                     placeholder="+33 (0)9 87 65 43 21"
                   />
                 </div>
@@ -183,10 +123,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="email1">Email 1</Label>
                   <Input
                     id="email1"
-                    value={contactInfo.email1}
-                    onChange={(e) =>
-                      setContactInfo({ ...contactInfo, email1: e.target.value })
-                    }
+                    value={form.email1}
+                    onChange={(e) => update("email1", e.target.value)}
                     placeholder="contact@crossguild.com"
                     type="email"
                   />
@@ -195,10 +133,8 @@ export default function ContactInfoEditor() {
                   <Label htmlFor="email2">Email 2 (Optional)</Label>
                   <Input
                     id="email2"
-                    value={contactInfo.email2 || ""}
-                    onChange={(e) =>
-                      setContactInfo({ ...contactInfo, email2: e.target.value })
-                    }
+                    value={form.email2 || ""}
+                    onChange={(e) => update("email2", e.target.value)}
                     placeholder="support@crossguild.com"
                     type="email"
                   />
@@ -209,13 +145,8 @@ export default function ContactInfoEditor() {
                 <Label htmlFor="businessHours">Business Hours</Label>
                 <Textarea
                   id="businessHours"
-                  value={contactInfo.businessHours}
-                  onChange={(e) =>
-                    setContactInfo({
-                      ...contactInfo,
-                      businessHours: e.target.value,
-                    })
-                  }
+                  value={form.businessHours}
+                  onChange={(e) => update("businessHours", e.target.value)}
                   placeholder="Monday - Friday: 9am - 6pm&#10;Saturday: 10am - 4pm&#10;Sunday: Closed"
                   rows={3}
                 />
@@ -228,13 +159,8 @@ export default function ContactInfoEditor() {
                 <Label htmlFor="mapEmbedUrl">Google Maps Embed URL</Label>
                 <Input
                   id="mapEmbedUrl"
-                  value={contactInfo.mapEmbedUrl}
-                  onChange={(e) =>
-                    setContactInfo({
-                      ...contactInfo,
-                      mapEmbedUrl: e.target.value,
-                    })
-                  }
+                  value={form.mapEmbedUrl}
+                  onChange={(e) => update("mapEmbedUrl", e.target.value)}
                   placeholder="https://www.google.com/maps/embed?pb=..."
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -243,22 +169,23 @@ export default function ContactInfoEditor() {
                 </p>
               </div>
 
-              {contactInfo.mapEmbedUrl && (
+              {form.mapEmbedUrl && (
                 <div className="aspect-square max-h-[300px] w-full overflow-hidden rounded-md border">
                   <iframe
-                    src={contactInfo.mapEmbedUrl}
+                    src={form.mapEmbedUrl}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
-                  ></iframe>
+                    title="Map preview"
+                  />
                 </div>
               )}
             </div>
 
-            <Button type="submit" disabled={loading.submit}>
-              {loading.submit ? (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Updating...
