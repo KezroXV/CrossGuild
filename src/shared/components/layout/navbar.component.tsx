@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useCartCount } from "@/features/cart/hooks/use-cart.hook";
+import { useWishlistCount } from "@/features/wishlist/hooks/use-wishlist.hook";
 import logo from "@/public/CrossGuild.svg";
 import logoDark from "@/public/CrossGuild-dark.svg";
 import {
@@ -24,7 +25,7 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { count: cartItemCount } = useCartCount();
-  const [wishlistItemCount, setWishlistItemCount] = useState(0);
+  const { count: wishlistItemCount } = useWishlistCount();
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -36,34 +37,6 @@ export const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  useEffect(() => {
-    const fetchWishlistCount = async () => {
-      if (!session?.user) {
-        setWishlistItemCount(0);
-        return;
-      }
-
-      try {
-        const wishlistResponse = await fetch("/api/wishlist/count");
-        if (wishlistResponse.ok) {
-          const wishlistData = await wishlistResponse.json();
-          setWishlistItemCount(wishlistData.count);
-        } else {
-          setWishlistItemCount(0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch wishlist count:", error);
-        setWishlistItemCount(0);
-      }
-    };
-
-    fetchWishlistCount();
-
-    const intervalId = setInterval(fetchWishlistCount, 30000);
-
-    return () => clearInterval(intervalId);
-  }, [session]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

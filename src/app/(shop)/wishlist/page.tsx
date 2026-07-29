@@ -1,6 +1,8 @@
-import Wishlist from "@/shared/components/wishlist";
-import React from "react";
+import type { Metadata } from "next";
+import WishlistView from "@/features/wishlist/views/wishlist.view";
+
+export const metadata: Metadata = { title: "Wishlist | CrossGuild" };
 
 export default function WishlistPage() {
-  return <Wishlist />;
+  return <WishlistView />;
 }
