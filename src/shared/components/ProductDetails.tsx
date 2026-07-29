@@ -14,7 +14,6 @@ import { Input } from "@/shared/components/ui/input";
 import { toast } from "sonner"; // Import de Sonner pour les notifications
 import { useRouter } from "next/navigation";
 import AddToCompareButton from "@/shared/components/AddToCompareButton";
-import ProductReviews from "@/shared/components/ProductReviews";
 import RelatedProducts from "@/shared/components/RelatedProducts";
 
 interface ProductOption {
@@ -638,11 +637,6 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Reviews Section */}
-      <div className="mt-16">
-        <ProductReviews productId={product.id} productName={product.name} />
       </div>
 
       {/* Related Products Section */}

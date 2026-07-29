@@ -1,5 +1,5 @@
 import { HeroSection } from "@/shared/components/HeroSection";
-import Reviews from "@/shared/components/reviews";
+import ReviewTestimonials from "@/features/reviews/components/review-testimonials.component";
 import { TopSellingGamingGear } from "@/shared/components/TopSellingGamingGear";
 import { auth } from "@/shared/lib/auth";
 import Offres from "@/shared/components/offres";
@@ -19,7 +19,7 @@ export default async function Home() {
 
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
 
-      <Reviews />
+      <ReviewTestimonials />
 
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-8"></div>
 
