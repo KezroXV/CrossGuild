@@ -1,46 +1,33 @@
 "use client";
 
-import { AdminSidebar } from "@/shared/components/admin/admin-sidebar";
+import { useEffect, useState } from "react";
+import { AdminSidebar } from "@/shared/components/layout/admin-sidebar.component";
 import { SidebarProvider, SidebarInset } from "@/shared/components/ui/sidebar";
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const [defaultOpen, setDefaultOpen] = useState(true);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      window.location.href = "/login";
-    } else if (status === "authenticated" && !session?.user?.isAdmin) {
-      window.location.href = "/";
-    }
-  }, [session, status]);
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (status === "authenticated" && session?.user?.isAdmin) {
     const savedState = localStorage.getItem("sidebar-state");
-    const initialState = savedState !== null ? savedState === "true" : true;
+    if (savedState !== null) {
+      setDefaultOpen(savedState === "true");
+    }
+  }, []);
 
-    return (
-      <SidebarProvider defaultOpen={initialState}>
-        <div className="flex min-h-screen">
-          <AdminSidebar />
-          <SidebarInset>
-            <main className="flex-1 p-6">
-              <div className="container mx-auto">{children}</div>
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    );
-  }
-
-  return null;
+  return (
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <div className="flex min-h-screen">
+        <AdminSidebar />
+        <SidebarInset>
+          <main className="flex-1 p-6">
+            <div className="container mx-auto">{children}</div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
 }

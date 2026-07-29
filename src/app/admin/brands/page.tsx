@@ -1,9 +1,5 @@
-import { Brands } from "./brands";
+import BrandsView from "@/features/admin/views/brands.view";
 
-export default function BrandsPage() {
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <Brands />
-    </div>
-  );
+export default function AdminBrandsPage() {
+  return <BrandsView />;
 }

@@ -72,7 +72,6 @@ const adminNavItems = [
     href: "/admin/reports",
     icon: <BarChart3 />,
   },
-
   {
     title: "Content Management",
     href: "/admin/content-management",
@@ -85,7 +84,6 @@ export function AdminSidebar() {
   const { data: session } = useSession();
   const { open, setOpen } = useSidebar();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSidebarChange = (newState: boolean) => {
     setOpen(newState);
     localStorage.setItem("sidebar-state", String(newState));
@@ -102,6 +100,7 @@ export function AdminSidebar() {
           "absolute right-[-40px] top-4 z-50 h-8 w-8",
           "hover:bg-accent/50"
         )}
+        onClick={() => handleSidebarChange(!open)}
       />
       <Sidebar
         variant="inset"
@@ -126,7 +125,7 @@ export function AdminSidebar() {
         </SidebarHeader>
         <SidebarContent className="px-2">
           <SidebarMenu>
-            {adminNavItems?.map((item) => (
+            {adminNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
