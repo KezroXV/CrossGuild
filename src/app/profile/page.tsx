@@ -67,7 +67,7 @@ import {
 } from "@/shared/components/ui/alert-dialog";
 import { Home } from "lucide-react"; // Import Home icon
 import Link from "next/link";
-import { Navbar } from "@/shared/components/navbar";
+import { Navbar } from "@/shared/components/layout/navbar.component";
 import Image from "next/image";
 // Form schemas
 const personalInfoSchema = z.object({

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/shared/lib/auth";
 import { getCount } from "@/features/wishlist/server/wishlist.server";
-import { handleApiError } from "@/shared/lib/handle-api-error";
 
 export async function GET() {
   try {

@@ -4,9 +4,6 @@ import { AdminSidebar } from "@/shared/components/admin/admin-sidebar";
 import { SidebarProvider, SidebarInset } from "@/shared/components/ui/sidebar";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
 
 export default function AdminLayout({
   children,
@@ -32,18 +29,16 @@ export default function AdminLayout({
     const initialState = savedState !== null ? savedState === "true" : true;
 
     return (
-      <QueryClientProvider client={queryClient}>
-        <SidebarProvider defaultOpen={initialState}>
-          <div className="flex min-h-screen">
-            <AdminSidebar />
-            <SidebarInset>
-              <main className="flex-1 p-6">
-                <div className="container mx-auto">{children}</div>
-              </main>
-            </SidebarInset>
-          </div>
-        </SidebarProvider>
-      </QueryClientProvider>
+      <SidebarProvider defaultOpen={initialState}>
+        <div className="flex min-h-screen">
+          <AdminSidebar />
+          <SidebarInset>
+            <main className="flex-1 p-6">
+              <div className="container mx-auto">{children}</div>
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     );
   }
 

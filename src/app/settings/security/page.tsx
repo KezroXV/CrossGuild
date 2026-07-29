@@ -13,8 +13,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { Laptop, Smartphone, Lock, Globe, X } from "lucide-react";
 import Link from "next/link";
-import { Navbar } from "@/shared/components/navbar";
-import FooterSection from "@/shared/components/footer";
+import { Navbar } from "@/shared/components/layout/navbar.component";
+import FooterSection from "@/shared/components/layout/footer.component";
 
 type Session = {
   id: string;
