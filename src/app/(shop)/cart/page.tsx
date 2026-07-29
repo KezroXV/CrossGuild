@@ -1,14 +1,8 @@
-"use client";
-import Cart from "@/shared/components/cart-new";
+import type { Metadata } from "next";
+import CartView from "@/features/cart/views/cart.view";
 
-const CartPage = () => {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        <Cart />
-      </div>
-    </div>
-  );
-};
+export const metadata: Metadata = { title: "Cart | CrossGuild" };
 
-export default CartPage;
+export default function CartPage() {
+  return <CartView />;
+}
