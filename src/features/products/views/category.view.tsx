@@ -13,6 +13,16 @@ export default function CategoryView({
   category,
   filterConfig,
 }: CategoryViewProps) {
+  if (!category.items.length) {
+    return (
+      <div className="container mx-auto px-4 py-8 mt-20">
+        <div className="text-center">
+          <p>No items found in this category.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 pt-28">
       <div className="mb-8">

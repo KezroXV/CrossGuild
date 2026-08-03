@@ -9,53 +9,37 @@ import {
 } from "@radix-ui/react-accordion";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import {
+  fetchPublishedFaqs,
+  submitFaqQuestion,
+  type PublishedFaq,
+} from "@/features/cms/services/cms.service";
 import arrow from "@/public/Vector.png";
 import { toast } from "sonner";
-
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string | null;
-  isPublished: boolean;
-}
 
 const Faqs = () => {
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [messageSent, setMessageSent] = useState(false);
   const [question, setQuestion] = useState("");
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [faqs, setFaqs] = useState<PublishedFaq[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchPublishedFaqs();
-  }, []);
-
-  const fetchPublishedFaqs = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get("/api/admin/reviews", {
-        params: { type: "faqs" },
-      });
-
-      // Defensive programming - ensure we have an array of FAQs
-      if (response.data && response.data.faqs) {
-        // Filter only published FAQs with answers for the public view
-        const publishedFaqs = response.data.faqs.filter(
-          (faq: FAQ) => faq.isPublished && faq.answer
-        );
+    const loadFaqs = async () => {
+      setLoading(true);
+      try {
+        const publishedFaqs = await fetchPublishedFaqs();
         setFaqs(publishedFaqs);
-      } else {
-        console.error("No FAQs found in response:", response.data);
-        setFaqs([]); // Initialize with empty array if no data
+      } catch (error) {
+        console.error("Failed to fetch FAQs", error);
+        setFaqs([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch FAQs", error);
-      setFaqs([]); // Set empty array on error
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    loadFaqs();
+  }, []);
 
   const handleToggle = (item: string) => {
     setOpenItem(openItem === item ? null : item);
@@ -68,7 +52,7 @@ const Faqs = () => {
     }
 
     try {
-      await axios.patch("/api/admin/reviews", { question });
+      await submitFaqQuestion(question);
       setMessageSent(true);
       setQuestion("");
       toast.success("Your question has been sent successfully!");

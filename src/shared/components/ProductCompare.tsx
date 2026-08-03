@@ -15,6 +15,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { addToCartItem } from "@/features/cart/services/cart.service";
 
 interface Product {
   id: string;
@@ -80,22 +81,7 @@ const ProductCompare = () => {
   // Function to handle adding to cart
   const handleAddToCart = async (product: Product) => {
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          itemId: product.id,
-          quantity: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add item to cart");
-      }
-
-      const data = await response.json();
+      const data = await addToCartItem(product.id, 1);
 
       if (data.success) {
         toast.success(`${product.name} added to cart`);

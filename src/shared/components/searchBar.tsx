@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import Image from "next/image";
 import { cn } from "@/shared/lib/utils";
+import { searchProducts as searchProductsApi } from "@/features/products/services/product.service";
 
 type Product = {
   id: string;
@@ -37,22 +38,21 @@ const SearchBar = () => {
   }, []);
 
   useEffect(() => {
-    const searchProducts = async () => {
+    const runSearch = async () => {
       if (debouncedSearch.length < 2) {
         setProducts([]);
         return;
       }
 
       try {
-        const response = await fetch(`/api/search?q=${debouncedSearch}`);
-        const data = await response.json();
+        const data = await searchProductsApi(debouncedSearch);
         setProducts(data.products);
       } catch (error) {
         console.error("Search failed:", error);
       }
     };
 
-    searchProducts();
+    runSearch();
   }, [debouncedSearch]);
 
   const handleSelect = (product: Product) => {

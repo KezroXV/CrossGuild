@@ -79,3 +79,25 @@ export async function resetPassword(token: string, password: string) {
 
   return json;
 }
+
+export type DevPasswordResetToken = {
+  id: string;
+  email: string;
+  expires: string;
+  createdAt: string;
+  token: string;
+  resetUrl: string;
+};
+
+export async function fetchDevPasswordResetTokens(): Promise<
+  DevPasswordResetToken[]
+> {
+  const res = await fetch(`${API_BASE_URL}/api/dev/password-reset-tokens`);
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.error || "Failed to fetch tokens");
+  }
+
+  return json.tokens as DevPasswordResetToken[];
+}

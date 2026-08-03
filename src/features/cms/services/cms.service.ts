@@ -126,3 +126,31 @@ export async function updateSocialLinks(
   });
   return parseResponse<SocialLinks>(res);
 }
+
+export type PublishedFaq = {
+  id: string;
+  question: string;
+  answer: string | null;
+  isPublished: boolean;
+};
+
+export async function fetchPublishedFaqs(): Promise<PublishedFaq[]> {
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reviews?type=faqs`,
+    { credentials: "include" }
+  );
+
+  const data = await parseResponse<{ faqs?: PublishedFaq[] }>(res);
+  return (data.faqs ?? []).filter((faq) => faq.isPublished && faq.answer);
+}
+
+export async function submitFaqQuestion(question: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/admin/reviews`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  });
+
+  await parseResponse<{ faq: PublishedFaq }>(res);
+}

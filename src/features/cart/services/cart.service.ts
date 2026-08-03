@@ -34,15 +34,20 @@ export async function fetchCartCount(): Promise<CartCountResponse> {
   return parseResponse<CartCountResponse>(res);
 }
 
-export async function addToCartItem(itemId: string, quantity = 1) {
+export async function addToCartItem(
+  itemId: string,
+  quantity = 1,
+  options?: { optionId: string; value: string }[]
+) {
   const res = await fetch(`${API_BASE_URL}/api/cart`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemId, quantity }),
+    body: JSON.stringify({ itemId, quantity, ...(options && { options }) }),
+    cache: "no-store",
   });
 
-  return parseResponse<{ success: boolean }>(res);
+  return parseResponse<{ success: boolean; error?: string }>(res);
 }
 
 export async function updateCartItemQuantity(itemId: string, quantity: number) {

@@ -3,6 +3,12 @@
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { addToCartItem } from "@/features/cart/services/cart.service";
+import {
+  checkWishlistItem,
+  addWishlistItem,
+  removeWishlistItem,
+} from "@/features/wishlist/services/wishlist.service";
 import type { ProductDetailItem } from "@/features/products/types/product.type";
 
 export function useProductDetail(product: ProductDetailItem) {
@@ -29,13 +35,8 @@ export function useProductDetail(product: ProductDetailItem) {
 
     const checkWishlistStatus = async () => {
       try {
-        const response = await fetch(
-          `/api/wishlist/check?itemId=${product.id}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setIsInWishlist(data.inWishlist);
-        }
+        const data = await checkWishlistItem(product.id);
+        setIsInWishlist(data.inWishlist);
       } catch (error) {
         console.error("Error checking wishlist status:", error);
       }
@@ -60,23 +61,7 @@ export function useProductDetail(product: ProductDetailItem) {
   };
 
   const addToCart = async () => {
-    const response = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        itemId: product.id,
-        quantity,
-        options: selectedOptionsPayload,
-      }),
-      cache: "no-store",
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Échec de l'ajout au panier");
-    }
-
-    return data;
+    return addToCartItem(product.id, quantity, selectedOptionsPayload);
   };
 
   const handleAddToCart = async () => {
@@ -124,26 +109,10 @@ export function useProductDetail(product: ProductDetailItem) {
     try {
       setIsAddingToWishlist(true);
 
-      const method = isInWishlist ? "DELETE" : "POST";
-      const url = isInWishlist
-        ? `/api/wishlist?itemId=${product.id}`
-        : "/api/wishlist";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body:
-          method === "POST"
-            ? JSON.stringify({ itemId: product.id })
-            : undefined,
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`
-        );
+      if (isInWishlist) {
+        await removeWishlistItem(product.id);
+      } else {
+        await addWishlistItem(product.id);
       }
 
       setIsInWishlist(!isInWishlist);

@@ -1,8 +1,5 @@
 import prisma from "@/shared/lib/prisma";
-import {
-  resolveDateRange,
-  type ReportDateParams,
-} from "@/features/reports/server/report-utils.server";
+import { type ReportDateParams } from "@/features/reports/server/report-utils.server";
 
 function getCustomerMetricsDateRange(
   timeframe: string,

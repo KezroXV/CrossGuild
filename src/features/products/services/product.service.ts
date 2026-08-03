@@ -50,3 +50,42 @@ export async function searchProducts(query: string) {
 
   return res.json();
 }
+
+export async function fetchCategories() {
+  const res = await fetch(`${API_BASE_URL}/api/categories`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  return res.json();
+}
+
+export type BrandListItem = {
+  id: string;
+  name: string;
+  logo: string;
+  description?: string;
+  itemCount: number;
+  slug: string;
+};
+
+export async function fetchBrands(): Promise<BrandListItem[]> {
+  const res = await fetch(`${API_BASE_URL}/api/brands`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch brands");
+  }
+
+  return res.json();
+}
+
+export async function fetchProductById(id: string) {
+  const res = await fetch(`${API_BASE_URL}/api/products/${id}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch product");
+  }
+
+  return res.json();
+}

@@ -15,23 +15,11 @@ export const metadata: Metadata = {
 
 export default async function ProductsPage() {
   const allItems = await getAllPublishedProducts();
-
   const items = allItems
     .filter((item) => item.category !== null)
-    .map((item) => ({
-      ...item,
-      category: item.category!,
-    })) as ProductListItem[];
+    .map((item) => ({ ...item, category: item.category! })) as ProductListItem[];
 
-  if (items.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8 mt-20">
-        <div className="text-center">
-          <p>No products found.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <ProductsView items={items} filterConfig={computeFilterConfig(items)} />;
+  return (
+    <ProductsView items={items} filterConfig={computeFilterConfig(items)} />
+  );
 }

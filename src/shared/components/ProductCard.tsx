@@ -13,6 +13,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
+import {
+  checkWishlistItem,
+  addWishlistItem,
+  removeWishlistItem,
+} from "@/features/wishlist/services/wishlist.service";
+import { addToCartItem } from "@/features/cart/services/cart.service";
 
 const slideFromBottom = {
   hidden: { opacity: 0, y: 20 },
@@ -43,11 +49,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   useEffect(() => {
     const checkWishlistStatus = async () => {
       try {
-        const response = await fetch(`/api/wishlist/check?itemId=${item.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setIsInWishlist(data.inWishlist);
-        }
+        const data = await checkWishlistItem(item.id);
+        setIsInWishlist(data.inWishlist);
       } catch (error) {
         console.error("Error checking wishlist status:", error);
       }
@@ -60,32 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          itemId: item.id,
-          quantity: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      const text = await response.text();
-      let data;
-
-      try {
-        // Tenter de parser le texte en JSON
-        data = JSON.parse(text);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (parseError) {
-        console.error("Failed to parse response:", text);
-        throw new Error("Invalid server response");
-      }
+      const data = await addToCartItem(item.id, 1);
 
       if (data.success) {
         router.push("/cart");
@@ -106,21 +84,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
 
     setIsAddingToWishlist(true);
     try {
-      const method = isInWishlist ? "DELETE" : "POST";
-      const url = isInWishlist
-        ? `/api/wishlist?itemId=${item.id}`
-        : "/api/wishlist";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body:
-          method === "POST" ? JSON.stringify({ itemId: item.id }) : undefined,
-      });
-
-      const data = await response.json();
+      const data = isInWishlist
+        ? await removeWishlistItem(item.id)
+        : await addWishlistItem(item.id);
 
       if (data.success) {
         setIsInWishlist(!isInWishlist);

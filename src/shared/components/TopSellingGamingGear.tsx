@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ProductCard from "@/shared/components/ProductCard";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { fetchPublishedProducts } from "@/features/products/services/product.service";
 
 interface Product {
   id: string;
@@ -32,11 +33,7 @@ export const TopSellingGamingGear = () => {
   useEffect(() => {
     const fetchTopSellingProducts = async () => {
       try {
-        const response = await fetch("/api/products?sort=topSelling");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await fetchPublishedProducts("topSelling");
         const sortedProducts = data
           .filter((product: Product) => product.topSelling > 0)
           .sort((a: Product, b: Product) => b.topSelling - a.topSelling)

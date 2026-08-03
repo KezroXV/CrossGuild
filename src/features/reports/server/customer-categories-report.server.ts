@@ -28,7 +28,14 @@ export async function getCustomerCategoriesReport(params: {
     },
   });
 
-  const categoryPurchases = new Map<string, any>();
+  type CategoryPurchase = {
+    name: string;
+    count: number;
+    revenue: number;
+    avgOrderValue: number;
+  };
+
+  const categoryPurchases = new Map<string, CategoryPurchase>();
   let totalItems = 0;
 
   orders.forEach((order) => {

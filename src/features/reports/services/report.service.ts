@@ -6,7 +6,6 @@ import type {
   CustomerSegments,
   CustomReportTimeframe,
   CustomReportType,
-  OrdersStats,
   ProductDataPoint,
   ProfitabilityData,
   ReportDateRange,

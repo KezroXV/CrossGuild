@@ -3,6 +3,7 @@ import { Button } from "@/shared/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { fetchCategoryHeroContent } from "@/features/cms/services/cms.service";
 
 interface CategoryHeroContent {
   id: string;
@@ -28,11 +29,8 @@ const HeroSection = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch("/api/content/category-hero");
-        if (response.ok) {
-          const data = await response.json();
-          setContent(data);
-        }
+        const data = await fetchCategoryHeroContent();
+        setContent(data);
       } catch (error) {
         console.error("Failed to fetch category hero content:", error);
       } finally {

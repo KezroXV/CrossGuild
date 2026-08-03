@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { fetchHeroContent } from "@/features/cms/services/cms.service";
 
 interface HeroContent {
   id: string;
@@ -33,11 +34,8 @@ export const HeroSection = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch("/api/content/hero");
-        if (response.ok) {
-          const data = await response.json();
-          setContent(data);
-        }
+        const data = await fetchHeroContent();
+        setContent(data);
       } catch (error) {
         console.error("Failed to fetch hero content:", error);
       } finally {

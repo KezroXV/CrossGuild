@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { fetchOffers as getOffers } from "@/features/cms/services/cms.service";
 
 const slideFromLeft = {
   hidden: { opacity: 0, x: -100 },
@@ -21,16 +22,10 @@ const ExclusiveDeals = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOffers = async () => {
+    const loadOffers = async () => {
       try {
-        const response = await fetch("/api/offers");
-
-        if (response.ok) {
-          const data = await response.json();
-          setOffers(data);
-        } else {
-          console.error("Failed to fetch offers:", response.statusText);
-        }
+        const data = await getOffers();
+        setOffers(data);
       } catch (error) {
         console.error("Failed to fetch offers:", error);
       } finally {
@@ -38,7 +33,7 @@ const ExclusiveDeals = () => {
       }
     };
 
-    fetchOffers();
+    loadOffers();
   }, []);
 
   if (isLoading) {

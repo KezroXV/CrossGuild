@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import axios from "axios";
+import { submitContactForm } from "@/features/contact/services/contact.service";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -61,11 +61,9 @@ export default function ContactForm() {
     setIsSubmitting(true);
 
     try {
-      // First try the dedicated contact API
       try {
-        await axios.post("/api/contact", data);
+        await submitContactForm(data);
       } catch (apiError) {
-        // If that fails, just show success anyway - we've logged the message
         console.log("Contact API error (showing success anyway):", apiError);
       }
 

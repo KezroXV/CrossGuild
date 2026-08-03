@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
+import { fetchCategories } from "@/features/products/services/product.service";
 
 interface Category {
   id: string;
@@ -20,10 +21,9 @@ const CategoriesSection = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const loadCategories = async () => {
       try {
-        const response = await fetch("/api/categories");
-        const data = await response.json();
+        const data = await fetchCategories();
         setCategories(data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -32,7 +32,7 @@ const CategoriesSection = () => {
       }
     };
 
-    fetchCategories();
+    loadCategories();
   }, []);
 
   if (isLoading) {

@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/ui/button";
 import { SplitSquareVertical } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { fetchProductById } from "@/features/products/services/product.service";
 
 interface AddToCompareButtonProps {
   product: {
@@ -43,15 +44,12 @@ const AddToCompareButton: React.FC<AddToCompareButtonProps> = ({
 
     // Otherwise fetch complete product data
     try {
-      const response = await fetch(`/api/products/${product.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          ...product,
-          brand: data.brand,
-          category: data.category,
-        };
-      }
+      const data = await fetchProductById(product.id);
+      return {
+        ...product,
+        brand: data.brand,
+        category: data.category,
+      };
     } catch (error) {
       console.error("Failed to fetch complete product data:", error);
     }
