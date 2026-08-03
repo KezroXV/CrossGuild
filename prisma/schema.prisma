@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrderStatus {
+  pending
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -62,7 +76,7 @@ model User {
 model Order {
   id          String      @id @default(cuid())
   userId      String
-  status      String      @default("pending")
+  status      OrderStatus @default(pending)
   createdAt   DateTime    @default(now())
   total       Float
   address     String?
@@ -76,6 +90,9 @@ model Order {
   postalCode  String?
   user        User        @relation(fields: [userId], references: [id])
   orderItems  OrderItem[]
+
+  @@index([userId])
+  @@index([status])
 }
 
 model Cart {
@@ -96,6 +113,8 @@ model CartItem {
   item      Item     @relation(fields: [itemId], references: [id])
 
   @@unique([cartId, itemId])
+  @@index([cartId])
+  @@index([itemId])
 }
 
 model OrderItem {
@@ -138,6 +157,10 @@ model Item {
   orderItems    OrderItem[]
   reviews       Review[]
   wishlistItems WishlistItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([brandId])
 }
 
 model WishlistItem {
@@ -160,14 +183,18 @@ model Image {
 }
 
 model Review {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   userId    String
   rating    Int
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
   content   String
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  status    ReviewStatus @default(pending)
+  item      Item         @relation(fields: [itemId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
+
+  @@index([itemId])
+  @@index([userId])
 }
 
 model VerificationToken {

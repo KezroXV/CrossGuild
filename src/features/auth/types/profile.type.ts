@@ -1,3 +1,5 @@
+import { OrderStatus } from "@prisma/client";
+
 export type ProfileUser = {
   id: string;
   name: string | null;
@@ -22,7 +24,7 @@ export type UserOrder = {
   orderNumber: string;
   createdAt: string;
   totalAmount: number;
-  status: string;
+  status: OrderStatus;
   items: UserOrderItem[];
 };
 

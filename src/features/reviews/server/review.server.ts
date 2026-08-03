@@ -1,4 +1,5 @@
 import prisma from "@/shared/lib/prisma";
+import { ReviewStatus } from "@prisma/client";
 import {
   ConflictError,
   ForbiddenError,
@@ -35,7 +36,7 @@ const adminReviewSelect = {
 
 async function updateProductAverageRating(itemId: string) {
   const ratings = await prisma.review.findMany({
-    where: { itemId },
+    where: { itemId, status: ReviewStatus.approved },
     select: { rating: true },
   });
 
@@ -52,7 +53,7 @@ async function updateProductAverageRating(itemId: string) {
 
 export async function getReviewsByProduct(itemId: string) {
   return prisma.review.findMany({
-    where: { itemId },
+    where: { itemId, status: ReviewStatus.approved },
     include: reviewUserInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -71,7 +72,7 @@ export async function createReview(
   itemId: string,
   rating: number,
   content: string,
-  options: { upsert?: boolean } = { upsert: true }
+  options: { upsert?: boolean; status?: ReviewStatus } = { upsert: true }
 ) {
   const [user, item] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
@@ -97,7 +98,7 @@ export async function createReview(
 
     const updatedReview = await prisma.review.update({
       where: { id: existingReview.id },
-      data: { rating, content },
+      data: { rating, content, status: ReviewStatus.pending },
       include: reviewUserInclude,
     });
 
@@ -106,7 +107,13 @@ export async function createReview(
   }
 
   const review = await prisma.review.create({
-    data: { userId, itemId, rating, content },
+    data: {
+      userId,
+      itemId,
+      rating,
+      content,
+      status: options.status ?? ReviewStatus.pending,
+    },
     include: options.upsert ? reviewUserInclude : { user: true, item: true },
   });
 

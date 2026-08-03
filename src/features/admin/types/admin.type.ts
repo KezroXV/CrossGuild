@@ -1,3 +1,5 @@
+import { OrderStatus } from "@prisma/client";
+
 export interface DashboardStats {
   totalUsers: number;
   totalOrders: number;
@@ -6,7 +8,7 @@ export interface DashboardStats {
   recentOrders: Array<{
     id: string;
     total: number;
-    status: string;
+    status: OrderStatus;
     user: { name: string };
   }>;
   newUsers: Array<{
@@ -106,7 +108,7 @@ export interface AdminOrderItem {
 export interface AdminOrder {
   id: string;
   total: number;
-  status: string;
+  status: OrderStatus;
   createdAt: string;
   city?: string;
   user?: {

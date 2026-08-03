@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { OrderStatus } from "@prisma/client";
 import { toast } from "sonner";
 import {
   fetchAdminOrderById,
@@ -20,7 +21,7 @@ export function useAdminOrders(page: number, pageSize: number) {
     queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: string }) =>
+    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
       updateAdminOrderStatus(orderId, status),
     onSuccess: () => invalidate(),
     onError: () => toast.error("Failed to update order status"),

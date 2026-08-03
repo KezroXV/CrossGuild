@@ -73,8 +73,7 @@ export function exportReportCsv(
         "Status,Count,Percentage\n" +
         `Delivered,${ordersStats.delivered},${Math.round((ordersStats.delivered / total) * 100)}%\n` +
         `In Progress,${ordersStats.inProgress},${Math.round((ordersStats.inProgress / total) * 100)}%\n` +
-        `Cancelled,${ordersStats.cancelled},${Math.round((ordersStats.cancelled / total) * 100)}%\n` +
-        `Returned,${ordersStats.returned},${Math.round((ordersStats.returned / total) * 100)}%\n`;
+        `Cancelled,${ordersStats.cancelled},${Math.round((ordersStats.cancelled / total) * 100)}%\n`;
       fileName = "orders-report.csv";
       break;
     }

@@ -87,7 +87,6 @@ export async function fetchReportsData(
           delivered: number;
           processing: number;
           cancelled: number;
-          returned: number;
         };
       }>(res)
     ),
@@ -115,7 +114,6 @@ export async function fetchReportsData(
       delivered: orderCounts?.delivered ?? 0,
       inProgress: orderCounts?.processing ?? 0,
       cancelled: orderCounts?.cancelled ?? 0,
-      returned: orderCounts?.returned ?? 0,
     },
     categoryPerformance: categoryPerformanceResult,
   };

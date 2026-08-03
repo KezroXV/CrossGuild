@@ -12,6 +12,7 @@ import {
   listAdminReviews,
   moderateReview,
 } from "@/features/reviews/server/review.server";
+import { ReviewStatus } from "@prisma/client";
 import { withAdmin } from "@/shared/lib/with-admin";
 import prisma from "@/shared/lib/prisma";
 import {
@@ -226,7 +227,7 @@ export const POST = withAdmin(async (request: NextRequest) => {
       body.itemId,
       body.rating,
       body.content,
-      { upsert: false }
+      { upsert: false, status: ReviewStatus.approved }
     );
 
     return NextResponse.json({ review: result.review }, { status: 201 });

@@ -1,8 +1,10 @@
+import { OrderStatus } from "@prisma/client";
+
 export type OrderColumn = {
   id: string;
   customerName: string;
   totalAmount: string;
-  status: string;
+  status: OrderStatus;
   paymentStatus: string;
   createdAt: string;
 };

@@ -16,7 +16,6 @@ export default function OrdersReportTab({ ordersStats }: OrdersReportTabProps) {
     { name: "Delivered", value: ordersStats.delivered, color: "#4BC0C0" },
     { name: "In Progress", value: ordersStats.inProgress, color: "#FFCE56" },
     { name: "Cancelled", value: ordersStats.cancelled, color: "#FF6384" },
-    { name: "Returned", value: ordersStats.returned, color: "#9966FF" },
   ];
 
   return (
@@ -36,9 +35,9 @@ export default function OrdersReportTab({ ordersStats }: OrdersReportTabProps) {
           className="text-yellow-600"
         />
         <StatCard
-          title="Cancelled/Returned"
-          value={`${ordersStats.cancelled + ordersStats.returned}`}
-          suffix={`(${pct(ordersStats.cancelled + ordersStats.returned)}%)`}
+          title="Cancelled"
+          value={`${ordersStats.cancelled}`}
+          suffix={`(${pct(ordersStats.cancelled)}%)`}
           className="text-red-600"
         />
       </div>

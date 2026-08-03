@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { OrderStatus } from "@prisma/client";
 import { toast } from "sonner";
 import {
   cancelUserOrder,
   fetchUserOrders,
 } from "@/features/auth/services/profile.service";
 import type { UserOrder } from "@/features/auth/types/profile.type";
+import {
+  getOrderStatusLabel,
+  isOrderCancellable,
+} from "@/features/orders/types/order.type";
+
+export { getOrderStatusLabel, isOrderCancellable };
 
 export const orderKeys = {
   all: ["user-orders"] as const,
@@ -38,7 +45,10 @@ export function useOrders(initialPage = 1) {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
 
       if (selectedOrder?.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: "CANCELLED" });
+        setSelectedOrder({
+          ...selectedOrder,
+          status: OrderStatus.cancelled,
+        });
       }
 
       setIsCancelDialogOpen(false);
@@ -89,29 +99,6 @@ export function useOrders(initialPage = 1) {
   };
 }
 
-export function isOrderCancellable(status: string) {
-  const normalized = status.toUpperCase();
-  return normalized === "PENDING" || normalized === "PROCESSING";
-}
-
 export function formatOrderAmount(value: number | undefined | null): string {
   return value !== undefined && value !== null ? value.toFixed(2) : "0.00";
-}
-
-export function getOrderStatusLabel(status: string): string {
-  const normalized = status.toUpperCase();
-  switch (normalized) {
-    case "PENDING":
-      return "Pending";
-    case "PROCESSING":
-      return "Processing";
-    case "SHIPPED":
-      return "Shipped";
-    case "DELIVERED":
-      return "Delivered";
-    case "CANCELLED":
-      return "Cancelled";
-    default:
-      return status;
-  }
 }

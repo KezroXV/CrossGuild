@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/config/config";
+import { OrderStatus } from "@prisma/client";
 import type {
   AdminBrand,
   AdminCategoriesResponse,
@@ -236,7 +237,7 @@ export async function fetchAdminOrderById(
 
 export async function updateAdminOrderStatus(
   orderId: string,
-  status: string
+  status: OrderStatus
 ) {
   const res = await fetch(`${API_BASE_URL}/api/admin/orders/${orderId}`, {
     method: "PATCH",

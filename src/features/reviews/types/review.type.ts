@@ -1,3 +1,23 @@
+import { ReviewStatus } from "@prisma/client";
+
+export { ReviewStatus };
+
+export const REVIEW_STATUSES = [
+  ReviewStatus.pending,
+  ReviewStatus.approved,
+  ReviewStatus.rejected,
+] as const;
+
+export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
+  [ReviewStatus.pending]: "Pending",
+  [ReviewStatus.approved]: "Approved",
+  [ReviewStatus.rejected]: "Rejected",
+};
+
+export function getReviewStatusLabel(status: ReviewStatus): string {
+  return REVIEW_STATUS_LABELS[status] ?? status;
+}
+
 export type ReviewUser = {
   name: string | null;
   image: string | null;

@@ -55,7 +55,6 @@ export function useReports() {
       delivered: 0,
       inProgress: 0,
       cancelled: 0,
-      returned: 0,
     },
     categoryPerformance: data?.categoryPerformance ?? {
       categoryPerformance: [],

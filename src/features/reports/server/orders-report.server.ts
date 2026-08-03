@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import prisma from "@/shared/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 import {
   resolveDateRange,
   type ReportDateParams,
@@ -22,16 +23,24 @@ export async function getOrdersReport(params: ReportDateParams = {}) {
     shippedOrders,
     deliveredOrders,
     cancelledOrders,
-    returnedOrders,
     orders,
   ] = await Promise.all([
     prisma.order.count({ where: dateFilter }),
-    prisma.order.count({ where: { ...dateFilter, status: "pending" } }),
-    prisma.order.count({ where: { ...dateFilter, status: "processing" } }),
-    prisma.order.count({ where: { ...dateFilter, status: "shipped" } }),
-    prisma.order.count({ where: { ...dateFilter, status: "delivered" } }),
-    prisma.order.count({ where: { ...dateFilter, status: "cancelled" } }),
-    prisma.order.count({ where: { ...dateFilter, status: "returned" } }),
+    prisma.order.count({
+      where: { ...dateFilter, status: OrderStatus.pending },
+    }),
+    prisma.order.count({
+      where: { ...dateFilter, status: OrderStatus.processing },
+    }),
+    prisma.order.count({
+      where: { ...dateFilter, status: OrderStatus.shipped },
+    }),
+    prisma.order.count({
+      where: { ...dateFilter, status: OrderStatus.delivered },
+    }),
+    prisma.order.count({
+      where: { ...dateFilter, status: OrderStatus.cancelled },
+    }),
     prisma.order.findMany({
       where: dateFilter,
       select: {
@@ -85,7 +94,6 @@ export async function getOrdersReport(params: ReportDateParams = {}) {
       shipped: shippedOrders,
       delivered: deliveredOrders,
       cancelled: cancelledOrders,
-      returned: returnedOrders,
     },
     dailyOrderData,
     deliveryStats: {

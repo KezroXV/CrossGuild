@@ -43,11 +43,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/shared/components/ui/pagination";
+import { OrderStatus } from "@prisma/client";
+import { formatOrderAmount } from "@/features/auth/hooks/use-orders.hook";
 import {
-  formatOrderAmount,
   getOrderStatusLabel,
   isOrderCancellable,
-} from "@/features/auth/hooks/use-orders.hook";
+} from "@/features/orders/types/order.type";
 import type { UserOrder } from "@/features/auth/types/profile.type";
 
 type OrderHistoryProps = {
@@ -67,19 +68,18 @@ type OrderHistoryProps = {
   isCancelling: boolean;
 };
 
-function OrderStatusBadge({ status }: { status: string }) {
-  const normalized = status.toUpperCase();
+function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const label = getOrderStatusLabel(status);
 
-  switch (normalized) {
-    case "PENDING":
+  switch (status) {
+    case OrderStatus.pending:
       return <Badge variant="outline">{label}</Badge>;
-    case "PROCESSING":
+    case OrderStatus.processing:
       return <Badge variant="secondary">{label}</Badge>;
-    case "SHIPPED":
-    case "DELIVERED":
+    case OrderStatus.shipped:
+    case OrderStatus.delivered:
       return <Badge variant="default">{label}</Badge>;
-    case "CANCELLED":
+    case OrderStatus.cancelled:
       return <Badge variant="destructive">{label}</Badge>;
     default:
       return <Badge variant="outline">{label}</Badge>;

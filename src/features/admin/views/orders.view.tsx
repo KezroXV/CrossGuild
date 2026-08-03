@@ -28,16 +28,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { OrderStatus } from "@prisma/client";
 import { useAdminOrders } from "@/features/admin/hooks/use-admin-orders.hook";
 import type { AdminOrder } from "@/features/admin/types/admin.type";
+import { ORDER_STATUSES } from "@/features/orders/types/order.type";
 
-const STATUS_OPTIONS = [
-  "pending",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
-];
+const STATUS_OPTIONS = ORDER_STATUSES;
 
 export default function OrdersView() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,7 +154,10 @@ export default function OrdersView() {
                   <Select
                     value={order.status}
                     onValueChange={(value) =>
-                      updateOrderStatus({ orderId: order.id, status: value })
+                      updateOrderStatus({
+                        orderId: order.id,
+                        status: value as OrderStatus,
+                      })
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -182,7 +181,7 @@ export default function OrdersView() {
                       onClick={() =>
                         updateOrderStatus({
                           orderId: order.id,
-                          status: "delivered",
+                          status: OrderStatus.delivered,
                         })
                       }
                       className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white"

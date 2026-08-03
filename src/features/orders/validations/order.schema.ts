@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OrderStatus } from "@prisma/client";
 
 export const deliveryInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -25,7 +26,7 @@ export const adminOrdersPaginationSchema = z.object({
 });
 
 export const updateOrderSchema = z.object({
-  status: z.string().min(1).optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
   isPaid: z.boolean().optional(),
 });
 

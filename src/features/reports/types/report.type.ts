@@ -62,7 +62,6 @@ export type OrdersStats = {
   delivered: number;
   inProgress: number;
   cancelled: number;
-  returned: number;
 };
 
 export type CategoryPerformanceItem = {

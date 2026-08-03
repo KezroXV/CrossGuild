@@ -1,4 +1,5 @@
 import prisma from "@/shared/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 import {
   NotFoundError,
   ValidationError,
@@ -162,7 +163,7 @@ export async function createOrder(userId: string, deliveryInfo: DeliveryInfo) {
         postalCode: deliveryInfo.postalCode,
         country: deliveryInfo.country,
         total,
-        status: "pending",
+        status: OrderStatus.pending,
         orderItems: {
           create: cart.cartItems.map((cartItem) => ({
             itemId: cartItem.itemId,
@@ -249,15 +250,16 @@ export async function cancelOrder(userId: string, orderId: string) {
     throw new NotFoundError("Order not found");
   }
 
-  const normalizedStatus = order.status.toLowerCase();
-
-  if (normalizedStatus !== "pending" && normalizedStatus !== "processing") {
+  if (
+    order.status !== OrderStatus.pending &&
+    order.status !== OrderStatus.processing
+  ) {
     throw new ValidationError("This order cannot be cancelled anymore");
   }
 
   return prisma.order.update({
     where: { id: orderId },
-    data: { status: "CANCELLED" },
+    data: { status: OrderStatus.cancelled },
   });
 }
 
@@ -303,7 +305,7 @@ export async function getAdminOrderById(orderId: string) {
   return formatAdminOrder(order);
 }
 
-async function getOrderStatus(orderId: string): Promise<string | null> {
+async function getOrderStatus(orderId: string): Promise<OrderStatus | null> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: { status: true },
@@ -373,14 +375,14 @@ export async function updateAdminOrder(
     },
   });
 
-  if (data.status === "delivered" && prevStatus !== "delivered") {
+  if (data.status === OrderStatus.delivered && prevStatus !== OrderStatus.delivered) {
     await updateProductStock(order.orderItems);
   }
 
   if (
-    data.status === "cancelled" &&
-    prevStatus !== "cancelled" &&
-    prevStatus !== "pending"
+    data.status === OrderStatus.cancelled &&
+    prevStatus !== OrderStatus.cancelled &&
+    prevStatus !== OrderStatus.pending
   ) {
     await restoreProductStock(order.orderItems);
   }
