@@ -23,16 +23,27 @@ export async function middleware(req: NextRequest) {
     secret: process.env.AUTH_SECRET,
   });
   const isLoggedIn = !!token;
+  const isAdmin = token?.isAdmin === true;
 
   if (matchesRoute(pathname, AUTH_ROUTES) && isLoggedIn) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  const requiresAuth =
-    matchesRoute(pathname, ADMIN_ROUTES) ||
-    matchesRoute(pathname, PROTECTED_ROUTES);
+  if (matchesRoute(pathname, ADMIN_ROUTES)) {
+    if (!isLoggedIn) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
 
-  if (requiresAuth && !isLoggedIn) {
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    return NextResponse.next();
+  }
+
+  if (matchesRoute(pathname, PROTECTED_ROUTES) && !isLoggedIn) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);

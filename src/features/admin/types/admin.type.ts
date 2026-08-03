@@ -131,18 +131,7 @@ export interface AdminUser {
   email: string;
   image?: string;
   isAdmin: boolean;
-  role?: {
-    id: string;
-    name: string;
-    permissions: string[];
-  };
   createdAt: string;
-}
-
-export interface AdminRole {
-  id: string;
-  name: string;
-  permissions: string[];
 }
 
 export interface AdminUsersResponse {

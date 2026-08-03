@@ -56,7 +56,6 @@ model User {
   createdAt        DateTime       @default(now())
   emailVerified    DateTime?
   image            String?
-  roleId           String?
   address          String?
   city             String?
   country          String?
@@ -69,7 +68,6 @@ model User {
   orders           Order[]
   reviews          Review[]
   sessions         Session[]
-  role             Role?          @relation(fields: [roleId], references: [id])
   wishlistItems    WishlistItem[]
 }
 
@@ -222,15 +220,6 @@ model Category {
   createdAt   DateTime @default(now())
   image       String?
   items       Item[]
-}
-
-model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  permissions String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  users       User[]
 }
 
 model Brand {

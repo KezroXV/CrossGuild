@@ -23,7 +23,7 @@ import { Input } from "@/shared/components/ui/input";
 import { useAdminUsers } from "@/features/admin/hooks/use-admin-users.hook";
 
 export default function UsersView() {
-  const { users, roles, isLoading, updateUser, deleteUser } = useAdminUsers();
+  const { users, isLoading, updateUser, deleteUser } = useAdminUsers();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState("10");
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,18 +34,13 @@ export default function UsersView() {
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.role?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * pageSizeNum,
     currentPage * pageSizeNum
   );
-
-  const handleRoleChange = async (userId: string, roleId: string) => {
-    await updateUser({ id: userId, roleId: roleId || undefined });
-  };
 
   const handleAdminToggle = async (userId: string, isAdmin: boolean) => {
     await updateUser({ id: userId, isAdmin });
@@ -73,7 +68,6 @@ export default function UsersView() {
             <TableHead>Picture</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
             <TableHead>Admin</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Actions</TableHead>
@@ -92,26 +86,6 @@ export default function UsersView() {
               </TableCell>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Select
-                  value={user.role?.id || "none"}
-                  onValueChange={(value) =>
-                    handleRoleChange(user.id, value === "none" ? "" : value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No role</SelectItem>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TableCell>
               <TableCell>
                 <Switch
                   checked={user.isAdmin}

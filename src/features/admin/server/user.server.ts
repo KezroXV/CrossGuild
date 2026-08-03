@@ -4,9 +4,7 @@ import { ValidationError } from "@/shared/lib/handle-api-error";
 
 export async function listUsers() {
   return prisma.user.findMany({
-    include: {
-      role: true,
-    },
+    orderBy: { createdAt: "desc" },
   });
 }
 

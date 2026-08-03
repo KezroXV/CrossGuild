@@ -18,7 +18,6 @@ import type {
   AdminReview,
   AdminReviewFormInput,
   AdminReviewsResponse,
-  AdminRole,
   AdminUser,
   AdminUsersResponse,
   DashboardStats,
@@ -257,17 +256,8 @@ export async function fetchAdminUsers(): Promise<AdminUsersResponse> {
   return parseResponse<AdminUsersResponse>(res);
 }
 
-export async function fetchAdminRoles(): Promise<{ roles: AdminRole[] }> {
-  const res = await fetch(`${API_BASE_URL}/api/admin/roles`, {
-    credentials: "include",
-  });
-
-  return parseResponse<{ roles: AdminRole[] }>(res);
-}
-
 export async function updateAdminUser(input: {
   id: string;
-  roleId?: string;
   isAdmin?: boolean;
 }) {
   const res = await fetch(`${API_BASE_URL}/api/admin/users`, {

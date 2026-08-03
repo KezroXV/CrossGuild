@@ -91,7 +91,6 @@ export async function refreshSession(userId: string) {
       image: true,
       phone: true,
       isAdmin: true,
-      roleId: true,
     },
   });
 
