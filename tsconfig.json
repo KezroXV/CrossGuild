@@ -30,6 +30,10 @@
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
+    "e2e",
+    "playwright.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     ".next/types/app/api/**/*.ts",
     ".next/types/app/categories/**/*.ts",
     ".next/types/app/password-reset/**/*.ts",

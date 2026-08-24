@@ -18,10 +18,17 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-  });
+  let token = null;
+
+  try {
+    token = await getToken({
+      req,
+      secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    });
+  } catch (error) {
+    console.error("Middleware token lookup failed:", error);
+  }
+
   const isLoggedIn = !!token;
   const isAdmin = token?.isAdmin === true;
 
